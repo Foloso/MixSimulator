@@ -1,0 +1,5 @@
+centrals;tuneable;fuel;fuel_consumption;fuel_cost;availability;init_value;lifetime;carbon_cost;raw_power;nb_employees;mean_salary;Demand;lost
+Volobe;FALSE;Hydro;1;1;0.650887574;269750000;60;0;6.76;1;1E-10;29.48;9
+572;TRUE;FO;230000;0.000686;0.833333333;18400;16;13;12;1;0.000004;;
+573;TRUE;FO;230000;0.000686;0.833333333;18400;16;13;12;1;0.000004;;
+Betainomby;TRUE;GO/FO;230000;0.000686;0.440828402;64400;8;13;59.15;1;0.000004;;
