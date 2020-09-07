@@ -20,7 +20,7 @@ Official documentation will accompany the first release version.
 The dataset "data/dataset_RI_Toamasina" is for the test and it comes from the Inter-connected energy mix of Toamasina Madagascar (2018) and Some information from the dataset is estimated.
 
 # Contact
-For questions and feedback related to PowNet, please send an email to r.andry.rasoanaivo@gmail.com or soloforahamefy@gmail.com or tokyandriaxel@gmail.com
+For questions and feedbacks related to the project, please send an email to r.andry.rasoanaivo@gmail.com or soloforahamefy@gmail.com or tokyandriaxel@gmail.com
 
 # Note
 This project is a work in progress so it can not yet used in production (Many changes are on their way). Feedbacks are welcome!
