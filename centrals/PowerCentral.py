@@ -16,6 +16,13 @@ class PowerCentral:
         self.__tuneable = tuneable
         self.__fuel_cost = 0 #$/L
         self.__fuel_consumption = 0 #L/MWh
+        self.__isGreen  = False #bool
+
+    def setGreenEnergy(self, isGreen: bool):
+        self.__isGreen = isGreen
+
+    def isGreen(self):
+        return self.__isGreen
 
     def set_id(self,identity):
         self.__id=identity

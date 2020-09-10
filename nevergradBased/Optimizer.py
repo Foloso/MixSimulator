@@ -31,6 +31,17 @@ class Optimizer():
         return self.__budget
     
     def opt_OnePlusOne(self, func_to_optimize, constraints=None):
+        result = {}
+
+        # POSSIBLE??
+        if (constraints["production"](constraints["availability"]) < (constraints["demand"]+ constraints["lost"])):
+            result.update({"carbonCost": constraints["carbonCost"](constraints["availability"])})
+            result.update({"production": constraints["production"](constraints["availability"])})
+            result.update({"production cost": func_to_optimize(constraints["availability"])})
+            result.update({"coef": constraints["availability"]})
+            return result
+
+
         #optimization under constraints with OnePlusOnex
         optimizer = ng.optimizers.OnePlusOne(parametrization=self.get_parametrization(), budget=self.get_budget())
         if constraints != None:
@@ -54,16 +65,17 @@ class Optimizer():
             except:
                 pass
             try:
-                default_tuneability = np.array([1]*len(constraints["availability"])).astype("float64")
+                fully_used = np.array([1]*len(constraints["availability"])).astype("float64")
+                not_used = np.array([0]*len(constraints["availability"])).astype("float64")
                 for index in constraints["nonTuneable"]:
-                    default_tuneability[index] = 0.1
-                optimizer.parametrization.register_cheap_constraint(lambda x: (np.abs(np.array(x) - constraints["availability"]) <= default_tuneability).all())
+                    fully_used[index] = 0.1
+                    not_used[index] = 0.1
+                optimizer.parametrization.register_cheap_constraint(lambda x: ((np.abs(np.array(x) - constraints["availability"]) <= fully_used) + (x <= not_used)).all())
             except:
                 pass
         
         #let's minimize
         recommendation = optimizer.minimize(func_to_optimize, verbosity=0)
-        result = {}
         result.update({"carbonCost": constraints["carbonCost"](recommendation.value)})
         result.update({"production": constraints["production"](recommendation.value)})
         result.update({"production cost": func_to_optimize(recommendation.value)})

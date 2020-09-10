@@ -1,5 +1,6 @@
 #from centrals.PowerCentral import PowerCentral
-from MixSimlator import MixSimulator
+from SegmentOptimizer import SegmentOptimizer
+from MixSimulator import MixSimulator
 import nevergrad as ng
 import numpy as np
 
@@ -24,8 +25,28 @@ for i in range (0, 4):
 """
 
 #Initialisation of the simulator
+# mix = SegmentOptimizer()
+# mix.set_time(2)
+# centrals=mix.set_data_csv("data/RIToamasina/dataset_RI_Toamasina.csv")
+#  ##########
+
+# green = []
+# non_green = []
+# for centrale in centrals:
+#     if centrale.isGreen():
+#         green.append(centrale)
+#     else:
+#         non_green.append(centrale)
+
+#         #######
+
+# mix.setCentrals(green)
+# green_result = mix.getOptimumUsageCoef(carbonCostLimit=30)
+# print(green_result)
+
+###############
+# mix.setCentrals(centrals)
+# print(mix.getOptimumUsageCoef(carbonCostLimit=30))
 mix = MixSimulator()
-mix.set_time(2)
-centrals=mix.set_data_csv("data/RIToamasina/dataset_RI_Toamasina.csv")
-mix.setCentrals(centrals)
-print(mix.getOptimumUsageCoef(carbonCostLimit=30))
+mix.set_data_csv("data/RIToamasina/dataset_RI_Toamasina.csv")
+mix.optimizeMix(carbonCostLimit= 30)
