@@ -21,26 +21,34 @@ class SegmentOptimizer:
         self.__demand = 1
         #Static lost
         self.__lost = 0
+        self.duration = 1
         pass
     
     def set_data_csv(self, bind: str, delimiter: str=";"):
         try :
             data = pd.DataFrame(pd.read_csv(bind,delimiter=delimiter))
-        except : 
-            print("Error occured on pandas.read_csv")
+            
+        except FileNotFoundError as e :
+            print("Error occured on pandas.read_csv : ",e)
+            print("Please check your file")
+            raise           
+        except Exception as e:
+            print("Error occured on pandas.read_csv : ",e)
+            raise
+        
         centrals = []
         
         try :
             for i in range (0,data.shape[0]):
                 centrale = data["tuneable"][i]
                 centrale = PowerCentral(centrale)
-                centrale.set_id(data["centrals"][i])
+                centrale.set_id(str(data["centrals"][i]))
                 centrale.set_fuel_consumption(data["fuel_consumption"][i])
                 centrale.setAvailability(data["availability"][i])
                 centrale.set_fuel_cost(data["fuel_cost"][i])
                 centrale.set_initial_value(data["init_value"][i])
                 centrale.set_lifetime(data["lifetime"][i])
-                centrale.setCarbonProd(data["carbon_prod"][i])
+                centrale.setCarbonProd(data["carbon_production"][i])
                 centrale.setRawPower(data["raw_power"][i])
                 centrale.set_nb_employees(data["nb_employees"][i])
                 centrale.setMeanEmployeesSalary(data["mean_salary"][i])

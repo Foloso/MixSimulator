@@ -9,13 +9,13 @@ class PowerCentral:
         self.__initial_value = 0
         self.__lifetime = 0 #in hour
         self.__carbon_prod = 0 #g/MWh
-        self.__rawPower = 0 #MWh
-        self.__availability = 1  # # of the source
+        self.__rawPower = 0 #MW
+        self.__availability = 1  #of the source
         self.__nbEmployes = 1
         self.__meanSalary = 0#per month
         self.__tuneable = tuneable
-        self.__fuel_cost = 0 #$/L
-        self.__fuel_consumption = 0 #L/MWh
+        self.__fuel_cost = 0 #$/g
+        self.__fuel_consumption = 0 #g/MWh
         self.__isGreen  = False #bool
 
     def setGreenEnergy(self, isGreen: bool):
@@ -58,7 +58,7 @@ class PowerCentral:
         #is controlled or not
         return self.__tuneable
 
-    def getCarbonProd(self) -> float:
+    def getCarbonProd(self) -> float: # g/MWh
         return self.__carbonCost
 
     def setCarbonProd(self, carbonCost: float=0) -> None:
@@ -67,7 +67,7 @@ class PowerCentral:
     def setRawPower(self, rawPower):
         self.__rawPower = rawPower
 
-    def getRawPower(self) -> float: #MWh
+    def getRawPower(self) -> float: # MW
         return self.__rawPower
 
     def getAvailability(self) -> float: # percent
