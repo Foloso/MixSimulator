@@ -1,4 +1,4 @@
-centrals;tuneable;fuel;fuel_consumption;fuel_cost;availability;init_value;lifetime;carbon_cost;raw_power;nb_employees;mean_salary;green;Demand;lost
+centrals;tuneable;fuel;fuel_consumption;fuel_cost;availability;init_value;lifetime;carbon_prod;raw_power;nb_employees;mean_salary;green;Demand;lost
 Volobe;FALSE;Hydro;1;1;0.650887574;269750000;60;0;6.76;1;1E-10;TRUE;29.48;9
 572;TRUE;FO;230000;0.000686;0.833333333;18400;16;13;12;1;0.000004;FALSE
 573;TRUE;FO;230000;0.000686;0.833333333;18400;16;13;12;1;0.000004;FALSE

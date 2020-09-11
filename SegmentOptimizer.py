@@ -40,7 +40,7 @@ class SegmentOptimizer:
                 centrale.set_fuel_cost(data["fuel_cost"][i])
                 centrale.set_initial_value(data["init_value"][i])
                 centrale.set_lifetime(data["lifetime"][i])
-                centrale.setCarbonProd(data["carbon_cost"][i])
+                centrale.setCarbonProd(data["carbon_prod"][i])
                 centrale.setRawPower(data["raw_power"][i])
                 centrale.set_nb_employees(data["nb_employees"][i])
                 centrale.setMeanEmployeesSalary(data["mean_salary"][i])
