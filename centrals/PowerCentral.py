@@ -8,7 +8,7 @@ class PowerCentral:
         self.__changeRate = 0 #(percent)
         self.__initial_value = 0
         self.__lifetime = 0 #in hour
-        self.__carbonCost = 0 #g/MWh
+        self.__carbon_prod = 0 #g/MWh
         self.__rawPower = 0 #MWh
         self.__availability = 1  # # of the source
         self.__nbEmployes = 1
@@ -58,10 +58,10 @@ class PowerCentral:
         #is controlled or not
         return self.__tuneable
 
-    def getCarBonCost(self) -> float:
+    def getCarbonProd(self) -> float:
         return self.__carbonCost
 
-    def setCarbonCost(self, carbonCost: float=0) -> None:
+    def setCarbonProd(self, carbonCost: float=0) -> None:
         self.__carbonCost = carbonCost
 
     def setRawPower(self, rawPower):

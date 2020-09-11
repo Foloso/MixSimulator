@@ -49,4 +49,4 @@ for i in range (0, 4):
 # print(mix.getOptimumUsageCoef(carbonCostLimit=30))
 mix = MixSimulator()
 mix.set_data_csv("data/RIToamasina/dataset_RI_Toamasina.csv")
-print(mix.optimizeMix(carbonCostLimit= 30))
+print(mix.optimizeMix(carbonProdLimit= 30))

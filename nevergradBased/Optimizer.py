@@ -35,7 +35,7 @@ class Optimizer():
 
         # POSSIBLE??
         if (constraints["production"](constraints["availability"]) < (constraints["demand"]+ constraints["lost"])):
-            result.update({"carbonCost": constraints["carbonCost"](constraints["availability"])})
+            result.update({"carbonProd": constraints["carbonProd"](constraints["availability"])})
             result.update({"production": constraints["production"](constraints["availability"])})
             result.update({"production cost": func_to_optimize(constraints["availability"])})
             result.update({"coef": constraints["availability"]})
@@ -47,7 +47,7 @@ class Optimizer():
         if constraints != None:
             #if contraint initiate
             try: 
-                optimizer.parametrization.register_cheap_constraint(lambda x: constraints["carbonCost"](x) <= constraints["carbonCostLimit"])
+                optimizer.parametrization.register_cheap_constraint(lambda x: constraints["carbonProd"](x) <= constraints["carbonProdLimit"])
                 #Environmental constraint
                 
             except: #if no contraint assigned
@@ -76,7 +76,7 @@ class Optimizer():
         
         #let's minimize
         recommendation = optimizer.minimize(func_to_optimize, verbosity=0)
-        result.update({"carbonCost": constraints["carbonCost"](recommendation.value)})
+        result.update({"carbonProd": constraints["carbonProd"](recommendation.value)})
         result.update({"production": constraints["production"](recommendation.value)})
         result.update({"production cost": func_to_optimize(recommendation.value)})
         result.update({"coef": recommendation.value})

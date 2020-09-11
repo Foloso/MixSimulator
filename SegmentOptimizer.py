@@ -40,7 +40,7 @@ class SegmentOptimizer:
                 centrale.set_fuel_cost(data["fuel_cost"][i])
                 centrale.set_initial_value(data["init_value"][i])
                 centrale.set_lifetime(data["lifetime"][i])
-                centrale.setCarbonCost(data["carbon_cost"][i])
+                centrale.setCarbonProd(data["carbon_cost"][i])
                 centrale.setRawPower(data["raw_power"][i])
                 centrale.set_nb_employees(data["nb_employees"][i])
                 centrale.setMeanEmployeesSalary(data["mean_salary"][i])
@@ -101,12 +101,12 @@ class SegmentOptimizer:
             amortized_cost.append(central.get_amortized_cost())
         return np.array(amortized_cost)
     
-    def get_carbon_cost(self, centrals: List[PowerCentral] = None):
+    def get_carbon_prod(self, centrals: List[PowerCentral] = None):
         centrals = self.__getCentrals(centrals)
-        carbon_cost = []
+        carbon_prod = []
         for central in centrals:
-            carbon_cost.append(central.getCarBonCost())
-        return np.array(carbon_cost)
+            carbon_prod.append(central.getCarbonProd())
+        return np.array(carbon_prod)
 
     def get_avaibility_limit(self, centrals: List[PowerCentral] = None):
         centrals = self.__getCentrals(centrals)
@@ -125,13 +125,13 @@ class SegmentOptimizer:
         return sum((( self.get_fuel_cost() * self.get_fuel_consumption() * coef_usage * self.get_rawPower() )
         + (self.get_salary_cost() + self.get_amortized_cost()))* self.get_time()) 
 
-    def get_carbon_cost_constraint(self, coef_usage):
-        return sum(self.get_carbon_cost() * coef_usage)
+    def get_carbon_prod_constraint(self, coef_usage):
+        return sum(self.get_carbon_prod() * coef_usage)
     
     def get_production_constraint(self, coef_usage):
         return sum(self.get_rawPower() * coef_usage * self.get_time())
         
-    def getOptimumUsageCoef(self, time_range : range=range(0,24), carbonCostLimit: float = None, demand: float = None, lost: float = None) -> List[float]:
+    def getOptimumUsageCoef(self, time_range : range=range(0,24), carbonProdLimit: float = None, demand: float = None, lost: float = None) -> List[float]:
         centrals = self.__getCentrals()
         if demand == None : 
             demand = self.__demand
@@ -148,8 +148,8 @@ class SegmentOptimizer:
         constrains.update({"demand": demand})
         constrains.update({"lost": lost})
         constrains.update({"nonTuneable": self.__getNonTuneableCentralIndex(centrals)})
-        constrains.update({"carbonCostLimit": carbonCostLimit})
-        constrains.update({"carbonCost": self.get_carbon_cost_constraint})
+        constrains.update({"carbonProdLimit": carbonProdLimit})
+        constrains.update({"carbonProd": self.get_carbon_prod_constraint})
         constrains.update({"availability": self.get_avaibility_limit()})
 
         #setting all parameters
