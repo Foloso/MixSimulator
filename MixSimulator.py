@@ -24,7 +24,7 @@ class MixSimulator:
             for i in range (0,data.shape[0]):
                 centrale = data["tuneable"][i]
                 centrale = PowerCentral(centrale)
-                centrale.set_id(data["centrals"][i])
+                centrale.set_id(str(data["centrals"][i]))
                 centrale.set_fuel_consumption(data["fuel_consumption"][i])
                 centrale.setAvailability(data["availability"][i])
                 centrale.set_fuel_cost(data["fuel_cost"][i])
@@ -56,7 +56,7 @@ class MixSimulator:
 
     def optimizeMix(self, carbonCostLimit, demand: float= None, lost: float=None ):
         # default parameter
-        usage_coef = []
+        usage_coef = {}
         productionCost = 0.
         results = {}
 
@@ -81,15 +81,21 @@ class MixSimulator:
         new_carbonCostLimit = carbonCostLimit - GREEN_RESULT["carbonCost"]
         demand = demand - GREEN_RESULT["production"]
         production_cost = GREEN_RESULT["production cost"]
+        
+        index_central = 0
         for coef in GREEN_RESULT["coef"]:
-            usage_coef.append(coef)
+            usage_coef.update({self.__centrals["green"][index_central].get_id():coef})
+            index_central += 1
 
         NON_GREEN_RESULT = non_green_mix.getOptimumUsageCoef(carbonCostLimit=carbonCostLimit, demand=demand, lost=lost)
         new_carbonCostLimit = new_carbonCostLimit - NON_GREEN_RESULT["carbonCost"]
         demand = demand - NON_GREEN_RESULT["production"] + lost
         production_cost = production_cost + NON_GREEN_RESULT["production cost"]
+        
+        index_central = 0
         for coef in NON_GREEN_RESULT["coef"]:
-            usage_coef.append(coef)
+            usage_coef.update({self.__centrals["non_green"][index_central].get_id():coef})
+            index_central += 1
 
         results.update({"production_cost ($)": production_cost})
         results.update({"carbon_impacte (g/MWh)": carbonCostLimit-new_carbonCostLimit})
