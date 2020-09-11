@@ -58,6 +58,9 @@ class MixSimulator:
         # default parameter
         usage_coef = []
         productionCost = 0.
+        results = {}
+
+
         if demand is None:
             demand = self.__demand
         if lost is None:
@@ -74,21 +77,23 @@ class MixSimulator:
         non_green_mix.set_time(2)
 
         # prioriser d'abord les energies renouvelables
-        print(green_mix.getOptimumUsageCoef(carbonCostLimit=carbonCostLimit, demand= demand, lost=lost))
         GREEN_RESULT = green_mix.getOptimumUsageCoef(carbonCostLimit=carbonCostLimit, demand= demand, lost=lost)
-        carbonCostLimit = carbonCostLimit - GREEN_RESULT["carbonCost"]
+        new_carbonCostLimit = carbonCostLimit - GREEN_RESULT["carbonCost"]
         demand = demand - GREEN_RESULT["production"]
         production_cost = GREEN_RESULT["production cost"]
         for coef in GREEN_RESULT["coef"]:
             usage_coef.append(coef)
 
-        print(non_green_mix.getOptimumUsageCoef(carbonCostLimit=carbonCostLimit, demand=demand, lost=lost))
         NON_GREEN_RESULT = non_green_mix.getOptimumUsageCoef(carbonCostLimit=carbonCostLimit, demand=demand, lost=lost)
-        carbonCostLimit = carbonCostLimit - NON_GREEN_RESULT["carbonCost"]
+        new_carbonCostLimit = new_carbonCostLimit - NON_GREEN_RESULT["carbonCost"]
         demand = demand - NON_GREEN_RESULT["production"] + lost
         production_cost = production_cost + NON_GREEN_RESULT["production cost"]
         for coef in NON_GREEN_RESULT["coef"]:
             usage_coef.append(coef)
 
-        print(usage_coef)
-        print(production_cost, demand, carbonCostLimit)
+        results.update({"production_cost ($)": production_cost})
+        results.update({"carbon_impacte (g/MWh)": carbonCostLimit-new_carbonCostLimit})
+        results.update({"unsatisfied_demand (MWh)": demand})
+        results.update({"usage_coefficient": usage_coef})
+
+        return results
