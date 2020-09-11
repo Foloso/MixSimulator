@@ -54,6 +54,7 @@ class Optimizer():
                 pass
             try:
                 tolerance = 2 * 10**(math.log10(constraints["demand"] + constraints["lost"])-2)
+                print("TOLERANCE:",tolerance)
                 optimizer.parametrization.register_cheap_constraint(lambda x: np.abs(constraints["production"](x) - (constraints["demand"] + constraints["lost"])) < tolerance )
                 #Demand constraint
             except:

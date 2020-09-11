@@ -3,6 +3,7 @@ from centrals.PowerCentral import PowerCentral
 from typing import List
 import numpy as np
 import pandas as pd
+from centrals.PowerCentral import PowerCentral
 
 class SegmentOptimizer:
     """
@@ -20,35 +21,26 @@ class SegmentOptimizer:
         self.__demand = 1
         #Static lost
         self.__lost = 0
-        self.__carbon_cost = 0
-        self.duration = 1
-        
+        pass
     
     def set_data_csv(self, bind: str, delimiter: str=";"):
         try :
             data = pd.DataFrame(pd.read_csv(bind,delimiter=delimiter))
-        
-        except FileNotFoundError as e :
-            print("Error occured on pandas.read_csv : ",e)
-            print("Please check your file")
-            raise           
-        except Exception as e:
-            print("Error occured on pandas.read_csv : ",e)
-            raise
-        
+        except : 
+            print("Error occured on pandas.read_csv")
         centrals = []
         
         try :
             for i in range (0,data.shape[0]):
                 centrale = data["tuneable"][i]
                 centrale = PowerCentral(centrale)
-                centrale.set_id(str(data["centrals"][i]))
+                centrale.set_id(data["centrals"][i])
                 centrale.set_fuel_consumption(data["fuel_consumption"][i])
                 centrale.setAvailability(data["availability"][i])
                 centrale.set_fuel_cost(data["fuel_cost"][i])
                 centrale.set_initial_value(data["init_value"][i])
                 centrale.set_lifetime(data["lifetime"][i])
-                centrale.set_carbon_prod(data["carbon_production"][i])
+                centrale.setCarbonCost(data["carbon_cost"][i])
                 centrale.setRawPower(data["raw_power"][i])
                 centrale.set_nb_employees(data["nb_employees"][i])
                 centrale.setMeanEmployeesSalary(data["mean_salary"][i])
@@ -111,11 +103,10 @@ class SegmentOptimizer:
     
     def get_carbon_cost(self, centrals: List[PowerCentral] = None):
         centrals = self.__getCentrals(centrals)
-        carbon_cost_list = []
-        for central in self.__centrals:
-            cost = (central.get_carbon_prod() * self.__carbon_cost)# $/MWh
-            carbon_cost_list.append(cost)
-        return np.array(carbon_cost_list)
+        carbon_cost = []
+        for central in centrals:
+            carbon_cost.append(central.getCarBonCost())
+        return np.array(carbon_cost)
 
     def get_avaibility_limit(self, centrals: List[PowerCentral] = None):
         centrals = self.__getCentrals(centrals)
@@ -140,19 +131,17 @@ class SegmentOptimizer:
     def get_production_constraint(self, coef_usage):
         return sum(self.get_rawPower() * coef_usage * self.get_time())
         
-    def getOptimumUsageCoef(self, time_range : range=range(0,24), carbonCostLimit: float = None, carbon_cost: float = None ,demand: float = None, lost: float = None) -> List[float]:
+    def getOptimumUsageCoef(self, time_range : range=range(0,24), carbonCostLimit: float = None, demand: float = None, lost: float = None) -> List[float]:
         centrals = self.__getCentrals()
-        if demand is None : 
+        if demand == None : 
             demand = self.__demand
             
         #static lost
-        if lost is None : 
+        if lost == None : 
             lost = self.__lost
             
-        #init carbon_cost (depending on location)
-        if carbon_cost is not None :
-            self.__carbon_cost = carbon_cost
-        
+        # self.set_fuel_cost(centrals)        
+
         #initiate constraints
         constrains = {}
         constrains.update({"production": self.get_production_constraint})
