@@ -47,10 +47,6 @@ for i in range (0, 4):
 ###############
 # mix.setCentrals(centrals)
 # print(mix.getOptimumUsageCoef(carbonCostLimit=30))
-
-"""
-    Minimization of the cost production of the energy mix in the inter-connected Grid of Toamasina during 2020 
-"""
 mix = MixSimulator()
 mix.set_data_csv("data/RIToamasina/dataset_RI_Toamasina.csv")
-mix.optimizeMix(carbonCostLimit= 60, carbon_cost = 0.00011864, time_interval = 8784)
+mix.optimizeMix(carbonCostLimit= 30)
