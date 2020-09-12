@@ -139,7 +139,10 @@ class SegmentOptimizer:
     def get_production_constraint(self, coef_usage):
         return sum(self.get_rawPower() * coef_usage * self.get_time())
         
-    def getOptimumUsageCoef(self, time_range : range=range(0,24), carbonProdLimit: float = None, demand: float = None, lost: float = None) -> List[float]:
+    # def get_normalized_production_constraint(self, coef_usage, coef_norm):
+        # return sum(self.get_rawPower() * coef_usage * self.get_time())
+
+    def getOptimumUsageCoef(self, carbonProdLimit: float = None, demand: float = None, lost: float = None) -> List[float]:
         centrals = self.__getCentrals()
         if demand == None : 
             demand = self.__demand

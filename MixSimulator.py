@@ -65,7 +65,7 @@ class MixSimulator:
                     self.__centrals["non_green"].append(centrale)
 
 
-    def optimizeMix(self, carbonProdLimit, demand: float= None, lost: float=None, time_interval: float = None, carbon_cost: float = None ):
+    def optimizeMix(self, carbonProdLimit, demand: float= None, lost: float=None, time_interval: float = 1, carbon_cost: float = None ):
         # default parameter
         usage_coef = {}
         productionCost = 0.
@@ -83,12 +83,8 @@ class MixSimulator:
         green_mix.setCentrals(self.__centrals["green"])
         non_green_mix.setCentrals(self.__centrals["non_green"])
 
-        if time_interval is None:
-            non_green_mix.set_time(1)
-            non_green_mix.set_time(1)
-        else :
-            non_green_mix.set_time(time_interval)
-            non_green_mix.set_time(time_interval)
+        green_mix.set_time(time_interval)
+        non_green_mix.set_time(time_interval)
 
         # prioriser d'abord les energies renouvelables
         GREEN_RESULT = green_mix.getOptimumUsageCoef(carbonProdLimit=carbonProdLimit, demand= demand, lost=lost)
