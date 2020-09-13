@@ -10,14 +10,43 @@ class Optimizer():
         - optimization under constraints with OnePlusOne (opt_OnePlusOne)
     """ 
     def __init__(self):
+        self.__max_bound = 1.
         self.set_budget(100)
-        self.set_parametrization(2, 1.)
+        self.set_parametrization(2, self.__max_bound)
     
+    def __opt_parameters(self, constraints):
+        max_bound = self.__max_bound
+        for index in range(0, len(constraints["availability"])):
+            usage_coef = [0.] * len(constraints["availability"])
+            usage_coef[index] = constraints["availability"][index]
+            if constraints["production"](usage_coef) > (constraints["demand"]+ constraints["lost"]):
+                self.__set_min_loss(constraints)
+                tmp_optimizer = Optimizer()
+                tmp_optimizer.set_parametrization(len(usage_coef), np.amax(np.array(usage_coef)))
+                optimizer = ng.optimizers.OnePlusOne(parametrization=tmp_optimizer.get_parametrization(), budget=100)
+                optimizer.parametrization.register_cheap_constraint(lambda x: (np.array(x)>np.array([0]*len(usage_coef))).all() )
+                recommendation = optimizer.minimize(self.__min_loss, verbosity=0)
+                print(recommendation.value)
+                if max_bound > max(recommendation.value):
+                    max_bound = max(recommendation.value)
+                else:
+                    continue
+            else:
+                continue
+        self.__max_bound = max_bound
+        
+    def __set_min_loss(self, constraints):
+        self.__constraints = constraints
+
+    def __min_loss(self, usage_coef):
+        return np.abs(self.__constraints["production"](usage_coef) - (self.__constraints["demand"]+ self.__constraints["lost"]))
+
     def set_parametrization(self,arg, max):
         #setting parametrization for our objective function
         self.__nb = arg
         self.__parametrization=ng.p.Array(shape=(arg,))
-        self.__parametrization.set_bounds(lower=0, upper=max)
+        self.__max_bound = max
+        self.__parametrization.set_bounds(lower=0, upper=self.__max_bound)
     
     def get_parametrization(self):
         return self.__parametrization
@@ -41,6 +70,8 @@ class Optimizer():
             result.update({"coef": constraints["availability"]})
             return result
 
+        # find optimum bounds
+        self.__opt_parameters(constraints)
 
         #optimization under constraints with OnePlusOnex
         optimizer = ng.optimizers.OnePlusOne(parametrization=self.get_parametrization(), budget=self.get_budget())
