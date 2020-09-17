@@ -1,8 +1,9 @@
 from SegmentOptimizer import SegmentOptimizer
 from centrals.PowerCentral import PowerCentral
+import matplotlib.pyplot as plt
+import numpy as np
 import pandas as pd
 from typing import List
-
 
 class MixSimulator:
     def __init__(self):
@@ -118,7 +119,7 @@ class MixSimulator:
 
         return results
 
-    def simuleMix(self, current_usage_coef, carbonProdLimit, demand: float= None, lost: float=None, time_interval: float = 1, carbon_cost: float = None ):
+    def simuleMix(self, current_usage_coef, carbonProdLimit, demand: float= None, lost: float=None, time_interval: float = 1, carbon_cost: float = None, verbose: int = 1, plot: str = "default" ):
         # initialization
         if demand is None:
             demand = self.__demand
@@ -142,7 +143,20 @@ class MixSimulator:
         current_perf.update({"production_cost ($)": current_mix.prod_cost_objective_function(current_usage_coef)})
         current_perf.update({"carbon_impacte (g/MWh)": current_mix.get_carbon_prod_constraint(current_usage_coef)})
         current_perf.update({"unsatisfied_demand (MWh)": demand - current_mix.get_production_constraint(current_usage_coef)})
+        current_perf.update({"coef_usage": current_usage_coef})
 
-        print(theorical_optimum)
-        print(current_perf)
+        # verbosity
+        if verbose == 1 :
+            print("theorical_optimum : ",theorical_optimum)
+            print("current_perf : ", current_perf)
+        
+        #plotting
+        if plot == "default" or plot == "show" or plot == "save":
+            self.plotResults(theorical_optimum,current_perf,mode = plot)
+        else :
+            print("Available options : \n \tab default : show and save the results plots in results directory ; \n \tab plotting : only show the results plots ; \n \tab save : save the results plots in results directory")
 
+
+    def plotResults(self, optimum : dict = {}, current : dict = {}, mode : str = "default") :
+        #Work in progress        
+        pass
