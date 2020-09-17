@@ -117,3 +117,32 @@ class MixSimulator:
         results.update({"usage_coefficient": usage_coef})
 
         return results
+
+    def simuleMix(self, current_usage_coef, carbonProdLimit, demand: float= None, lost: float=None, time_interval: float = 1, carbon_cost: float = None ):
+        # initialization
+        if demand is None:
+            demand = self.__demand
+        if lost is None:
+            lost = self.__lost
+
+        # optimum usage and results/perf
+        theorical_optimum = self.optimizeMix(carbonProdLimit, demand, lost, time_interval, carbon_cost)
+        
+        ##### actual perf
+        current_perf = {}
+
+        # current Mix initialization
+        current_mix = SegmentOptimizer()
+        centrals = []
+        for key in self.__centrals.keys():
+            for central in self.__centrals[key]:
+                centrals.append(central)
+        current_mix.setCentrals(centrals)
+        current_mix.set_time(time_interval)
+        current_perf.update({"production_cost ($)": current_mix.prod_cost_objective_function(current_usage_coef)})
+        current_perf.update({"carbon_impacte (g/MWh)": current_mix.get_carbon_prod_constraint(current_usage_coef)})
+        current_perf.update({"unsatisfied_demand (MWh)": demand - current_mix.get_production_constraint(current_usage_coef)})
+
+        print(theorical_optimum)
+        print(current_perf)
+
