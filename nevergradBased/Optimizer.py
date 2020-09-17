@@ -26,7 +26,6 @@ class Optimizer():
                 optimizer = ng.optimizers.OnePlusOne(parametrization=tmp_optimizer.get_parametrization(), budget=100)
                 optimizer.parametrization.register_cheap_constraint(lambda x: (np.array(x)>np.array([0]*len(usage_coef))).all() )
                 recommendation = optimizer.minimize(self.__min_loss, verbosity=0)
-                print(recommendation.value)
                 if max_bound > max(recommendation.value):
                     max_bound = max(recommendation.value)
                 else:
