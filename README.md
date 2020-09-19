@@ -4,7 +4,7 @@ MixSimulator is an application with an optimization model for calculating and si
 The primary objective of the simulator is to study the relevance of an energy mix connected to each Inter-connected Grid through the coefficient of usage of each unit in the production cost.
 
 # Requirements
-MixSimulator is written in Python 3.6 and requires the following Python packages : nevergrad, typing, numpy, pandas.
+MixSimulator is written in Python 3.6 and requires the following Python packages : nevergrad, typing, numpy, pandas and matplotlib. (make sure you have those packages)
 
 # How to run
 As MixSimulator is a python package, it can be called and used as we can see in main.py.
