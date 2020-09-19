@@ -55,4 +55,4 @@ for i in range (0, 4):
 mix = MixSimulator()
 mix.set_data_csv("data/RIToamasina/dataset_RI_Toamasina.csv")
 # print(mix.optimizeMix(carbonProdLimit= 3950000000000, time_interval = 2))
-mix.simuleMix(current_usage_coef=[0.2, 0.2, 0.7, 0.8], carbonProdLimit= 3950000000000, time_interval = 2)
+mix.simuleMix(current_usage_coef=[0.6, 0.2, 0.7, 0.8], carbonProdLimit= 3950000000000, time_interval = 2)
