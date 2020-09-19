@@ -143,7 +143,7 @@ class MixSimulator:
         current_perf.update({"production_cost ($)": current_mix.prod_cost_objective_function(current_usage_coef)})
         current_perf.update({"carbon_impacte (g/MWh)": current_mix.get_carbon_prod_constraint(current_usage_coef)})
         current_perf.update({"unsatisfied_demand (MWh)": demand - current_mix.get_production_constraint(current_usage_coef)})
-        current_perf.update({"coef_usage": current_usage_coef})
+        current_perf.update({"usage_coefficient": current_usage_coef})
 
         # verbosity
         if verbose == 1 :
@@ -151,12 +151,77 @@ class MixSimulator:
             print("current_perf : ", current_perf)
         
         #plotting
-        if plot == "default" or plot == "show" or plot == "save":
+        if plot == "default" :
             self.plotResults(theorical_optimum,current_perf,mode = plot)
         else :
-            print("Available options : \n \tab default : show and save the results plots in results directory ; \n \tab plotting : only show the results plots ; \n \tab save : save the results plots in results directory")
+            if plot == "none" :
+                pass
+            else :
+                print("Available plot options : \n \t 'default' : show and save the results plots; \n \t 'none' : no plots.")
 
 
     def plotResults(self, optimum : dict = {}, current : dict = {}, mode : str = "default") :
-        #Work in progress        
-        pass
+        columns=[]
+        tmp=[]
+        data=[]
+        for keys, values in optimum.items():
+            if keys == "usage_coefficient":
+                for k, v in values.items():
+                    columns.append(k)
+                    tmp.append(v)
+        data.append(tmp)
+        tmp=[]        
+        for keys, values in current.items():
+            if keys == "usage_coefficient":
+                data.append(values)
+                
+        rows = ["current","optimum"]        
+              
+        # Get some pastel shades for the colors
+        colors = plt.cm.autumn(np.linspace(0, 0.5, len(rows)))
+        n_rows = len(data)
+        
+        index = np.arange(len(columns)) + 0.3
+        bar_width = 0.4
+        
+        # Initialize the vertical-offset for the stacked bar chart.
+        y_offset = np.zeros(len(columns))
+        
+        # Plot bars and create text labels for the table
+        cell_text = []
+        correction = np.zeros(len(columns))
+        for row in range(n_rows):
+            for i in range(0,len(columns)):
+                if y_offset[i] < data[row][i]:
+                    correction[i] = y_offset[i]
+                    color_correction = row-1
+            y_offset = np.zeros(len(columns))
+            plt.bar(index, data[row], bar_width, bottom=y_offset, color=colors[row])
+            y_offset = data[row]
+            cell_text.append(['%f' % x for x in y_offset])
+            
+        #correction to avoid hidden bar
+        y_offset = np.zeros(len(columns))
+        plt.bar(index, correction, bar_width, bottom=y_offset, color=colors[color_correction])            
+        
+        # Reverse colors and text labels to display the last value at the top.
+        colors = colors[::-1]
+        cell_text.reverse()
+        
+        # Add a table at the bottom of the axes
+        the_table = plt.table(cellText=cell_text,
+                              rowLabels=rows,
+                              rowColours=colors,
+                              colLabels=columns,
+                              loc='bottom')
+        
+        # Adjust layout to make room for the table:
+        plt.subplots_adjust(left=0.2, bottom=0.2)
+        values = np.arange(0, 120, 20)
+        value_increment = 100 
+        plt.ylabel("Usage coef. in % ")
+        plt.yticks(values / value_increment, ['%d' % val for val in values])
+        plt.xticks([])
+        plt.title('Optimum and Current values')
+        
+        plt.show()
