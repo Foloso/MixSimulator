@@ -3,6 +3,23 @@ MixSimulator is an application with an optimization model for calculating and si
 
 The primary objective of the simulator is to study the relevance of an energy mix connected to each Inter-connected Grid through the coefficient of usage of each unit in the production cost.
 
+Specifications :
+- 
+- Generic simulator, compatible with data from Madagascar and those from abroad (but may require pre-processing beforehand);
+- Optimization of duty cycle (or usage coefficient) under the chosen constraints ;
+- Deduction of production costs and various performance indicators (CO2 emission);
+- Evaluation of the relevance of the installation of a new plant ;
+- Comparison between the usage coefficients of the current mix and the calculated optimal mix.
+
+
+Perspectives :
+- 
+- Add other constraints (storage of hydroelectric plants, variation in production) ;
+- Estimate of the costs of a mix or a power plant over the long term ;
+- Pair with a transmission and distribution power grid simulator (MixSimulator can provide input data).
+
+Suggestions are welcome!
+
 # Requirements
 MixSimulator is written in Python 3.6 and requires the following Python packages : nevergrad, typing, numpy, pandas and matplotlib. (make sure you have those packages)
 
