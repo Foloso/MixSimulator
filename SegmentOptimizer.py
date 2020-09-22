@@ -142,8 +142,8 @@ class SegmentOptimizer:
     # def get_normalized_production_constraint(self, coef_usage, coef_norm):
         # return sum(self.get_rawPower() * coef_usage * self.get_time())
 
-    def getOptimumUsageCoef(self, carbonProdLimit: float = None, demand: float = None, lost: float = None) -> List[float]:
-        centrals = self.__getCentrals()
+    def getOptimumUsageCoef(self, carbonProdLimit: float = None, demand: float = None, lost: float = None, optimize_with = None, budgets = None) -> List[float]:
+        centrals = self.__getCentrals() 
         if demand == None : 
             demand = self.__demand
             
@@ -165,7 +165,12 @@ class SegmentOptimizer:
 
         #setting all parameters
         self.__optimizer.set_parametrization(len(centrals), np.amax(self.get_avaibility_limit()))
-        prod_cost_optimal= self.__optimizer.opt_OnePlusOne(self.prod_cost_objective_function, constrains) #Optimisation
+        
+        if optimize_with == None :        
+            prod_cost_optimal= self.__optimizer.opt_OnePlusOne(self.prod_cost_objective_function, constrains) #Optimisation
+        else :
+            prod_cost_optimal= self.__optimizer.opt_With(self.prod_cost_objective_function, constrains, optimize_with,budgets)
+        
         return prod_cost_optimal
 
     def __getNonTuneableCentralIndex(self, centrals: List[PowerCentral]= None):
