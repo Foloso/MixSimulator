@@ -111,3 +111,82 @@ class Optimizer():
         result.update({"production cost": func_to_optimize(recommendation.value)})
         result.update({"coef": recommendation.value})
         return result
+        
+    def opt_With(self, func_to_optimize, constraints = None, optimizers : list = ["OnePlusOne"], budget : list = [100]):
+        #Define chaining algo  
+        self.__optimizers = []
+        for opt in optimizers:
+            if opt == "OnePlusOne":
+                self.__optimizers.append(ng.optimizers.OnePlusOne)
+            elif opt == "DE":
+                self.__optimizers.append(ng.optimizers.DE)
+            elif opt == "CMA":
+                self.__optimizers.append(ng.optimizers.CMA)
+            elif opt == "LHSSearch":
+                self.__optimizers.append(ng.optimizers.LHSSearch)
+            elif opt == "TwoPointsDE":
+                self.__optimizers.append(ng.optimizers.TwoPointsDE)
+            elif opt == "PSO":
+                self.__optimizers.append(ng.optimizers.PSO)
+            elif opt == "TBPSA":
+                self.__optimizers.append(ng.optimizers.TBPSA)
+            else :
+                print(opt, "not included. Please use one of availible optimizer :\n \t OnePlusOne \n \t DE \n \t CMA \n \t LHSSearch \n \t TwoPointsDE \n \t PSO \n \t TBPSA \n (non exhaustive optimizer list (more will be added))\nFor more informations, check https://facebookresearch.github.io/nevergrad/optimizers_ref.html")
+        
+        if len(budget) != len(optimizers)-1 :
+            print("The length of budget must be the length of optimizer - 1. The default budget is used by the first optimizer in the list.")
+            return -1
+        
+        result = {}
+
+        # POSSIBLE??
+        if (constraints["production"](constraints["availability"]) < (constraints["demand"]+ constraints["lost"])):
+            result.update({"carbonProd": constraints["carbonProd"](constraints["availability"])})
+            result.update({"production": constraints["production"](constraints["availability"])})
+            result.update({"production cost": func_to_optimize(constraints["availability"])})
+            result.update({"coef": constraints["availability"]})
+            return result
+
+        # find optimum bounds
+        self.__opt_parameters(constraints)
+
+        #optimization under constraints
+        chaining_algo = ng.optimizers.Chaining(self.__optimizers,budget)
+        optimizer = chaining_algo(parametrization=self.get_parametrization(), budget=self.get_budget())
+        if constraints != None:
+            #if contraint initiate
+            try: 
+                optimizer.parametrization.register_cheap_constraint(lambda x: constraints["carbonProd"](x) <= constraints["carbonProdLimit"])
+                #Environmental constraint
+                
+            except: #if no contraint assigned
+                pass
+            try:
+                tolerance = 2 * 10**(math.log10(constraints["demand"] + constraints["lost"])-2)
+                min_prod = constraints["demand"] + constraints["lost"]
+                optimizer.parametrization.register_cheap_constraint(lambda x: np.abs(constraints["production"](x) - min_prod) < tolerance )
+                #Demand constraint
+            except:
+                pass
+            try:
+                optimizer.parametrization.register_cheap_constraint(lambda x: (np.array(x) <= constraints["availability"]).all())
+                #Availability constraint
+            except:
+                pass
+            try:
+                fully_used = np.array([1]*len(constraints["availability"])).astype("float64")
+                not_used = np.array([0]*len(constraints["availability"])).astype("float64")
+                for index in constraints["nonTuneable"]:
+                    fully_used[index] = 0.1
+                    not_used[index] = 0.1
+                optimizer.parametrization.register_cheap_constraint(lambda x: ((np.abs(np.array(x) - constraints["availability"]) <= fully_used) + (x <= not_used)).all())
+            except:
+                pass
+        
+        #let's minimize
+        recommendation = optimizer.minimize(func_to_optimize, verbosity=0)
+        result.update({"carbonProd": constraints["carbonProd"](recommendation.value)})
+        result.update({"production": constraints["production"](recommendation.value)})
+        result.update({"production cost": func_to_optimize(recommendation.value)})
+        result.update({"coef": recommendation.value})
+        return result
