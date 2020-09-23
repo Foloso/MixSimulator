@@ -166,10 +166,7 @@ class SegmentOptimizer:
         #setting all parameters
         self.__optimizer.set_parametrization(len(centrals), np.amax(self.get_avaibility_limit()))
         
-        if optimize_with == None :        
-            prod_cost_optimal= self.__optimizer.opt_OnePlusOne(self.prod_cost_objective_function, constrains) #Optimisation
-        else :
-            prod_cost_optimal= self.__optimizer.opt_With(self.prod_cost_objective_function, constrains, optimize_with,budgets)
+        prod_cost_optimal= self.__optimizer.opt_With(self.prod_cost_objective_function, constrains, optimize_with,budgets)
         
         return prod_cost_optimal
 

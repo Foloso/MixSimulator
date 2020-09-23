@@ -58,60 +58,6 @@ class Optimizer():
     def get_budget(self):
         return self.__budget
     
-    def opt_OnePlusOne(self, func_to_optimize, constraints=None):
-        result = {}
-
-        # POSSIBLE??
-        if (constraints["production"](constraints["availability"]) < (constraints["demand"]+ constraints["lost"])):
-            result.update({"carbonProd": constraints["carbonProd"](constraints["availability"])})
-            result.update({"production": constraints["production"](constraints["availability"])})
-            result.update({"production cost": func_to_optimize(constraints["availability"])})
-            result.update({"coef": constraints["availability"]})
-            return result
-
-        # find optimum bounds
-        self.__opt_parameters(constraints)
-
-        #optimization under constraints with OnePlusOnex
-        optimizer = ng.optimizers.OnePlusOne(parametrization=self.get_parametrization(), budget=self.get_budget())
-        if constraints != None:
-            #if contraint initiate
-            try: 
-                optimizer.parametrization.register_cheap_constraint(lambda x: constraints["carbonProd"](x) <= constraints["carbonProdLimit"])
-                #Environmental constraint
-                
-            except: #if no contraint assigned
-                pass
-            try:
-                tolerance = 2 * 10**(math.log10(constraints["demand"] + constraints["lost"])-2)
-                min_prod = constraints["demand"] + constraints["lost"]
-                optimizer.parametrization.register_cheap_constraint(lambda x: np.abs(constraints["production"](x) - min_prod) < tolerance )
-                #Demand constraint
-            except:
-                pass
-            try:
-                optimizer.parametrization.register_cheap_constraint(lambda x: (np.array(x) <= constraints["availability"]).all())
-                #Availability constraint
-            except:
-                pass
-            try:
-                fully_used = np.array([1]*len(constraints["availability"])).astype("float64")
-                not_used = np.array([0]*len(constraints["availability"])).astype("float64")
-                for index in constraints["nonTuneable"]:
-                    fully_used[index] = 0.1
-                    not_used[index] = 0.1
-                optimizer.parametrization.register_cheap_constraint(lambda x: ((np.abs(np.array(x) - constraints["availability"]) <= fully_used) + (x <= not_used)).all())
-            except:
-                pass
-        
-        #let's minimize
-        recommendation = optimizer.minimize(func_to_optimize, verbosity=0)
-        result.update({"carbonProd": constraints["carbonProd"](recommendation.value)})
-        result.update({"production": constraints["production"](recommendation.value)})
-        result.update({"production cost": func_to_optimize(recommendation.value)})
-        result.update({"coef": recommendation.value})
-        return result
-        
     def opt_With(self, func_to_optimize, constraints = None, optimizers : list = ["OnePlusOne"], budget : list = [100]):
         #Define chaining algo  
         self.__optimizers = []

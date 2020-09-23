@@ -119,7 +119,7 @@ class MixSimulator:
 
         return results
 
-    def simuleMix(self, current_usage_coef, carbonProdLimit, demand: float= None, lost: float=None, time_interval: float = 1, carbon_cost: float = None, verbose: int = 1, plot: str = "default" ,optimize_with = None, budgets = None):
+    def simuleMix(self, current_usage_coef, carbonProdLimit, demand: float= None, lost: float=None, time_interval: float = 1, carbon_cost: float = None, verbose: int = 1, plot: str = "default" ,optimize_with = ["OnePlusOne"], budgets = []):
         # initialization
         if demand is None:
             demand = self.__demand
