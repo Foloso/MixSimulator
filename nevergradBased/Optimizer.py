@@ -58,7 +58,7 @@ class Optimizer():
     def get_budget(self):
         return self.__budget
     
-    def opt_With(self, func_to_optimize, constraints = None, optimizers : list = ["OnePlusOne"], budget : list = [100]):
+    def opt_With(self, func_to_optimize, constraints = None, optimizers : list = ["OnePlusOne"], budgets : list = [100]):
         #Define chaining algo  
         self.__optimizers = []
         for opt in optimizers:
@@ -68,21 +68,24 @@ class Optimizer():
                 self.__optimizers.append(ng.optimizers.DE)
             elif opt == "CMA":
                 self.__optimizers.append(ng.optimizers.CMA)
-            elif opt == "LHSSearch":
-                self.__optimizers.append(ng.optimizers.LHSSearch)
-            elif opt == "TwoPointsDE":
-                self.__optimizers.append(ng.optimizers.TwoPointsDE)
             elif opt == "PSO":
                 self.__optimizers.append(ng.optimizers.PSO)
             elif opt == "TBPSA":
                 self.__optimizers.append(ng.optimizers.TBPSA)
             else :
-                print(opt, "not included. Please use one of availible optimizer :\n \t OnePlusOne \n \t DE \n \t CMA \n \t LHSSearch \n \t TwoPointsDE \n \t PSO \n \t TBPSA \n (non exhaustive optimizer list (more will be added))\nFor more informations, check https://facebookresearch.github.io/nevergrad/optimizers_ref.html")
+                print(opt, "not included. Use of default optimizer instead.\n Please use one of availible optimizer :\n \t OnePlusOne \n \t DE \n \t CMA \n \t PSO \n \t TBPSA \n (non exhaustive optimizer list, more will be added)\nFor more informations, check https://facebookresearch.github.io/nevergrad/optimizers_ref.html")
+                self.__optimizers = [ng.optimizers.OnePlusOne]
+                budgets=[100]
+                
+        if len(budgets) != len(optimizers) :
+            print("\n The length of budgets and the length of optimizers should be the same. Use of default optimizer instead.\n")
+            budgets=[100]
+            self.__optimizers = [ng.optimizers.OnePlusOne]
+            
         
-        if len(budget) != len(optimizers)-1 :
-            print("The length of budget must be the length of optimizer - 1. The default budget is used by the first optimizer in the list.")
-            return -1
-        
+        #setting budgets
+        self.set_budget(budgets[-1])
+        current_budgets = budgets[:-1]
         result = {}
 
         # POSSIBLE??
@@ -97,7 +100,7 @@ class Optimizer():
         self.__opt_parameters(constraints)
 
         #optimization under constraints
-        chaining_algo = ng.optimizers.Chaining(self.__optimizers,budget)
+        chaining_algo = ng.optimizers.Chaining(self.__optimizers,current_budgets)
         optimizer = chaining_algo(parametrization=self.get_parametrization(), budget=self.get_budget())
         if constraints != None:
             #if contraint initiate

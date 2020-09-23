@@ -66,7 +66,7 @@ class MixSimulator:
                     self.__centrals["non_green"].append(centrale)
 
 
-    def optimizeMix(self, carbonProdLimit, demand: float= None, lost: float=None, time_interval: float = 1, carbon_cost: float = None, optimize_with = None, budgets = None):
+    def optimizeMix(self, carbonProdLimit, demand: float= None, lost: float=None, time_interval: float = 1, carbon_cost: float = None, optimize_with = ["OnePlusOne"], budgets = [100]):
         # default parameter
         usage_coef = {}
         productionCost = 0.
@@ -119,7 +119,7 @@ class MixSimulator:
 
         return results
 
-    def simuleMix(self, current_usage_coef, carbonProdLimit, demand: float= None, lost: float=None, time_interval: float = 1, carbon_cost: float = None, verbose: int = 1, plot: str = "default" ,optimize_with = ["OnePlusOne"], budgets = []):
+    def simuleMix(self, current_usage_coef, carbonProdLimit, demand: float= None, lost: float=None, time_interval: float = 1, carbon_cost: float = None, verbose: int = 1, plot: str = "default" ,optimize_with = ["OnePlusOne"], budgets = [100]):
         # initialization
         if demand is None:
             demand = self.__demand
@@ -164,6 +164,8 @@ class MixSimulator:
         columns=[]
         tmp=[]
         data=[]
+        
+        #handle data
         for keys, values in optimum.items():
             if keys == "usage_coefficient":
                 for k, v in values.items():
@@ -174,70 +176,13 @@ class MixSimulator:
         for keys, values in current.items():
             if keys == "usage_coefficient":
                 data.append(values)
-                
-        rows = ["current","optimum"]        
-              
-        # Get some pastel shades for the colors
-        colors = plt.cm.autumn(np.linspace(0, 0.5, len(rows)))
-        n_rows = len(data)
-        
-        index = np.arange(len(columns)) + 0.3
-        bar_width = 0.4
-        
-        # Initialize the vertical-offset for the stacked bar chart.
-        y_offset = np.zeros(len(columns))
-        
-        # Plot bars and create text labels for the table
-        cell_text = []
-        correction = np.zeros(len(columns))
-        for row in range(n_rows):
-            for i in range(0,len(columns)):
-                if y_offset[i] < data[row][i]:
-                    correction[i] = y_offset[i]
-                    color_correction = row-1
-            y_offset = np.zeros(len(columns))
-            plt.bar(index, data[row], bar_width, bottom=y_offset, color=colors[row])
-            y_offset = data[row]
-            cell_text.append(['%f' % x for x in y_offset])
-            
-        #correction to avoid hidden bar
-        y_offset = np.zeros(len(columns))
-        plt.bar(index, correction, bar_width, bottom=y_offset, color=colors[color_correction])            
-        
-        # Reverse colors and text labels to display the last value at the top.
-        colors = colors[::-1]
-        cell_text.reverse()
-        
-        # Add a table at the bottom of the axes
-        the_table = plt.table(cellText=cell_text,
-                              rowLabels=rows,
-                              rowColours=colors,
-                              colLabels=columns,
-                              loc='bottom')
-        
-        # Adjust layout to make room for the table:
-        plt.subplots_adjust(left=0.2, bottom=0.2)
-        values = np.arange(0, 120, 20)
-        value_increment = 100 
-        plt.ylabel("Usage coef. in % ")
-        plt.yticks(values / value_increment, ['%d' % val for val in values])
-        plt.xticks([])
-        plt.title('Optimum and Current values')
 
-
-        plt.show()
-
-
-
-        columns=[]
-        tmp=[]
-        data=[]
         for keys, values in optimum.items():
             if keys != "usage_coefficient":
                 columns.append(keys)
                 tmp.append(values)
         data.append(tmp)
-        tmp = []
+        tmp=[]        
         for keys, values in current.items():
             if keys != "usage_coefficient":
                 tmp.append(values)
@@ -247,49 +192,61 @@ class MixSimulator:
               
         # Get some pastel shades for the colors
         colors = plt.cm.autumn(np.linspace(0, 0.5, len(rows)))
-        n_rows = len(data)
+        n_rows = len(rows)
         
-        index = np.arange(len(columns)) + 0.3
+        index = np.arange(len(columns[:-3])) + 0.3
         bar_width = 0.4
-
+        
         # Initialize the vertical-offset for the stacked bar chart.
-        y_offset = np.zeros(len(columns))
+        y_offset = np.zeros(len(columns[:-3]))
         
         # Plot bars and create text labels for the table
         cell_text = []
-        correction = np.zeros(len(columns))
+        correction = np.zeros(len(columns[:-3]))
+        to_plot = data[:-2]
+        
         for row in range(n_rows):
-            for i in range(0,len(columns)):
-                if y_offset[i] < data[row][i]:
+            for i in range(len(columns[:-3])):
+                if y_offset[i] < to_plot[row][i]:
                     correction[i] = y_offset[i]
                     color_correction = row-1
-            y_offset = np.zeros(len(columns))
-            plt.bar(index, data[row], bar_width, bottom=y_offset, color=colors[row])
-            y_offset = data[row]
+            y_offset = np.zeros(len(columns[:-3]))
+            plt.bar(index, to_plot[row], bar_width, bottom=y_offset, color=colors[row])
+            y_offset = to_plot[row]
             cell_text.append(['%f' % x for x in y_offset])
             
-        #correction to avoid hidden bar
-        y_offset = np.zeros(len(columns))
+        # Correction to avoid hidden bar
+        y_offset = np.zeros(len(columns[:-3]))
         plt.bar(index, correction, bar_width, bottom=y_offset, color=colors[color_correction])            
-        
+
+
         # Reverse colors and text labels to display the last value at the top.
         colors = colors[::-1]
         cell_text.reverse()
         
-        # Add a table at the bottom of the axes
-        the_table = plt.table(cellText=cell_text,
+        # Add tables 
+        plt.table(cellText=cell_text,
                               rowLabels=rows,
                               rowColours=colors,
-                              colLabels=columns,
+                              colLabels=columns[:-3],
                               loc='bottom')
         
+        cell_text=data[-2:]
+        cell_text.reverse()
+        plt.table(cellText=cell_text,
+                              rowLabels=rows,
+                              rowColours=colors,
+                              colLabels=columns[-3:],
+                              loc='upper center')
+                              
         # Adjust layout to make room for the table:
         plt.subplots_adjust(left=0.2, bottom=0.2)
-        values = np.arange(0, 120, 20)
+        values = np.arange(0, 140, 20)
         value_increment = 100 
-        plt.ylabel("Performance comparaison")
+        plt.ylabel("Usage coef. in % ")
         plt.yticks(values / value_increment, ['%d' % val for val in values])
         plt.xticks([])
         plt.title('Optimum and Current values')
-        
+
+
         plt.show()
