@@ -13,6 +13,7 @@ class MixSimulator:
 
     def __reset_centrals(self):
         self.__centrals = {}
+        self.__init_list = []
         self.__centrals.update({"green": []})
         self.__centrals.update({"non_green": []})
 
@@ -46,6 +47,7 @@ class MixSimulator:
                 centrale.setMeanEmployeesSalary(data["mean_salary"][i])
                 centrale.setGreenEnergy(data["green"][i])
                 centrale_tmp.append(centrale)
+                self.__init_list.append(centrale.get_id())
             self.__demand=data["Demand"][0]
             self.__lost=data["lost"][0]
         except KeyError:
@@ -143,7 +145,10 @@ class MixSimulator:
         current_perf.update({"production_cost ($)": current_mix.prod_cost_objective_function(current_usage_coef)})
         current_perf.update({"carbon_impacte (g/MWh)": current_mix.get_carbon_prod_constraint(current_usage_coef)})
         current_perf.update({"unsatisfied_demand (MWh)": demand - current_mix.get_production_constraint(current_usage_coef)})
-        current_perf.update({"usage_coefficient": current_usage_coef})
+        coef_dict = {}
+        for index in range(0, len(current_usage_coef)):
+            coef_dict.update({self.__init_list[index]:current_usage_coef[index]})
+        current_perf.update({"usage_coefficient": coef_dict})
 
         # verbosity
         if verbose == 1 :
@@ -175,8 +180,11 @@ class MixSimulator:
         tmp=[]        
         for keys, values in current.items():
             if keys == "usage_coefficient":
-                data.append(values)
+                for k, v in values.items():
+                    tmp.append(v)
+        data.append(tmp)
 
+        tmp = []
         for keys, values in optimum.items():
             if keys != "usage_coefficient":
                 columns.append(keys)
