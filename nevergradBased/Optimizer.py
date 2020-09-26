@@ -90,13 +90,13 @@ class Optimizer():
         #setting budget 
         #possible to do? auto calculate a optimal budget depending of the size of data
         self.__budget = budget
+    
+    def get_budget(self):
+        return self.__budget
         
     def getOptimizerList(self):
         tmp = Optimizer()
         return tmp.__available_optimizers.keys()
-    
-    def get_budget(self):
-        return self.__budget
     
     def set_satisfied_constraints(self, recommendation_value, constraints, min_prod, tolerance, fully_used, not_used):    
         #check satisfied constraints
@@ -153,7 +153,7 @@ class Optimizer():
             try:
                 self.__optimizers.append(self.__available_optimizers.get(opt))
             except KeyError:
-                print(opt, "not included. Use of default optimizer instead.\n Please use one of availible optimizer :\n \t (non exhaustive optimizer list, more will be added)\nFor more informations, check https://facebookresearch.github.io/nevergrad/optimizers_ref.html")
+                print(opt, "not included. Use of default optimizer instead.\n Next time, choose one of availible optimizer :\n \t ",self.getOptimizerList()," (non exhaustive optimizer list, more will be added)\nFor more informations, check https://facebookresearch.github.io/nevergrad/optimizers_ref.html")
                 self.__optimizers = [ng.optimizers.OnePlusOne]
                 budgets=[100]
                 
@@ -164,8 +164,8 @@ class Optimizer():
             
         
         #setting budgets
-        self.set_budget(budgets[-1])
-        current_budgets = budgets[:-1]
+        current_budgets = budgets
+        self.set_budget(current_budgets[-1])
         result = {}
 
         # POSSIBLE??
@@ -180,7 +180,7 @@ class Optimizer():
         self.__opt_parameters(constraints)
 
         #optimization under constraints
-        chaining_algo = ng.optimizers.Chaining(self.__optimizers,current_budgets)
+        chaining_algo = ng.optimizers.Chaining(self.__optimizers,current_budgets[:-1])
         optimizer = chaining_algo(parametrization=self.get_parametrization(), budget=self.get_budget())
         if constraints != None:
             #if contraint initiate
@@ -218,6 +218,8 @@ class Optimizer():
         result.update({"production": constraints["production"](recommendation.value)})
         result.update({"production cost": func_to_optimize(recommendation.value)})
         result.update({"coef": recommendation.value})
+        
+        #print(recommendation.satisfies_constraints())
         
         self.set_satisfied_constraints(recommendation.value, constraints, min_prod, tolerance, fully_used, not_used)
         self.show_satisfied_constraints()        
