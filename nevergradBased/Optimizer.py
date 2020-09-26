@@ -13,6 +13,8 @@ class Optimizer():
         self.__max_bound = 1.
         self.set_budget(100)
         self.set_parametrization(2, self.__max_bound)
+
+        ### available optimizers
         self.__available_optimizers = {}
         self.__available_optimizers.update({"OnePlusOne":ng.optimizers.OnePlusOne})
         self.__available_optimizers.update({"DE":ng.optimizers.DE})
