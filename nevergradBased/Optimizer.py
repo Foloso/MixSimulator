@@ -13,6 +13,12 @@ class Optimizer():
         self.__max_bound = 1.
         self.set_budget(100)
         self.set_parametrization(2, self.__max_bound)
+        self.__available_optimizers = {}
+        self.__available_optimizers.update({"OnePlusOne":ng.optimizers.OnePlusOne})
+        self.__available_optimizers.update({"DE":ng.optimizers.DE})
+        self.__available_optimizers.update({"CMA":ng.optimizers.CMA})
+        self.__available_optimizers.update({"PSO":ng.optimizers.PSO})
+        self.__available_optimizers.update({"TBPSA":ng.optimizers.TBPSA})
     
     def __opt_parameters(self, constraints):
         max_bound = self.__max_bound
@@ -62,17 +68,9 @@ class Optimizer():
         #Define chaining algo  
         self.__optimizers = []
         for opt in optimizers:
-            if opt == "OnePlusOne":
-                self.__optimizers.append(ng.optimizers.OnePlusOne)
-            elif opt == "DE":
-                self.__optimizers.append(ng.optimizers.DE)
-            elif opt == "CMA":
-                self.__optimizers.append(ng.optimizers.CMA)
-            elif opt == "PSO":
-                self.__optimizers.append(ng.optimizers.PSO)
-            elif opt == "TBPSA":
-                self.__optimizers.append(ng.optimizers.TBPSA)
-            else :
+            try:
+                self.__optimizers.append(self.__available_optimizers.get(opt))
+            except KeyError:
                 print(opt, "not included. Use of default optimizer instead.\n Please use one of availible optimizer :\n \t OnePlusOne \n \t DE \n \t CMA \n \t PSO \n \t TBPSA \n (non exhaustive optimizer list, more will be added)\nFor more informations, check https://facebookresearch.github.io/nevergrad/optimizers_ref.html")
                 self.__optimizers = [ng.optimizers.OnePlusOne]
                 budgets=[100]
