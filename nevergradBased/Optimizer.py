@@ -94,6 +94,18 @@ class Optimizer():
     def get_budget(self):
         return self.__budget
     
+    def set_satisfied_constraints(self, check):    
+        self.__check_constraints = check
+    
+    def get_satisfied_constraints(self):
+        return self.__check_constraints
+        
+    def show_satisfied_constraints(self):
+        print("**************************************************************************************************")
+        for i in self.__check_constraints:
+            print(i)
+            print("**************************************************************************************************")
+    
     def opt_With(self, func_to_optimize, constraints = None, optimizers : list = ["OnePlusOne"], budgets : list = [100]):
         #Define chaining algo  
         self.__optimizers = []
@@ -101,7 +113,7 @@ class Optimizer():
             try:
                 self.__optimizers.append(self.__available_optimizers.get(opt))
             except KeyError:
-                print(opt, "not included. Use of default optimizer instead.\n Please use one of availible optimizer :\n \t OnePlusOne \n \t DE \n \t CMA \n \t PSO \n \t TBPSA \n (non exhaustive optimizer list, more will be added)\nFor more informations, check https://facebookresearch.github.io/nevergrad/optimizers_ref.html")
+                print(opt, "not included. Use of default optimizer instead.\n Please use one of availible optimizer :\n \t (non exhaustive optimizer list, more will be added)\nFor more informations, check https://facebookresearch.github.io/nevergrad/optimizers_ref.html")
                 self.__optimizers = [ng.optimizers.OnePlusOne]
                 budgets=[100]
                 
@@ -166,4 +178,46 @@ class Optimizer():
         result.update({"production": constraints["production"](recommendation.value)})
         result.update({"production cost": func_to_optimize(recommendation.value)})
         result.update({"coef": recommendation.value})
+        
+        #check satisfied constraints
+        check_constraints=[]
+        items={}
+        if constraints["carbonProd"](recommendation.value) <= constraints["carbonProdLimit"]:
+            check=True
+        else : check = False
+        items.update({"carbon_constraint_satisfied": check})
+        items.update({"value": constraints["carbonProd"](recommendation.value)})
+        items.update({"constraint": constraints["carbonProdLimit"]})
+        check_constraints.append(items)
+        
+        items={}
+        if np.abs(constraints["production"](recommendation.value) - min_prod) < tolerance:
+            check=True
+        else : check = False
+        items.update({"demand_constraint_satisfied": check})
+        items.update({"value": constraints["production"](recommendation.value)})
+        items.update({"constraint": min_prod})
+        check_constraints.append(items)
+        
+        items={}
+        if (np.array(recommendation.value) <= constraints["availability"]).all() :
+            check=True
+        else : check = False
+        items.update({"availability_constraint_satisfied": check})
+        items.update({"value": np.array(recommendation.value)})
+        items.update({"constraint": constraints["availability"]})
+        check_constraints.append(items)
+        
+        items={}
+        if (np.abs(np.array(recommendation.value) - constraints["availability"]) <= fully_used).all() and ((recommendation.value <= not_used)).all() :
+            check=True
+        else : check = False
+        items.update({"used_constraint_satisfied": check})
+        items.update({"value": [np.abs(np.array(recommendation.value) - constraints["availability"]),recommendation.value]})
+        items.update({"constraint": [fully_used, not_used]})
+        check_constraints.append(items)
+        
+        self.set_satisfied_constraints(check_constraints)
+        self.show_satisfied_constraints()
+                
         return result

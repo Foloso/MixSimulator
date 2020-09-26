@@ -7,7 +7,6 @@ from centrals.PowerCentral import PowerCentral
 
 class SegmentOptimizer:
     """
-        The simulator Base Version 0.1
         Initiate the appropriate optimization and the power plants:
              Define the objective function;
              Define the constraints;
@@ -166,7 +165,7 @@ class SegmentOptimizer:
         #setting all parameters
         self.__optimizer.set_parametrization(len(centrals), np.amax(self.get_avaibility_limit()))
         
-        prod_cost_optimal= self.__optimizer.opt_With(self.prod_cost_objective_function, constrains, optimize_with,budgets)
+        prod_cost_optimal = self.__optimizer.opt_With(self.prod_cost_objective_function, constrains, optimize_with,budgets)
         
         return prod_cost_optimal
 

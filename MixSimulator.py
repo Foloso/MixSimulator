@@ -6,6 +6,9 @@ import pandas as pd
 from typing import List
 
 class MixSimulator:
+    """
+        The simulator Base Version 0.1            
+    """
     def __init__(self):
         self.__reset_centrals()
         self.__demand = 0
