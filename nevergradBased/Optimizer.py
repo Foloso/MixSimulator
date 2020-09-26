@@ -98,8 +98,44 @@ class Optimizer():
     def get_budget(self):
         return self.__budget
     
-    def set_satisfied_constraints(self, check):    
-        self.__check_constraints = check
+    def set_satisfied_constraints(self, recommendation_value, constraints, min_prod, tolerance, fully_used, not_used):    
+        #check satisfied constraints
+        self.__check_constraints=[]
+        items={}
+        if constraints["carbonProd"](recommendation_value) <= constraints["carbonProdLimit"]:
+            check=True
+        else : check = False
+        items.update({"carbon_constraint_satisfied": check})
+        items.update({"value": constraints["carbonProd"](recommendation_value)})
+        items.update({"constraint": constraints["carbonProdLimit"]})
+        self.__check_constraints.append(items)
+        
+        items={}
+        if np.abs(constraints["production"](recommendation_value) - min_prod) < tolerance:
+            check=True
+        else : check = False
+        items.update({"demand_constraint_satisfied": check})
+        items.update({"value": constraints["production"](recommendation_value)})
+        items.update({"constraint": min_prod})
+        self.__check_constraints.append(items)
+        
+        items={}
+        if (np.array(recommendation_value) <= constraints["availability"]).all() :
+            check=True
+        else : check = False
+        items.update({"availability_constraint_satisfied": check})
+        items.update({"value": np.array(recommendation_value)})
+        items.update({"constraint": constraints["availability"]})
+        self.__check_constraints.append(items)
+        
+        items={}
+        if (np.abs(np.array(recommendation_value) - constraints["availability"]) <= fully_used).all() and ((recommendation_value <= not_used)).all() :
+            check=True
+        else : check = False
+        items.update({"used_constraint_satisfied": check})
+        items.update({"value": [np.abs(np.array(recommendation_value) - constraints["availability"]),recommendation_value]})
+        items.update({"constraint": [fully_used, not_used]})
+        self.__check_constraints.append(items) 
     
     def get_satisfied_constraints(self):
         return self.__check_constraints
@@ -183,45 +219,7 @@ class Optimizer():
         result.update({"production cost": func_to_optimize(recommendation.value)})
         result.update({"coef": recommendation.value})
         
-        #check satisfied constraints
-        check_constraints=[]
-        items={}
-        if constraints["carbonProd"](recommendation.value) <= constraints["carbonProdLimit"]:
-            check=True
-        else : check = False
-        items.update({"carbon_constraint_satisfied": check})
-        items.update({"value": constraints["carbonProd"](recommendation.value)})
-        items.update({"constraint": constraints["carbonProdLimit"]})
-        check_constraints.append(items)
+        self.set_satisfied_constraints(recommendation.value, constraints, min_prod, tolerance, fully_used, not_used)
+        self.show_satisfied_constraints()        
         
-        items={}
-        if np.abs(constraints["production"](recommendation.value) - min_prod) < tolerance:
-            check=True
-        else : check = False
-        items.update({"demand_constraint_satisfied": check})
-        items.update({"value": constraints["production"](recommendation.value)})
-        items.update({"constraint": min_prod})
-        check_constraints.append(items)
-        
-        items={}
-        if (np.array(recommendation.value) <= constraints["availability"]).all() :
-            check=True
-        else : check = False
-        items.update({"availability_constraint_satisfied": check})
-        items.update({"value": np.array(recommendation.value)})
-        items.update({"constraint": constraints["availability"]})
-        check_constraints.append(items)
-        
-        items={}
-        if (np.abs(np.array(recommendation.value) - constraints["availability"]) <= fully_used).all() and ((recommendation.value <= not_used)).all() :
-            check=True
-        else : check = False
-        items.update({"used_constraint_satisfied": check})
-        items.update({"value": [np.abs(np.array(recommendation.value) - constraints["availability"]),recommendation.value]})
-        items.update({"constraint": [fully_used, not_used]})
-        check_constraints.append(items)
-        
-        self.set_satisfied_constraints(check_constraints)
-        self.show_satisfied_constraints()
-                
         return result
