@@ -167,3 +167,7 @@ class Optimizer():
         result.update({"production cost": func_to_optimize(recommendation.value)})
         result.update({"coef": recommendation.value})
         return result
+
+    def getOptimizerList(self):
+        tmp = Optimizer()
+        return tmp.__available_optimizers.keys()
