@@ -74,7 +74,7 @@ class Evaluation:
                 #X.append(float(b+10))
                 y.append(b)
             #plotting
-        plot_evaluation(X=np.array(X),Y=y,label=["OnePlusOne"], label_y = "production_cost ($)", max_budgets = max_budgets)
+        plot_evaluation(X=np.array(X),Y=y,label=optimizer_list, label_y = "production_cost ($)", max_budgets = max_budgets)
         
     ########EXAMPLES    
     # evaluate(sys.argv[1], 10, 160)
