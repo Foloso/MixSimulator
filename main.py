@@ -31,9 +31,13 @@ mix.simuleMix(current_usage_coef=[0.6, 0.2, 0.7, 0.95], carbonProdLimit= 3950000
 """
     Minimization of the cost production of the energy mix in the inter-connected Grid of Toamasina (time_interval = 2 hours )
 """
-
 mix = MixSimulator()
 mix.set_data_csv("data/RIToamasina/dataset_RI_Toamasina.csv")
-#mix.simuleMix(current_usage_coef=[0.6, 0.2, 0.7, 0.95], carbonProdLimit= 3950000000000, time_interval = 2, optimize_with = ["OnePlusOne"], budgets = [100])
+mix.simuleMix(current_usage_coef=[0.6, 0.2, 0.7, 0.95], carbonProdLimit= 3950000000000, time_interval = 2, optimize_with = ["OnePlusOne"], budgets = [100])
+
+
+"""
+    Evaluation of the performance indicators on two optimizers
+"""
 eva=Evaluation()
 eva.evaluate(mix, 10, 300, ["OnePlusOne","DE"], ["production_cost ($)","carbon_impacte (g/MWh)","unsatisfied_demand (MWh)"])
