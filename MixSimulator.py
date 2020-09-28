@@ -70,7 +70,6 @@ class MixSimulator:
                 else:
                     self.__centrals["non_green"].append(centrale)
 
-
     def optimizeMix(self, carbonProdLimit, demand: float= None, lost: float=None, time_interval: float = 1, carbon_cost: float = None, optimize_with = ["OnePlusOne"], budgets = [100]):
         # default parameter
         usage_coef = {}
@@ -259,6 +258,5 @@ class MixSimulator:
         plt.yticks(values / value_increment, ['%d' % val for val in values])
         plt.xticks([])
         plt.title('Optimum and Current values')
-
 
         plt.show()
