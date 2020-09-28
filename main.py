@@ -1,6 +1,7 @@
 #from centrals.PowerCentral import PowerCentral
 #from SegmentOptimizer import SegmentOptimizer
 from MixSimulator import MixSimulator
+from Evaluation import Evaluation
 
 #Centrales personnalisées
 """
@@ -33,4 +34,6 @@ mix.simuleMix(current_usage_coef=[0.6, 0.2, 0.7, 0.95], carbonProdLimit= 3950000
 
 mix = MixSimulator()
 mix.set_data_csv("data/RIToamasina/dataset_RI_Toamasina.csv")
-mix.simuleMix(current_usage_coef=[0.6, 0.2, 0.7, 0.95], carbonProdLimit= 3950000000000, time_interval = 2, optimize_with = ["OnePlusOne"], budgets = [100])
+#mix.simuleMix(current_usage_coef=[0.6, 0.2, 0.7, 0.95], carbonProdLimit= 3950000000000, time_interval = 2, optimize_with = ["OnePlusOne"], budgets = [100])
+eva=Evaluation()
+eva.evaluate(mix,10,30,["OnePlusOne","DE"])

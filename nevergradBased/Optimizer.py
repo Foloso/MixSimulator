@@ -129,7 +129,7 @@ class Optimizer():
         self.__check_constraints.append(items)
         
         items={}
-        if (np.abs(np.array(recommendation_value) - constraints["availability"]) <= fully_used).all() and ((recommendation_value <= not_used)).all() :
+        if ((np.abs(np.array(recommendation_value) - constraints["availability"]) <= fully_used) + (recommendation_value <= not_used)).all() :       
             check=True
         else : check = False
         items.update({"used_constraint_satisfied": check})
@@ -222,6 +222,6 @@ class Optimizer():
         #print(recommendation.satisfies_constraints())
         
         self.set_satisfied_constraints(recommendation.value, constraints, min_prod, tolerance, fully_used, not_used)
-        self.show_satisfied_constraints()        
+        #self.show_satisfied_constraints()        
         
         return result

@@ -31,14 +31,15 @@ class Evaluation:
         ax = fig.add_subplot(111,axisbelow=True)
         
         # data integration
-        ax.plot(Y, X, 'b', alpha=0.5, lw=2, label=label[0])
-        #ax.plot(max_budgets, I/units, 'r', alpha=0.5, lw=2, label='Infected')
-        #ax.plot(max_budgets, R/units, 'g', alpha=0.5, lw=2, label='Recovered with immunity')
+        for i in range(0,len(Y)):            
+            ax.plot(X, Y[i]/units, alpha=0.5, lw=2, label=label[i])
+            #ax.plot(max_budgets, I/units, 'r', alpha=0.5, lw=2, label='Infected')
+            #ax.plot(max_budgets, R/units, 'g', alpha=0.5, lw=2, label='Recovered with immunity')
         
         # labels and parametrizations    
         ax.set_xlabel('Budgets')
         ax.set_ylabel(labelY)
-        ax.set_ylim(0,np.amax(X)+150)
+        ax.set_ylim(0,np.amax(Y[0])+300)
         ax.yaxis.set_tick_params(length=0)
         ax.xaxis.set_tick_params(length=0)
         ax.grid(b=True, which='major', c='w', lw=2, ls='-')
@@ -53,7 +54,7 @@ class Evaluation:
         if bind != None:
             mix.set_data_csv(str(bind))
 
-        for index in range(len(optimizer_list)):
+        for index in range(0, len(optimizer_list)):
             if optimizer_list[index] not in self.__available_optimizers:
                 print(optimizer_list[index] , " is not available")
                 optimizer_list.pop(index)
@@ -74,7 +75,7 @@ class Evaluation:
                 #X.append(float(b+10))
             #plotting
             y.append(np.array(y_tmp))
-        plot_evaluation(X=np.array(budget),Y=y,label=optimizer_list, label_y = "production_cost ($)", max_budgets = max_budgets)
+        self.plot_evaluation(X=np.array(budget),Y=y,label=optimizer_list, label_y = "production_cost ($)", max_budgets = max_budgets)
         
     ########EXAMPLES    
     # evaluate(sys.argv[1], 10, 160)
