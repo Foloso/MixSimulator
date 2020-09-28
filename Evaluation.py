@@ -63,18 +63,18 @@ class Evaluation:
             return
 
         #process
-        X=[]
         y=[]
         budget = np.arange(0, max_budgets, sequence)
         for opt in optimizer_list:
+            y_tmp = [] 
             for b in budget:
                 data=mix.simuleMix(current_usage_coef=[0.6, 0.2, 0.7, 0.95], carbonProdLimit= 3950000000000,
                             time_interval = 2, optimize_with = [opt], budgets = [b], plot = "none", verbose = 1)
-                X.append(float(data["production_cost ($)"]))
+                y_tmp.append(float(data["production_cost ($)"]))
                 #X.append(float(b+10))
-                y.append(b)
             #plotting
-        plot_evaluation(X=np.array(X),Y=y,label=optimizer_list, label_y = "production_cost ($)", max_budgets = max_budgets)
+            y.append(np.array(y_tmp))
+        plot_evaluation(X=np.array(budget),Y=y,label=optimizer_list, label_y = "production_cost ($)", max_budgets = max_budgets)
         
     ########EXAMPLES    
     # evaluate(sys.argv[1], 10, 160)
