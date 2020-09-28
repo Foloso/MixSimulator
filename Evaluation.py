@@ -39,16 +39,13 @@ class Evaluation:
         
         # labels and parametrizations    
 
-        #axs.grid(b=True, which='major', c='w', lw=2, ls='-')
         for n_axs in range(0,len(axs)) :
+            axs[n_axs].grid()
             axs[n_axs].yaxis.set_tick_params(length=0)
             axs[n_axs].xaxis.set_tick_params(length=0)
             axs[n_axs].set_xlabel('Budgets')
             axs[n_axs].set_ylabel(label_y[n_axs])
             axs[n_axs].legend()
-        #legend.get_frame().set_alpha(0.5)
-        #for spine in ('top', 'right', 'bottom', 'left'):
-        #    axs.spines[spine].set_visible(False)
         plt.show()
         
     def evaluate(self, mix, sequence, max_budgets, optimizer_list: List['str'], indicator_list: List['str'], bind=None, carbonProdLimit: float = 39500000000, time_interval : float = 2) :        
@@ -67,41 +64,18 @@ class Evaluation:
 
         #process
         y_tmp = {}
-        y=[]
         budget = np.arange(0, max_budgets, sequence)
-        prod_per_opt={}
-        carbon_per_opt={}
-        demand_per_opt={}
-        for opt in optimizer_list:
-            prod_per_budget=[]
-            carbon_per_budget=[]
-            demand_per_budget=[]
-            for b in budget:
-                data=mix.simuleMix(current_usage_coef=[0.6, 0.2, 0.7, 0.95], carbonProdLimit= carbonProdLimit, 
-                                   time_interval = time_interval, optimize_with = [opt], budgets = [b], plot = "none", verbose = 1)
-                #for indicator in indicator_list:
-                #   y_tmp.update({indicator:float(data[indicator])})
-                prod_per_budget.append(float(data["production_cost ($)"]))
-                carbon_per_budget.append(float(data["carbon_impacte (g/MWh)"]))
-                demand_per_budget.append(float(data["unsatisfied_demand (MWh)"]))
-            prod_per_opt.update({opt:prod_per_budget})
-            carbon_per_opt.update({opt:carbon_per_budget})
-            demand_per_opt.update({opt:demand_per_budget})
-        y_tmp.update({"production_cost ($)":prod_per_opt})
-        y_tmp.update({"carbon_impacte (g/MWh)":carbon_per_opt})
-        y_tmp.update({"unsatisfied_demand (MWh)":demand_per_opt})
-        
-        #plotting
 
-#        y_re_tmp = {}
-#        for indicator in indicator_list:
-#            list_array = []
-#            for cur_y in y:
-#                print(cur_y)
-#                list_array.append(cur_y[indicator])
-#            y_re_tmp.update({indicator: list_array})
-#        print(y_re_tmp)
+        for indicator in indicator_list:
+            ind_per_opt = {}
+            for opt in optimizer_list:
+                ind_per_budget = []
+                for b in budget:
+                    data=mix.simuleMix(current_usage_coef=[0.6, 0.2, 0.7, 0.95], carbonProdLimit= carbonProdLimit, 
+                                    time_interval = time_interval, optimize_with = [opt], budgets = [b], plot = "none", verbose = 1)
+                    ind_per_budget.append(float(data[indicator]))
+                ind_per_opt.update({opt:ind_per_budget})
+            y_tmp.update({indicator:ind_per_opt})
+
+        #plotting
         self.plot_evaluation(X=np.array(budget),Y=y_tmp,label_y = indicator_list, label=optimizer_list, max_budgets = max_budgets)
-        #self, X = 0,Y = 0,label : list = ["Optimizer"],label_y : List["str"], max_budgets = 0
-    ########EXAMPLES    
-    # evaluate(sys.argv[1], 10, 160)
