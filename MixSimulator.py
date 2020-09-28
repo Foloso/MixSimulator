@@ -166,7 +166,8 @@ class MixSimulator:
                 pass
             else :
                 print("Available plot options : \n \t 'default' : show and save the results plots; \n \t 'none' : no plots.")
-
+        
+        return theorical_optimum
 
     def plotResults(self, optimum : dict = {}, current : dict = {}, mode : str = "default") :
         columns=[]
