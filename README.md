@@ -7,9 +7,9 @@ Specifications :
 - 
 - Generic simulator, compatible with data from Madagascar and those from abroad (but may require pre-processing beforehand);
 - Optimization of duty cycle (or usage coefficient) under the chosen constraints ;
-- Deduction of production costs and various performance indicators (CO2 emission);
-- Evaluation of the relevance of the installation of a new plant ;
-- Comparison between the usage coefficients of the current mix and the calculated optimal mix.
+- Deduction of production costs and various performance indicators (CO2 emission, unsatisfied demand);
+- Comparison between the usage coefficients of the current mix and the calculated optimal mix ;
+- Comparison of the performance indicators on different optimizers.
 
 
 Perspectives :
@@ -43,4 +43,4 @@ For questions and feedbacks related to the project, please send an email to r.an
 This project is a work in progress so it can not yet used in production (Many changes are on their way). Feedbacks are welcome!
 
 Here is a list of available optimizers:
-['cGA', 'SplitOptimizer', 'RecombiningPortfolioOptimisticNoisyDiscreteOnePlusOne', 'RecES', 'RealSpacePSO', 'RandomSearchPlusMiddlePoint', 'QrDE', 'QORandomSearch', 'OptimisticNoisyOnePlusOne', 'OptimisticDiscreteOnePlusOne', 'ORandomSearch', 'NoisyOnePlusOne', 'NoisyDiscreteOnePlusOne', 'NoisyDE', 'NoisyBandit', 'NelderMead', 'NaiveTBPSA', 'NaiveIsoEMNA', 'LhsDE', 'FCMA', 'ES', 'DoubleFastGADiscreteOnePlusOne', 'DiscreteOnePlusOne', 'CauchyOnePlusOne', 'CM', 'AlmostRotationInvariantDE', 'TwoPointsDE', 'RandomSearch', 'OnePlusOne', 'DE', 'CMA', 'PSO', 'TBPSA']
+'cGA', 'SplitOptimizer', 'RecombiningPortfolioOptimisticNoisyDiscreteOnePlusOne', 'RecES', 'RealSpacePSO', 'RandomSearchPlusMiddlePoint', 'QrDE', 'QORandomSearch', 'OptimisticNoisyOnePlusOne', 'OptimisticDiscreteOnePlusOne', 'ORandomSearch', 'NoisyOnePlusOne', 'NoisyDiscreteOnePlusOne', 'NoisyDE', 'NoisyBandit', 'NelderMead', 'NaiveTBPSA', 'NaiveIsoEMNA', 'LhsDE', 'FCMA', 'ES', 'DoubleFastGADiscreteOnePlusOne', 'DiscreteOnePlusOne', 'CauchyOnePlusOne', 'CM', 'AlmostRotationInvariantDE', 'TwoPointsDE', 'RandomSearch', 'OnePlusOne', 'DE', 'CMA', 'PSO', 'TBPSA'
