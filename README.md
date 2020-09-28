@@ -41,3 +41,6 @@ For questions and feedbacks related to the project, please send an email to r.an
 
 # Note
 This project is a work in progress so it can not yet used in production (Many changes are on their way). Feedbacks are welcome!
+
+Here is a list of available optimizers:
+['cGA', 'SplitOptimizer', 'RecombiningPortfolioOptimisticNoisyDiscreteOnePlusOne', 'RecES', 'RealSpacePSO', 'RandomSearchPlusMiddlePoint', 'QrDE', 'QORandomSearch', 'OptimisticNoisyOnePlusOne', 'OptimisticDiscreteOnePlusOne', 'ORandomSearch', 'NoisyOnePlusOne', 'NoisyDiscreteOnePlusOne', 'NoisyDE', 'NoisyBandit', 'NelderMead', 'NaiveTBPSA', 'NaiveIsoEMNA', 'LhsDE', 'FCMA', 'ES', 'DoubleFastGADiscreteOnePlusOne', 'DiscreteOnePlusOne', 'CauchyOnePlusOne', 'CM', 'AlmostRotationInvariantDE', 'TwoPointsDE', 'RandomSearch', 'OnePlusOne', 'DE', 'CMA', 'PSO', 'TBPSA']
