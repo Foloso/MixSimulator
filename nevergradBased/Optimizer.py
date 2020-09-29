@@ -6,8 +6,8 @@ class Optimizer():
     """
         adaptation of nevergrad optimizers to the project + auto-parametrization
     
-        list of available: 
-        - optimization under constraints with OnePlusOne (opt_OnePlusOne)
+        list of available: self.getOptimizerList()
+        
     """ 
     def __init__(self):
         self.__max_bound = 1.
@@ -49,6 +49,9 @@ class Optimizer():
         self.__available_optimizers.update({"CMA":ng.optimizers.CMA})
         self.__available_optimizers.update({"PSO":ng.optimizers.PSO})
         self.__available_optimizers.update({"TBPSA":ng.optimizers.TBPSA})
+        self.__available_optimizers.update({"LHSSearch":ng.optimizers.LHSSearch})
+        self.__available_optimizers.update({"CauchyLHSSearch":ng.optimizers.CauchyLHSSearch})
+        self.__available_optimizers.update({"CauchyScrHammersleySearch":ng.optimizers.CauchyScrHammersleySearch})
     
     def __opt_parameters(self, constraints):
         max_bound = self.__max_bound
