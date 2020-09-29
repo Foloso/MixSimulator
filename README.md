@@ -55,7 +55,7 @@ Dataset features needed:
 - demand (MWh): electricity demand
 - lost (MWh): electrical loss at another level (ie: transport network)
 
-nb_employees * mean_salary can be used as a variable cost of the plant if you want to directly use other informations as variable cost.
+"nb_employees * mean_salary" can be used as a variable cost of the plant if you want to directly use other informations as variable cost.
 
 # Contact
 For questions and feedbacks related to the project, please send an email to r.andry.rasoanaivo@gmail.com or soloforahamefy@gmail.com or tokyandriaxel@gmail.com
