@@ -1,7 +1,9 @@
-import sys
-from MixSimulator import MixSimulator
+#import sys
+#from MixSimulator import MixSimulator
 import matplotlib.pyplot as plt
+from matplotlib.ticker import StrMethodFormatter
 import numpy as np
+from math import ceil
 from typing import List
 from nevergradBased.Optimizer import Optimizer
 
@@ -10,42 +12,56 @@ class Evaluation:
     def __init__(self):
         tmp = Optimizer()
         self.__available_optimizers = tmp.getOptimizerList()
+        
+    def moving_average(self, x, w):
+        return np.convolve(x, np.ones(w), 'valid') / w
 
-    def plot_evaluation(self, X, Y, label_y : List['str'], label : List = ["Optimizer"], max_budgets = 0):
-
-        """
+    def set_units(self,value):
         # Y units
-        N=X[0]
+        N=value
         if N>=1000000: 
             units=1000000
-            labelY=label_y+' (Millions)'
+            labelY=' Millions'
         else :
             if N>=1000 and N<1000000:
                 units=1000
-                labelY=label_y+' (k)'
+                labelY='k'
             else :
                 units=1
-                labelY=label_y
-        """
+                labelY=''
+        return [labelY,units]
+                
+    def plot_evaluation(self, X, Y, label_y : List['str'], label : List = ["Optimizer"], max_budgets = 0):
+
         
         #init subplot
-        fig, axs = plt.subplots(1, len(label_y), figsize=(12, 6))        
+        fig, axs = plt.subplots(1, len(label_y), figsize=(12, 3))        
+        
+        #set the moving average params
+        for opt, value in Y[label_y[0]].items():
+            average_wide = ceil(len(value)/4)
+            #units=self.set_units(value[0])
+            break
+                
         
         # data integration        
         for n_axs in range(0,len(axs)) :
             dict_ = Y[label_y[n_axs]]
             for opt, value in dict_.items():
-                axs[n_axs].plot(X, value, alpha=0.5, lw=2, label=str(opt))
+                smooth_value = self.moving_average(value,average_wide)
+                axs[n_axs].plot(X[(average_wide - 1):], smooth_value, alpha=0.5, lw=2, label=str(opt))
         
-        # labels and parametrizations    
-
+        # plots parametrizations    
         for n_axs in range(0,len(axs)) :
             axs[n_axs].grid()
             axs[n_axs].yaxis.set_tick_params(length=0)
             axs[n_axs].xaxis.set_tick_params(length=0)
             axs[n_axs].set_xlabel('Budgets')
+            #axs[n_axs].yaxis.set_major_formatter(StrMethodFormatter("{x}"+units[0]))
             axs[n_axs].set_ylabel(label_y[n_axs])
             axs[n_axs].legend()
+            
+        fig.tight_layout()
         plt.show()
         
     def evaluate(self, mix, sequence, max_budgets, optimizer_list: List['str'], indicator_list: List['str'], bind=None, carbonProdLimit: float = 39500000000, time_interval : float = 2) :        
