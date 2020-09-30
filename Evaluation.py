@@ -78,20 +78,28 @@ class Evaluation:
             print("Selected optimizers are not avalaible.")
             return
 
-        #process
+       #process
         y_tmp = {}
         budget = np.arange(0, max_budgets, sequence)
 
+        ind_per_opt = {}
+        for opt in optimizer_list:
+            ind_per_budget = []
+            for b in budget:
+                data = mix.simuleMix(current_usage_coef=[0.6, 0.2, 0.7, 0.95], carbonProdLimit= carbonProdLimit, 
+                                time_interval = time_interval, optimize_with = [opt], budgets = [b], plot = "none", verbose = 1)
+                ind_per_budget.append(data)
+            ind_per_opt.update({opt:ind_per_budget})
+
         for indicator in indicator_list:
-            ind_per_opt = {}
+            new_ind_per_opt = {}
             for opt in optimizer_list:
                 ind_per_budget = []
-                for b in budget:
-                    data=mix.simuleMix(current_usage_coef=[0.6, 0.2, 0.7, 0.95], carbonProdLimit= carbonProdLimit, 
-                                    time_interval = time_interval, optimize_with = [opt], budgets = [b], plot = "none", verbose = 1)
+                for b in range(0, len(budget)):
+                    data = ind_per_opt[opt][b]
                     ind_per_budget.append(float(data[indicator]))
-                ind_per_opt.update({opt:ind_per_budget})
-            y_tmp.update({indicator:ind_per_opt})
-
+                new_ind_per_opt.update({opt:ind_per_budget})
+            y_tmp.update({indicator: new_ind_per_opt})
+            
         #plotting
         self.plot_evaluation(X=np.array(budget),Y=y_tmp,label_y = indicator_list, label=optimizer_list, max_budgets = max_budgets)

@@ -101,6 +101,16 @@ class Optimizer():
         tmp = Optimizer()
         return tmp.__available_optimizers.keys()
     
+    def getNonAvailableOptimizers(self):
+        tmp = Optimizer()
+        result = []
+        tmp = tmp.__available_optimizers.keys()
+        list = sorted(ng.optimizers.registry.keys())
+        for opt in list:
+            if opt not in tmp:
+                result.append(opt)
+        return result
+
     def set_satisfied_constraints(self, recommendation_value, constraints, min_prod, tolerance, fully_used, not_used):    
         #check satisfied constraints
         self.__check_constraints=[]
