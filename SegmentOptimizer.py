@@ -163,7 +163,6 @@ class SegmentOptimizer:
         constrains.update({"carbonProdLimit": carbonProdLimit})
         constrains.update({"carbonProd": self.get_carbon_prod_constraint})
         constrains.update({"availability": self.get_avaibility_limit()})
-        print(self.get_avaibility_limit())
 
         #setting all parameters
         if instrum == None :
