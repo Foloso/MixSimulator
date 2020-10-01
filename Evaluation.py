@@ -85,8 +85,8 @@ class Evaluation:
             ind_per_budget = []
             for b in budget:
                 print(b)
-                data = mix.simuleMix(current_usage_coef=[0.6, 0.2, 0.7, 0.95], carbonProdLimit= carbonProdLimit, 
-                                time_interval = time_interval, optimize_with = [opt], budgets = [b], plot = "none", verbose = 0)
+                data = mix.optimizeMix(carbonProdLimit= carbonProdLimit,
+                                time_interval = time_interval, optimize_with = [opt], budgets = [b])
                 ind_per_budget.append(data)
             ind_per_opt.update({opt:ind_per_budget})
 
