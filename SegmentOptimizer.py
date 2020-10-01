@@ -3,7 +3,8 @@ from centrals.PowerCentral import PowerCentral
 from typing import List
 import numpy as np
 import pandas as pd
-from centrals.PowerCentral import PowerCentral
+from nevergrad import p
+#from centrals.PowerCentral import PowerCentral
 
 class SegmentOptimizer:
     """
@@ -141,7 +142,8 @@ class SegmentOptimizer:
     # def get_normalized_production_constraint(self, coef_usage, coef_norm):
         # return sum(self.get_rawPower() * coef_usage * self.get_time())
 
-    def getOptimumUsageCoef(self, carbonProdLimit: float = None, demand: float = None, lost: float = None, optimize_with = ["OnePlusOne"], budgets = [100]) -> List[float]:
+    def getOptimumUsageCoef(self, carbonProdLimit: float = None, demand: float = None,
+                            lost: float = None, optimize_with = ["OnePlusOne"], budgets = [100], instrum = None) -> List[float]:
         centrals = self.__getCentrals() 
         if demand == None : 
             demand = self.__demand
@@ -161,9 +163,14 @@ class SegmentOptimizer:
         constrains.update({"carbonProdLimit": carbonProdLimit})
         constrains.update({"carbonProd": self.get_carbon_prod_constraint})
         constrains.update({"availability": self.get_avaibility_limit()})
+        print(self.get_avaibility_limit())
 
         #setting all parameters
-        self.__optimizer.set_parametrization(len(centrals), np.amax(self.get_avaibility_limit()))
+        if instrum == None :
+            self.__optimizer.set_parametrization(p.Array(shape=(len(centrals),)), np.amax(self.get_avaibility_limit()))
+        else :
+            self.__optimizer.set_parametrization(instrum, np.amax(self.get_avaibility_limit()))
+
         
         prod_cost_optimal = self.__optimizer.opt_With(self.prod_cost_objective_function, constrains, optimize_with,budgets)
         

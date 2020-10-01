@@ -32,18 +32,15 @@ class Evaluation:
         return [labelY,units]
                 
     def plot_evaluation(self, X, Y, label_y : List['str'], label : List = ["Optimizer"], max_budgets = 0):
-
-        
         #init subplot
-        fig, axs = plt.subplots(1, len(label_y), figsize=(12, 3))        
+        fig, axs = plt.subplots(1, len(label_y), figsize=(12, 4))        
         
-        #set the moving average params
+        #set the moving average wide
         for opt, value in Y[label_y[0]].items():
             average_wide = ceil(len(value)/4)
             #units=self.set_units(value[0])
             break
-                
-        
+     
         # data integration        
         for n_axs in range(0,len(axs)) :
             dict_ = Y[label_y[n_axs]]
@@ -84,10 +81,12 @@ class Evaluation:
 
         ind_per_opt = {}
         for opt in optimizer_list:
+            print(opt,":")
             ind_per_budget = []
             for b in budget:
+                print(b)
                 data = mix.simuleMix(current_usage_coef=[0.6, 0.2, 0.7, 0.95], carbonProdLimit= carbonProdLimit, 
-                                time_interval = time_interval, optimize_with = [opt], budgets = [b], plot = "none", verbose = 1)
+                                time_interval = time_interval, optimize_with = [opt], budgets = [b], plot = "none", verbose = 0)
                 ind_per_budget.append(data)
             ind_per_opt.update({opt:ind_per_budget})
 

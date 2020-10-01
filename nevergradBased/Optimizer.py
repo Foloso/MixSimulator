@@ -12,7 +12,7 @@ class Optimizer():
     def __init__(self):
         self.__max_bound = 1.
         self.set_budget(100)
-        self.set_parametrization(2, self.__max_bound)
+        self.set_parametrization(ng.p.Array(shape=(2,)), self.__max_bound)
 
         ### available optimizers
         self.__available_optimizers = {}
@@ -61,7 +61,7 @@ class Optimizer():
             if constraints["production"](usage_coef) > (constraints["demand"]+ constraints["lost"]):
                 self.__set_min_loss(constraints)
                 tmp_optimizer = Optimizer()
-                tmp_optimizer.set_parametrization(len(usage_coef), np.amax(np.array(usage_coef)))
+                tmp_optimizer.set_parametrization(ng.p.Array(shape=(len(usage_coef),)), np.amax(np.array(usage_coef)))
                 optimizer = ng.optimizers.OnePlusOne(parametrization=tmp_optimizer.get_parametrization(), budget=100)
                 optimizer.parametrization.register_cheap_constraint(lambda x: (np.array(x)>np.array([0]*len(usage_coef))).all() )
                 recommendation = optimizer.minimize(self.__min_loss, verbosity=0)
@@ -79,10 +79,10 @@ class Optimizer():
     def __min_loss(self, usage_coef):
         return np.abs(self.__constraints["production"](usage_coef) - (self.__constraints["demand"]+ self.__constraints["lost"]))
 
-    def set_parametrization(self,arg, max):
+    def set_parametrization(self,instrum, max):
         #setting parametrization for our objective function
-        self.__nb = arg
-        self.__parametrization=ng.p.Array(shape=(arg,))
+        #self.__parametrization=ng.p.Array(shape=(instrum,))
+        self.__parametrization = instrum
         self.__max_bound = max
         self.__parametrization.set_bounds(lower=0, upper=self.__max_bound)
     
@@ -155,8 +155,8 @@ class Optimizer():
         
     def show_satisfied_constraints(self):
         print("**************************************************************************************************")
-        for i in self.__check_constraints:
-            print(i)
+        for checking in self.__check_constraints:
+            print(checking)
             print("**************************************************************************************************")
     
     def opt_With(self, func_to_optimize, constraints = None, optimizers : list = ["OnePlusOne"], budgets : list = [100]):
