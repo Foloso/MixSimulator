@@ -16,6 +16,7 @@ class Optimizer():
 
         ### available optimizers
         self.__available_optimizers = {}
+        self.__available_optimizers.update({"NGOpt":ng.optimizers.NGOpt})
         self.__available_optimizers.update({"cGA":ng.optimizers.cGA})
         self.__available_optimizers.update({"SplitOptimizer":ng.optimizers.SplitOptimizer})
         self.__available_optimizers.update({"RecombiningPortfolioOptimisticNoisyDiscreteOnePlusOne":ng.optimizers.RecombiningPortfolioOptimisticNoisyDiscreteOnePlusOne})
