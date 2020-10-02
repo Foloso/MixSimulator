@@ -1,4 +1,4 @@
-import mixsimulator.centrals.PowerCentral as pc
+from .centrals import PowerCentral as pc
 
 class ThermalPowerCentral(pc):
     """

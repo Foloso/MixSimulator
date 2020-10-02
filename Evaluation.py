@@ -5,7 +5,7 @@ import matplotlib.pyplot as plt
 import numpy as np
 from math import ceil
 from typing import List
-import mixsimulator.nevergradBased.Optimizer as opt
+from .nevergradBased import Optimizer as opt
 
 class Evaluation:
 

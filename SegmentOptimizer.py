@@ -1,5 +1,5 @@
-import mixsimulator.nevergradBased.Optimizer as opt
-import mixsimulator.centrals.PowerCentral as pc
+from .nevergradBased import Optimizer as opt
+from .centrals import PowerCentral as pc
 from typing import List
 import numpy as np
 import pandas as pd

@@ -1,6 +1,6 @@
 import matplotlib.pyplot as plt
-import mixsimulator.SegmentOptimizer as sOpt
-import mixsimulator.centrals.PowerCentral as pc
+from . import SegmentOptimizer as sOpt
+from .centrals import PowerCentral as pc
 import numpy as np
 import pandas as pd
 import warnings 
@@ -8,7 +8,7 @@ from typing import List
 
 class MixSimulator:
     """
-        The simulator Base Version 0.1            
+        The simulator Base            
     """
     def __init__(self):
         self.__reset_centrals()
