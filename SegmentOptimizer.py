@@ -1,5 +1,5 @@
-from nevergradBased.Optimizer import Optimizer
-from centrals.PowerCentral import PowerCentral
+from mixsimulator.nevergradBased.Optimizer import Optimizer
+from mixsimulator.centrals.PowerCentral import PowerCentral
 from typing import List
 import numpy as np
 import pandas as pd
@@ -61,12 +61,12 @@ class SegmentOptimizer:
         return centrals
         
 
-    def setCentrals(self, centrals: List[PowerCentral]):
+    def setCentrals(self, centrals: List[str]):
         self.__centrals.clear()
         for central in centrals:
             self.__centrals.append(central)
     
-    def get_fuel_cost(self,centrals: List[PowerCentral] = None):
+    def get_fuel_cost(self,centrals: List[str] = None):
         centrals = self.__getCentrals(centrals)
         fuel_costs = []
         for central in centrals:
@@ -77,7 +77,7 @@ class SegmentOptimizer:
                 fuel_costs.append(1)
         return np.array(fuel_costs)
         
-    def get_fuel_consumption(self,centrals: List[PowerCentral] = None):
+    def get_fuel_consumption(self,centrals: List[str] = None):
         centrals = self.__getCentrals(centrals)
         consumption = []
         for central in centrals:
@@ -88,35 +88,35 @@ class SegmentOptimizer:
                 consumption.append(1)
         return np.array(consumption)
     
-    def get_rawPower(self,centrals: List[PowerCentral] = None):
+    def get_rawPower(self,centrals: List[str] = None):
         centrals = self.__getCentrals(centrals)
         raw_power = []
         for central in centrals:
             raw_power.append(central.getRawPower())
         return np.array(raw_power)
         
-    def get_salary_cost(self,centrals: List[PowerCentral] = None):
+    def get_salary_cost(self,centrals: List[str] = None):
         centrals = self.__getCentrals(centrals)
         salary_cost = []
         for central in centrals:
             salary_cost.append(central.getEmployeesSalary())
         return np.array(salary_cost)
     
-    def get_amortized_cost(self,centrals: List[PowerCentral] = None):
+    def get_amortized_cost(self,centrals: List[str] = None):
         centrals = self.__getCentrals(centrals)
         amortized_cost = []
         for central in centrals:
             amortized_cost.append(central.get_amortized_cost())
         return np.array(amortized_cost)
     
-    def get_carbon_prod(self, centrals: List[PowerCentral] = None):
+    def get_carbon_prod(self, centrals: List[str] = None):
         centrals = self.__getCentrals(centrals)
         carbon_prod = []
         for central in centrals:
             carbon_prod.append(central.getCarbonProd())
         return np.array(carbon_prod)
 
-    def get_avaibility_limit(self, centrals: List[PowerCentral] = None):
+    def get_avaibility_limit(self, centrals: List[str] = None):
         centrals = self.__getCentrals(centrals)
         avaibility_limit = []
         for central in centrals:
@@ -175,7 +175,7 @@ class SegmentOptimizer:
         
         return prod_cost_optimal
 
-    def __getNonTuneableCentralIndex(self, centrals: List[PowerCentral]= None):
+    def __getNonTuneableCentralIndex(self, centrals: List[str]= None):
         #split tuneable and non tuneable power plant
         i = 0
         nonTuneableCentral = []
@@ -188,7 +188,7 @@ class SegmentOptimizer:
             i+=1
         return nonTuneableCentral
 
-    def __getCentrals(self, centrals: List[PowerCentral]=None):
+    def __getCentrals(self, centrals: List[str]=None):
         if(centrals==None):
             centrals = self.__centrals
         return centrals

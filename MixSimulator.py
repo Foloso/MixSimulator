@@ -1,5 +1,5 @@
-from SegmentOptimizer import SegmentOptimizer
-from centrals.PowerCentral import PowerCentral
+from mixsimulator.nevergradBased.SegmentOptimizer import SegmentOptimizer
+from mixsimulator.centrals.PowerCentral import PowerCentral
 import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
@@ -60,11 +60,11 @@ class MixSimulator:
             
         self.__splitCentrals(centrale_tmp)
 
-    def setCentrals(self, centrals: List[PowerCentral]):
+    def setCentrals(self, centrals: List[str]):
         self.__reset_centrals()
         self.__splitCentrals(centrals)
 
-    def __splitCentrals(self, centrals: List[PowerCentral]):
+    def __splitCentrals(self, centrals: List[str]):
         for centrale in centrals:
                 if centrale.isGreen():
                     self.__centrals["green"].append(centrale)

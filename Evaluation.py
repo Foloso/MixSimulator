@@ -1,11 +1,11 @@
 #import sys
 #from MixSimulator import MixSimulator
 import matplotlib.pyplot as plt
-from matplotlib.ticker import StrMethodFormatter
+#from matplotlib.ticker import StrMethodFormatter
 import numpy as np
 from math import ceil
 from typing import List
-from nevergradBased.Optimizer import Optimizer
+from mixsimulator.nevergradBased.Optimizer import Optimizer
 
 class Evaluation:
 

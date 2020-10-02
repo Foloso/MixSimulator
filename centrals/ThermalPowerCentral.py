@@ -1,4 +1,4 @@
-from centrals.PowerCentral import PowerCentral
+from mixsimulator.centrals.PowerCentral import PowerCentral
 
 class ThermalPowerCentral(PowerCentral):
     """
