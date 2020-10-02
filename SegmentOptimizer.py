@@ -1,5 +1,5 @@
-from mixsimulator.nevergradBased.Optimizer import Optimizer
-from mixsimulator.centrals.PowerCentral import PowerCentral
+import mixsimulator.nevergradBased.Optimizer as opt
+import mixsimulator.centrals.PowerCentral as pc
 from typing import List
 import numpy as np
 import pandas as pd
@@ -16,7 +16,7 @@ class SegmentOptimizer:
             
     """
     def __init__(self):
-        self.__optimizer = Optimizer()
+        self.__optimizer = opt.Optimizer()
         self.__centrals = []
         self.__demand = 1
         #Static lost
@@ -41,7 +41,7 @@ class SegmentOptimizer:
         try :
             for i in range (0,data.shape[0]):
                 centrale = data["tuneable"][i]
-                centrale = PowerCentral(centrale)
+                centrale = pc.PowerCentral(centrale)
                 centrale.set_id(str(data["centrals"][i]))
                 centrale.set_fuel_consumption(data["fuel_consumption"][i])
                 centrale.setAvailability(data["availability"][i])

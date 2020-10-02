@@ -1,6 +1,6 @@
-from mixsimulator.centrals.PowerCentral import PowerCentral
+import mixsimulator.centrals.PowerCentral as pc
 
-class ThermalPowerCentral(PowerCentral):
+class ThermalPowerCentral(pc):
     """
         Class of power plant with the specifications of a Thermal Power Plant
     """

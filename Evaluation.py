@@ -5,12 +5,12 @@ import matplotlib.pyplot as plt
 import numpy as np
 from math import ceil
 from typing import List
-from mixsimulator.nevergradBased.Optimizer import Optimizer
+import mixsimulator.nevergradBased.Optimizer as opt
 
 class Evaluation:
 
     def __init__(self):
-        tmp = Optimizer()
+        tmp = opt.Optimizer()
         self.__available_optimizers = tmp.getOptimizerList()
         
     def moving_average(self, x, w):
@@ -36,7 +36,7 @@ class Evaluation:
         fig, axs = plt.subplots(1, len(label_y), figsize=(12, 4))        
         
         #set the moving average wide
-        for opt, value in Y[label_y[0]].items():
+        for opt_name, value in Y[label_y[0]].items():
             average_wide = ceil(len(value)/4)
             #units=self.set_units(value[0])
             break
@@ -44,9 +44,9 @@ class Evaluation:
         # data integration        
         for n_axs in range(0,len(axs)) :
             dict_ = Y[label_y[n_axs]]
-            for opt, value in dict_.items():
+            for opt_name, value in dict_.items():
                 smooth_value = self.moving_average(value,average_wide)
-                axs[n_axs].plot(X[(average_wide - 1):], smooth_value, alpha=0.5, lw=2, label=str(opt))
+                axs[n_axs].plot(X[(average_wide - 1):], smooth_value, alpha=0.5, lw=2, label=str(opt_name))
         
         # plots parametrizations    
         for n_axs in range(0,len(axs)) :
@@ -83,24 +83,24 @@ class Evaluation:
         budget = np.arange(0, max_budgets, sequence)
 
         ind_per_opt = {}
-        for opt in optimizer_list:
+        for opt_name in optimizer_list:
             #print(opt,":")
             ind_per_budget = []
             for b in budget:
                 #print(b)
                 data = mix.optimizeMix(carbonProdLimit= carbonProdLimit,
-                                time_interval = time_interval, optimize_with = [opt], budgets = [b])
+                                time_interval = time_interval, optimize_with = [opt_name], budgets = [b])
                 ind_per_budget.append(data)
-            ind_per_opt.update({opt:ind_per_budget})
+            ind_per_opt.update({opt_name:ind_per_budget})
 
         for indicator in indicator_list:
             new_ind_per_opt = {}
-            for opt in optimizer_list:
+            for opt_name in optimizer_list:
                 ind_per_budget = []
                 for b in range(0, len(budget)):
-                    data = ind_per_opt[opt][b]
+                    data = ind_per_opt[opt_name][b]
                     ind_per_budget.append(float(data[indicator]))
-                new_ind_per_opt.update({opt:ind_per_budget})
+                new_ind_per_opt.update({opt_name:ind_per_budget})
             y_tmp.update({indicator: new_ind_per_opt})
             
         #plotting

@@ -1,6 +1,6 @@
-from mixsimulator.nevergradBased.SegmentOptimizer import SegmentOptimizer
-from mixsimulator.centrals.PowerCentral import PowerCentral
 import matplotlib.pyplot as plt
+import mixsimulator.SegmentOptimizer as sOpt
+import mixsimulator.centrals.PowerCentral as pc
 import numpy as np
 import pandas as pd
 import warnings 
@@ -38,7 +38,7 @@ class MixSimulator:
         try :
             for i in range (0,data.shape[0]):
                 centrale = data["tuneable"][i]
-                centrale = PowerCentral(centrale)
+                centrale = pc.PowerCentral(centrale)
                 centrale.set_id(str(data["centrals"][i]))
                 centrale.set_fuel_consumption(data["fuel_consumption"][i])
                 centrale.setAvailability(data["availability"][i])
@@ -85,8 +85,8 @@ class MixSimulator:
             lost = self.__lost
         
         #Get GREEN and the NON-GREEN PowerPlant
-        green_mix = SegmentOptimizer()
-        non_green_mix = SegmentOptimizer()
+        green_mix = sOpt.SegmentOptimizer()
+        non_green_mix = sOpt.SegmentOptimizer()
         
         green_mix.setCentrals(self.__centrals["green"])
         non_green_mix.setCentrals(self.__centrals["non_green"])
@@ -147,7 +147,7 @@ class MixSimulator:
         current_perf = {}
 
         # current Mix initialization
-        current_mix = SegmentOptimizer()
+        current_mix = sOpt.SegmentOptimizer()
         centrals = []
         for key in self.__centrals.keys():
             for central in self.__centrals[key]:

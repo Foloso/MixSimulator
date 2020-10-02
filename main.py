@@ -1,6 +1,5 @@
-#from centrals.PowerCentral import PowerCentral
-#from SegmentOptimizer import SegmentOptimizer
-from mixsimulator.MixSimulator import MixSimulator
+# Two way to import
+import mixsimulator.MixSimulator as ms
 from mixsimulator.Evaluation import Evaluation
 
 #Centrales personnalisées
@@ -31,7 +30,7 @@ mix.simuleMix(current_usage_coef=[0.6, 0.2, 0.7, 0.95], carbonProdLimit= 3950000
 """
     Minimization of the cost production of the energy mix in the inter-connected Grid of Toamasina ( time_interval = 2 hours )
 """
-mix = MixSimulator()
+mix = ms.MixSimulator()
 mix.set_data_csv("data/RIToamasina/dataset_RI_Toamasina.csv")
 #Here we chained two Optimizers (optimize_with = ["OnePlusOne","DE"])
 mix.simuleMix(current_usage_coef=[0.6, 0.2, 0.7, 0.95], carbonProdLimit= 3950000000000, time_interval = 2, optimize_with = ["OnePlusOne","DE"], budgets = [100,100])
