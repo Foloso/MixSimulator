@@ -61,19 +61,22 @@ class Evaluation:
         fig.tight_layout()
         plt.show()
         
+    def check_opt_list(self,optimizer_list):
+        for index in range(0, len(optimizer_list)):
+            try :
+                if optimizer_list[index] not in self.__available_optimizers:
+                    optimizer_list.pop(index)
+            except IndexError :
+                self.check_opt_list(optimizer_list)
+        
     def evaluate(self, mix, sequence, max_budgets, optimizer_list: List['str'], indicator_list: List['str'], bind=None, carbonProdLimit: float = 39500000000, time_interval : float = 2) :        
         #setting dataset
         if bind != None:
             mix.set_data_csv(str(bind))
 
-        for index in range(0, len(optimizer_list)):
-            if optimizer_list[index] not in self.__available_optimizers:
-                print(optimizer_list[index] , " is not available")
-                optimizer_list.pop(index)
-        
-        if len(optimizer_list) == 0:
-            print("Selected optimizers are not avalaible.")
-            return
+        self.check_opt_list(optimizer_list) 
+        if optimizer_list == [] :
+            raise IndexError("Selected optimizers are not available.")
 
        #process
         y_tmp = {}
@@ -81,10 +84,10 @@ class Evaluation:
 
         ind_per_opt = {}
         for opt in optimizer_list:
-            print(opt,":")
+            #print(opt,":")
             ind_per_budget = []
             for b in budget:
-                print(b)
+                #print(b)
                 data = mix.optimizeMix(carbonProdLimit= carbonProdLimit,
                                 time_interval = time_interval, optimize_with = [opt], budgets = [b])
                 ind_per_budget.append(data)

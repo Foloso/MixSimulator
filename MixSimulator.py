@@ -3,6 +3,7 @@ from centrals.PowerCentral import PowerCentral
 import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
+import warnings 
 from typing import List
 
 class MixSimulator:
@@ -72,6 +73,8 @@ class MixSimulator:
 
     def optimizeMix(self, carbonProdLimit, demand: float= None, lost: float=None, 
                     time_interval: float = 1, carbon_cost: float = None, optimize_with = ["OnePlusOne"], budgets = [100], instrum = None):
+        
+        """Initiate the Mix's parameters and calculate the optimal coef_usage with the given optimizer"""
         # default parameter
         usage_coef = {}
         results = {}
@@ -80,7 +83,8 @@ class MixSimulator:
             demand = self.__demand
         if lost is None:
             lost = self.__lost
-
+        
+        #Get GREEN and the NON-GREEN PowerPlant
         green_mix = SegmentOptimizer()
         non_green_mix = SegmentOptimizer()
         
@@ -102,6 +106,7 @@ class MixSimulator:
             usage_coef.update({self.__centrals["green"][index_central].get_id():coef})
             index_central += 1
 
+        # ensuite s'occuper des centrales "non-green"
         NON_GREEN_RESULT = non_green_mix.getOptimumUsageCoef(carbonProdLimit=new_carbonProdLimit, 
                                                              demand=demand, lost=lost, optimize_with = optimize_with, budgets = budgets, instrum = instrum)
         new_carbonProdLimit = new_carbonProdLimit - NON_GREEN_RESULT["carbonProd"]
@@ -126,7 +131,9 @@ class MixSimulator:
 
     def simuleMix(self, current_usage_coef, carbonProdLimit, demand: float= None, 
                   lost: float=None, time_interval: float = 1, carbon_cost: float = None, 
-                  verbose: int = 1, plot: str = "default" ,optimize_with = ["OnePlusOne"], budgets = [100], instrum = None):
+                  verbose: int = 0, plot: str = "default" ,optimize_with = ["OnePlusOne"], budgets = [100], instrum = None):
+        
+        """Simulate and compare the current_mix and the theorical_optimum Mix"""
         # initialization
         if demand is None:
             demand = self.__demand
@@ -167,7 +174,7 @@ class MixSimulator:
             if plot == "none" :
                 pass
             else :
-                print("Available plot options : \n \t 'default' : show and save the results plots; \n \t 'none' : no plots.")
+                warnings.warn("Available plot options : \n \t 'default' : show and save the results plots; \n \t 'none' : no plots.")
         
         return theorical_optimum
 

@@ -186,18 +186,14 @@ class Optimizer():
         #Define chaining algo  
         self.__optimizers = []
         for opt in optimizers:
-            try:
-                self.__optimizers.append(self.__available_optimizers.get(opt))
-            except KeyError:
-                print(opt, "not included. Use of default optimizer instead.\n Next time, choose one of availible optimizer :\n \t ",self.getOptimizerList()," (non exhaustive optimizer list, more will be added)\nFor more informations, check https://facebookresearch.github.io/nevergrad/optimizers_ref.html")
-                self.__optimizers = [ng.optimizers.OnePlusOne]
-                budgets=[100]
+            self.__optimizers.append(self.__available_optimizers.get(opt))
+            if None in self.__optimizers:
+                print (opt, "optimizer not included. Please Choose one of availible optimizer :\n \t ",self.getOptimizerList(),
+                "\n\n (non exhaustive optimizer list, more will be added)\nFor more informations, check https://facebookresearch.github.io/nevergrad/optimizers_ref.html\n")
+                raise NameError(opt, "optimizer not included") 
                 
         if len(budgets) != len(optimizers) :
-            print("\n The length of budgets and the length of optimizers should be the same. Use of default optimizer instead.\n")
-            budgets=[100]
-            self.__optimizers = [ng.optimizers.OnePlusOne]
-            
+            raise IndexError ("\n The length of budgets and the length of optimizers list should be the same.\n")
         
         #setting budgets
         current_budgets = budgets
