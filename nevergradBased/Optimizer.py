@@ -73,6 +73,8 @@ class Optimizer():
             else:
                 continue
         self.__max_bound = max_bound
+        self.__parametrization.set_bounds(lower=0, upper=self.__max_bound)
+
         
     def __set_min_loss(self, constraints):
         self.__constraints = constraints
@@ -85,7 +87,6 @@ class Optimizer():
         #self.__parametrization=ng.p.Array(shape=(instrum,))
         self.__parametrization = instrum
         self.__max_bound = max
-        self.__parametrization.set_bounds(lower=0, upper=self.__max_bound)
     
     def get_parametrization(self):
         return self.__parametrization

@@ -33,11 +33,11 @@ mix.simuleMix(current_usage_coef=[0.6, 0.2, 0.7, 0.95], carbonProdLimit= 3950000
 """
 mix = MixSimulator()
 mix.set_data_csv("data/RIToamasina/dataset_RI_Toamasina.csv")
-mix.simuleMix(current_usage_coef=[0.6, 0.2, 0.7, 0.95], carbonProdLimit= 3950000000000, time_interval = 2, optimize_with = ["OnePlusOne"], budgets = [100])
+mix.simuleMix(current_usage_coef=[0.6, 0.2, 0.7, 0.95], carbonProdLimit= 3950000000000, time_interval = 2, optimize_with = ["NGOpt"], budgets = [100])
 
 
-"""
-    Evaluation of performance indicators with one (or more) optimizer on each (budget + 10) up to max budgets (300).
-"""
-eva=Evaluation()
-eva.evaluate(mix, 10, 300, ["OnePlusOne","DE"], ["production_cost ($)","carbon_impacte (g/MWh)","unsatisfied_demand (MWh)"])
+# """
+#     Evaluation of performance indicators with one (or more) optimizer on each (budget + 10) up to max budgets (300).
+# """
+# eva=Evaluation()
+# eva.evaluate(mix, 10, 300, ["OnePlusOne","DE"], ["production_cost ($)","carbon_impacte (g/MWh)","unsatisfied_demand (MWh)"])
