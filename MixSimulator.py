@@ -83,7 +83,9 @@ class MixSimulator:
             demand = self.__demand
         if lost is None:
             lost = self.__lost
-        
+
+        start_time = time.time()
+
         #Get GREEN and the NON-GREEN PowerPlant
         green_mix = sOpt.SegmentOptimizer()
         non_green_mix = sOpt.SegmentOptimizer()
@@ -118,6 +120,9 @@ class MixSimulator:
             usage_coef.update({self.__centrals["non_green"][index_central].get_id():coef})
             index_central += 1
 
+        exec_time = time.time() - start_time
+
+        results.update({"execution_time (s)": exec_time})
         results.update({"production_cost ($)": production_cost})
         results.update({"carbon_impacte (g/MWh)": carbonProdLimit-new_carbonProdLimit})
         if carbon_cost is None:
