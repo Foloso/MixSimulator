@@ -204,8 +204,11 @@ class MixSimulator:
         data.append(tmp)
 
         tmp = []
+        time_data = {}
         for keys, values in optimum.items():
-            if keys != "usage_coefficient":
+            if keys == "execution_time (s)":
+                time_data.update({keys:values})
+            elif keys != "usage_coefficient":
                 columns.append(keys)
                 tmp.append(values)
         data.append(tmp)
@@ -265,6 +268,15 @@ class MixSimulator:
                               rowColours=colors,
                               colLabels=columns[-3:],
                               loc='upper center')
+        
+        # Add exection_time information
+        for time_k, time_v in time_data.items():
+            time_str = time_k+": "+str(time_v)                       
+        plt.annotate(time_str,
+            xy=(0.5, 0), xytext=(0, 10),
+            xycoords=('axes fraction', 'figure fraction'),
+            textcoords='offset points',
+            size=10, ha='center', va='bottom')
                               
         # Adjust layout to make room for the table:
         plt.subplots_adjust(left=0.2, bottom=0.2)
