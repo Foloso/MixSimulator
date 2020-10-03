@@ -3,7 +3,8 @@ from . import SegmentOptimizer as sOpt
 from .centrals import PowerCentral as pc
 import numpy as np
 import pandas as pd
-import warnings 
+import warnings
+import time
 from typing import List
 
 class MixSimulator:
