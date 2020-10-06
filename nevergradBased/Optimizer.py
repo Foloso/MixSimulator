@@ -1,6 +1,7 @@
 import nevergrad as ng
 import numpy as np
 import math
+import time
 
 class Optimizer():
     """
@@ -182,7 +183,7 @@ class Optimizer():
             print(checking)
             print("**************************************************************************************************")
     
-    def opt_With(self, func_to_optimize, constraints = None, optimizers : list = ["OnePlusOne"], budgets : list = [100]):
+    def opt_With(self, func_to_optimize, constraints = None, optimizers : list = ["OnePlusOne"], budgets : list = [100], step : int = 1):
         #Define chaining algo  
         self.__optimizers = []
         for opt in optimizers:
@@ -198,17 +199,27 @@ class Optimizer():
         #setting budgets
         current_budgets = budgets
         self.set_budget(current_budgets[-1])
-        result = {}
+        
+        total_budget = 0
+        for algo_budget in budgets:
+            total_budget += algo_budget
+        result = []
+        start_time = time.time()
 
         # POSSIBLE??
         if (constraints["production"](constraints["availability"]) < (constraints["demand"]+ constraints["lost"])):
-            result.update({"carbonProd": constraints["carbonProd"](constraints["availability"])})
-            result.update({"production": constraints["production"](constraints["availability"])})
-            result.update({"production cost": func_to_optimize(constraints["availability"])})
-            result.update({"coef": constraints["availability"]})
+            result_per_budget = {}
+            result_per_budget.update({"carbonProd": constraints["carbonProd"](constraints["availability"])})
+            result_per_budget.update({"production": constraints["production"](constraints["availability"])})
+            result_per_budget.update({"production_cost": func_to_optimize(constraints["availability"])})
+            result_per_budget.update({"coef": constraints["availability"]})
+            result_per_budget.update({"elapsed_time": time.time() - start_time})
+            for tmp_budget in range(0, total_budget):
+                if tmp_budget%step == 0:
+                    result.append(result_per_budget)
             return result
 
-        # find optimum bounds
+        # find optimum bounds & optimizer initialization
         self.__opt_parameters(constraints)
 
         #optimization under constraints
@@ -245,15 +256,22 @@ class Optimizer():
                 pass
         
         #let's minimize
-        recommendation = optimizer.minimize(func_to_optimize, verbosity=0)
-        result.update({"carbonProd": constraints["carbonProd"](recommendation.value)})
-        result.update({"production": constraints["production"](recommendation.value)})
-        result.update({"production cost": func_to_optimize(recommendation.value)})
-        result.update({"coef": recommendation.value})
-        
+        # recommendation = optimizer.minimize(func_to_optimize, verbosity=0)
+        for tmp_budget in range(0, total_budget):
+            x = optimizer.ask()
+            loss = func_to_optimize(*x.args, **x.kwargs)
+            optimizer.tell(x, loss)
+            if tmp_budget%step == 0:
+                result_per_budget = {}
+                recommendation = optimizer.provide_recommendation()
+                result_per_budget.update({"carbonProd": constraints["carbonProd"](recommendation.value)})
+                result_per_budget.update({"production": constraints["production"](recommendation.value)})
+                result_per_budget.update({"production_cost": func_to_optimize(recommendation.value)})
+                result_per_budget.update({"coef": recommendation.value})
+                result_per_budget.update({"elapsed_time": time.time() - start_time})
+                result.append(result_per_budget)
         #print(recommendation.satisfies_constraints())
         
-        self.set_satisfied_constraints(recommendation.value, constraints, min_prod, tolerance, fully_used, not_used)
+        # self.set_satisfied_constraints(recommendation.value, constraints, min_prod, tolerance, fully_used, not_used)
         #self.show_satisfied_constraints()        
-        
         return result
