@@ -65,6 +65,9 @@ class MixSimulator:
         self.__reset_centrals()
         self.__splitCentrals(centrals)
 
+    def set_demand(self,demand):
+        self.__demand = demand
+
     def __splitCentrals(self, centrals: List[str]):
         for centrale in centrals:
                 if centrale.isGreen():

@@ -1,11 +1,11 @@
 from math import pi
+from math import cos
 
 class Demand:
     """
         Manage the Demands data
     """
     def __init__(self,demand,var_per_day,var_per_season):
-        self.__demandeData = {}
         self.__var_per_day = var_per_day
         self.__var_per_season = var_per_season
         self.__mean_demand = demand

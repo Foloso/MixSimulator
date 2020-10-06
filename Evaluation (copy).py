@@ -7,9 +7,9 @@ from math import ceil
 from math import floor
 from typing import List
 from .nevergradBased import Optimizer as opt
-from . import Demand as de
+from adjustText import adjust_text
 
-class EvaluationBudget:
+class Evaluation:
 
     def __init__(self):
         tmp = opt.Optimizer()
@@ -62,7 +62,7 @@ class EvaluationBudget:
             
         fig.tight_layout()
         plt.show()
-        
+
     def plot_evaluation_2(self, X, Y, label_y : List['str'], label : List = ["Optimizer"], max_budgets = 0):
         #init subplot
         max_col = ceil(len(label_y)/2)
@@ -88,7 +88,7 @@ class EvaluationBudget:
                 #              xy     = (     X[-1], smooth_value[-1]),
                 #              xytext = (1.02*X[-1], smooth_value[-1]),
                 #            )
-        #adjust_text(texts)       
+        adjust_text(texts)       
         
         for n_axs in range(0,min_col) :
             dict_ = Y[label_y[max_col+n_axs]]
@@ -124,32 +124,12 @@ class EvaluationBudget:
             
         fig.tight_layout()
         plt.show()
+        
 
-    def plot_time_evolution(self, data, label_y : List['str'], label : List = ["Optimizer"], max_budgets = 0):
-        #init subplot
-        print(data)
+    def benchmark_opt(self, X, Y, label_y : List['str'], label : List = ["Optimizer"], max_budgets = 0) :
+        #init plot
+        pass
         
-        fig, axs = plt.subplots(1, len(label_y)-1, figsize=(12, 4))        
-        
-        # data integration        
-        for n_axs in range(1,len(axs)) :
-            dict_ = data[label_y[n_axs]]
-            for opt_name, value in dict_.items():
-                axs[n_axs].scatter(data["execution_time (s)"][opt_name], value, alpha=0.5, lw=2, label=str(opt_name))
-        
-        # plots parametrizations    
-        for n_axs in range(0,len(axs)) :
-            axs[n_axs].grid()
-            axs[n_axs].yaxis.set_tick_params(length=0)
-            axs[n_axs].xaxis.set_tick_params(length=0)
-            axs[n_axs].set_xlabel('Budgets')
-            #axs[n_axs].yaxis.set_major_formatter(StrMethodFormatter("{x}"+units[0]))
-            axs[n_axs].set_ylabel(label_y[n_axs])
-            axs[n_axs].legend()
-            
-        fig.tight_layout()
-        plt.show()
-
     def check_opt_list(self,optimizer_list):
         for index in range(0, len(optimizer_list)):
             try :
@@ -157,9 +137,8 @@ class EvaluationBudget:
                     optimizer_list.pop(index)
             except IndexError :
                 self.check_opt_list(optimizer_list)
-
-
-    def evaluate(self, mix, sequence, max_budgets, optimizer_list: List['str'], indicator_list: List['str'], bind=None, carbonProdLimit: float = 39500000000, time_interval : float = 1) :        
+        
+    def evaluate(self, mix, sequence, max_budgets, optimizer_list: List['str'], indicator_list: List['str'], bind=None, carbonProdLimit: float = 39500000000, time_interval : float = 2) :        
         #setting dataset
         if bind != None:
             mix.set_data_csv(str(bind))
@@ -174,73 +153,27 @@ class EvaluationBudget:
 
         ind_per_opt = {}
         for opt_name in optimizer_list:
-            data = mix.optimizeMix(carbonProdLimit= carbonProdLimit,
-                            time_interval = time_interval, optimize_with = [opt_name], budgets = [max_budgets], step = sequence)
-            ind_per_opt.update({opt_name:data})
+            #print(opt,":")
+            ind_per_budget = []
+            for b in budget:
+                #print(b)
+                data = mix.optimizeMix(carbonProdLimit= carbonProdLimit,
+                                time_interval = time_interval, optimize_with = [opt_name], budgets = [b])
+                ind_per_budget.append(data)
+            ind_per_opt.update({opt_name:ind_per_budget})
 
         for indicator in indicator_list:
             new_ind_per_opt = {}
-            for opt_name, values in ind_per_opt.items():
+            for opt_name in optimizer_list:
                 ind_per_budget = []
-                for budget_value in values:
-                    ind_per_budget.append(float(budget_value[indicator]))
+                for b in range(0, len(budget)):
+                    data = ind_per_opt[opt_name][b]
+                    ind_per_budget.append(float(data[indicator]))
                 new_ind_per_opt.update({opt_name:ind_per_budget})
             y_tmp.update({indicator: new_ind_per_opt})
-        
-
             
         #plotting
+        #self.plot_evaluation(X=np.array(budget),Y=y_tmp,label_y = indicator_list, label=optimizer_list, max_budgets = max_budgets)
         self.plot_evaluation_2(X=np.array(budget),Y=y_tmp,label_y = indicator_list, label=optimizer_list, max_budgets = max_budgets)
-        # self.plot_time_evolution(y_tmp,label_y = indicator_list, label=optimizer_list, max_budgets = max_budgets)    
 
-class EvaluationTime():
-
-    def __init__(self):
-        tmp = opt.Optimizer()
-        self.__available_optimizers = tmp.getOptimizerList()
-
-    def check_opt_list(self,optimizer_list):
-        for index in range(0, len(optimizer_list)):
-            try :
-                if optimizer_list[index] not in self.__available_optimizers:
-                    optimizer_list.pop(index)
-            except IndexError :
-                self.check_opt_list(optimizer_list)
-
-    def evaluate(self, mix, sequence, max_budgets, optimizer_list: List['str'], indicator_list: List['str'], bind = None, carbonProdLimit: float = 39500000000, time_interval : float = 1):
-        #setting dataset
-            
-        if bind != None:
-            mix.set_data_csv(str(bind))
-
-        self.check_opt_list(optimizer_list) 
-        if optimizer_list == [] :
-            raise IndexError("Selected optimizers are not available.")
-
-       #process
-        budget = np.arange(0, max_budgets, sequence)
-
-        data_interval = []
-        current_demand=de.Demand(10,0.2,0.3)
-        for time in range(0,time_interval):
-            mix.set_demand(current_demand.get_demand_approxima(time))
-            ind_per_opt = {}
-            for opt_name in optimizer_list:
-                data = mix.optimizeMix(carbonProdLimit= carbonProdLimit,
-                                time_interval = sequence, optimize_with = [opt_name], budgets = [max_budgets], step = max_budgets)
-                ind_per_opt.update({opt_name:data})
-            data_interval.append(ind_per_opt)
-        
-        Y = []
-        for time in range(0,time_interval):
-            y_tmp = {}
-            for indicator in indicator_list:
-                new_ind_per_opt = {}
-                for opt_name, values in ind_per_opt.items():
-                    ind_per_budget = []
-                    for budget_value in values:
-                        ind_per_budget.append(float(budget_value[indicator]))
-                    new_ind_per_opt.update({opt_name:ind_per_budget})
-                y_tmp.update({indicator: new_ind_per_opt})
-            Y.append(y_tmp)
-            print(len(Y))
+    
