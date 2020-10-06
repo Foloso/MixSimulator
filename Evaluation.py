@@ -222,17 +222,17 @@ class EvaluationTime():
 
         data_interval = []
         current_demand=de.Demand(10,0.2,0.3)
-        for time in range(0,time_interval):
+        for time in range(0,sequence):
             mix.set_demand(current_demand.get_demand_approxima(time))
             ind_per_opt = {}
             for opt_name in optimizer_list:
                 data = mix.optimizeMix(carbonProdLimit= carbonProdLimit,
-                                time_interval = sequence, optimize_with = [opt_name], budgets = [max_budgets], step = max_budgets)
+                                time_interval = 1, optimize_with = [opt_name], budgets = [max_budgets], step = max_budgets)
                 ind_per_opt.update({opt_name:data})
             data_interval.append(ind_per_opt)
         
         Y = []
-        for time in range(0,time_interval):
+        for time in range(0,sequence):
             y_tmp = {}
             for indicator in indicator_list:
                 new_ind_per_opt = {}
@@ -243,4 +243,4 @@ class EvaluationTime():
                     new_ind_per_opt.update({opt_name:ind_per_budget})
                 y_tmp.update({indicator: new_ind_per_opt})
             Y.append(y_tmp)
-            print(len(Y))
+        print(len(Y))
