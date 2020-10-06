@@ -10,8 +10,8 @@ class Demand:
         self.__var_per_season = var_per_season
         self.__mean_demand = demand
 
-    def get_demand_approxima(self,t):
-        return self.__mean_demand * (1 + (cos(2 * pi * t / 24))* self.__var_per_day + (cos(2 * pi * t / (24*365)))* self.__var_per_season)
+    def get_demand_approxima(self,t,interval):
+        return self.__mean_demand * (1 + (cos(2 * pi * ( t * interval )/ 24))* self.__var_per_day + (cos(2 * pi * ( t * interval ) / (24*365)))* self.__var_per_season)
 
     #def getDemande(self, timerange: range=range(0,24)) -> dict[float, float]:
         #get demand per hour in a day 

@@ -218,8 +218,6 @@ class EvaluationTime():
             raise IndexError("Selected optimizers are not available.")
 
        #process
-        budget = np.arange(0, max_budgets, sequence)
-
         data_interval = []
         current_demand=de.Demand(10,0.2,0.3)
         for time in range(0,sequence):
