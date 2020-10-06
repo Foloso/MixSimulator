@@ -215,7 +215,7 @@ class Optimizer():
             result_per_budget.update({"coef": constraints["availability"]})
             result_per_budget.update({"elapsed_time": time.time() - start_time})
             for tmp_budget in range(0, total_budget):
-                if tmp_budget%step == 0:
+                if (tmp_budget+1)%step == 0:
                     result.append(result_per_budget)
             return result
 
@@ -261,7 +261,7 @@ class Optimizer():
             x = optimizer.ask()
             loss = func_to_optimize(*x.args, **x.kwargs)
             optimizer.tell(x, loss)
-            if tmp_budget%step == 0:
+            if (tmp_budget+1)%step == 0:
                 result_per_budget = {}
                 recommendation = optimizer.provide_recommendation()
                 result_per_budget.update({"carbonProd": constraints["carbonProd"](recommendation.value)})
