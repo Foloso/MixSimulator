@@ -7,6 +7,7 @@ class HydroCentral(pc):
         Class of power plant with the specifications of a HydroElectric Power Plant
     """
     def __init__(self, hauteur, moyenne_apport, capacity, available_stock, var_per_day, var_per_season ):
+        super().__init__()
         self.__hauteur = hauteur
         self.__moyenne_apport = moyenne_apport # m3/s
         self.__capacity = capacity # m3
@@ -18,12 +19,12 @@ class HydroCentral(pc):
     def __get_natural_availability(self, t, interval) -> float:
         debit_t = self.__moyenne_apport * (1 + (cos(2 * pi * ( t * interval )/ 24))* self.__var_per_day + (cos(2 * pi * ( t * interval ) / (24*365)))* self.__var_per_season)
         power = (self.__hauteur * debit_t * 9.8)/1000 # unit is MW
-        return power/self.__rawPower
+        return power/self._rawPower
 
     def __get__artificial_availability(self, t, interval) ->float:
         debit_t_max = self.__capacity/(interval*3600)
         power = (self.__hauteur * debit_t_max * 9.8) /1000 # unit is MW
-        return power/self.__rawPower
+        return power/self._rawPower
 
     def get__availability(self, t, interval) -> float:
         dummy_availability = self.__get__artificial_availability(t, interval) + self.__get_natural_availability(t, interval)
@@ -33,7 +34,7 @@ class HydroCentral(pc):
 
     def back_propagate(self, usage_coef, t, interval):
         diff = usage_coef - self.__get_natural_availability(t, interval)
-        diff_power = diff * self.__rawPower
+        diff_power = diff * self._rawPower
         # back to m3/s so diff_power has to be in W not in MW ===> *1000
         bandwidth = (diff_power* 1000) / (9.8*self.__hauteur)  
         self.__update_stock(bandwidth, interval)

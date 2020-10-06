@@ -4,46 +4,46 @@ class PowerCentral:
         it has all the common parameters of the control units (central)
     """
     def __init__(self, tuneable:bool=False):
-        self.__id = "0" 
-        self.__changeRate = 0 #(percent)
-        self.__initial_value = 0
-        self.__lifetime = 0 #in hour
-        self.__carbon_prod = 0 #g/MWh
-        self.__rawPower = 0 #MW
-        self.__availability = 1  #of the source
-        self.__nbEmployes = 1
-        self.__meanSalary = 0#per month
-        self.__tuneable = tuneable
+        self._id = "0" 
+        self._changeRate = 0 #(percent)
+        self._initial_value = 0
+        self._lifetime = 0 #in hour
+        self._carbon_prod = 0 #g/MWh
+        self._rawPower = 0 #MW
+        self._availability = 1  #of the source
+        self._nbEmployes = 1
+        self._meanSalary = 0#per month
+        self._tuneable = tuneable
         self.__fuel_cost = 0 #$/g
         self.__fuel_consumption = 0 #g/MWh
-        self.__isGreen  = False #bool
+        self._isGreen  = False #bool
 
     def setGreenEnergy(self, isGreen: bool):
-        self.__isGreen = isGreen
+        self._isGreen = isGreen
 
     def isGreen(self):
-        return self.__isGreen
+        return self._isGreen
 
     def set_id(self,identity):
-        self.__id=identity
+        self._id=identity
 
     def get_id(self):
-        return self.__id
+        return self._id
 
     def set_nb_employees(self, nb_employees):
-        self.__nbEmployes = nb_employees
+        self._nbEmployes = nb_employees
 
     def set_initial_value(self, initial_value):
-        self.__initial_value = initial_value
+        self._initial_value = initial_value
 
     def set_lifetime(self, lifetime):
-        self.__lifetime = lifetime
+        self._lifetime = lifetime
 
     def set_fuel_consumption(self, fuel_consumption):
-        self.__fuel_consumption = fuel_consumption
+        self._fuel_consumption = fuel_consumption
 
     def get_fuel_consumption(self):
-        return self.__fuel_consumption
+        return self._fuel_consumption
 
     def set_fuel_cost(self, fuel_cost):
         self.__fuel_cost = fuel_cost
@@ -52,40 +52,40 @@ class PowerCentral:
         return self.__fuel_cost
 
     def get_amortized_cost(self):
-        return ( self.__initial_value / ( self.__lifetime * 365 * 24 ) ) 
+        return ( self._initial_value / ( self._lifetime * 365 * 24 ) ) 
 
     def isTuneable(self) -> bool:
         #is controlled or not
-        return self.__tuneable
+        return self._tuneable
 
     def getCarbonProd(self) -> float: # g/MWh
-        return self.__carbonCost
+        return self._carbon_prod
 
     def setCarbonProd(self, carbonCost: float=0) -> None:
-        self.__carbonCost = carbonCost
+        self._carbon_prod = carbonCost
 
     def setRawPower(self, rawPower):
-        self.__rawPower = rawPower
+        self._rawPower = rawPower
 
     def getRawPower(self) -> float: # MW
-        return self.__rawPower
+        return self._rawPower
 
     def getAvailability(self) -> float: # percent
-        return self.__availability
+        return self._availability
 
     def setAvailability(self, availability: float):
-        self.__availability = availability
+        self._availability = availability
 
     def getEmployeesSalary(self, total_working_time_per_day=8) ->float:
         #mean salary per hour
-        perHourMeanSalary = self.__meanSalary/(31*total_working_time_per_day)
-        return perHourMeanSalary * self.__nbEmployes
+        perHourMeanSalary = self._meanSalary/(31*total_working_time_per_day)
+        return perHourMeanSalary * self._nbEmployes
 
     def setMeanEmployeesSalary(self, mean_salary):
-        self.__meanSalary = mean_salary
+        self._meanSalary = mean_salary
 
     def __getUsageCoef(self, usage_coef: float) -> float:
-        if(self.__tuneable):
-            usage_coef = min(self.__availability, usage_coef)
+        if(self._tuneable):
+            usage_coef = min(self._availability, usage_coef)
         else:
-            usage_coef = self.__availability
+            usage_coef = self._availability
