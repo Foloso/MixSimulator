@@ -84,24 +84,47 @@ class Evaluation:
 
         ind_per_opt = {}
         for opt_name in optimizer_list:
-            #print(opt,":")
-            ind_per_budget = []
-            for b in budget:
-                #print(b)
-                data = mix.optimizeMix(carbonProdLimit= carbonProdLimit,
-                                time_interval = time_interval, optimize_with = [opt_name], budgets = [b])
-                ind_per_budget.append(data)
-            ind_per_opt.update({opt_name:ind_per_budget})
+            data = mix.optimizeMix(carbonProdLimit= carbonProdLimit,
+                            time_interval = time_interval, optimize_with = [opt_name], budgets = [max_budgets], step = sequence)
+            ind_per_opt.update({opt_name:data})
 
         for indicator in indicator_list:
             new_ind_per_opt = {}
-            for opt_name in optimizer_list:
+            for opt_name, values in ind_per_opt.items():
                 ind_per_budget = []
-                for b in range(0, len(budget)):
-                    data = ind_per_opt[opt_name][b]
-                    ind_per_budget.append(float(data[indicator]))
+                for budget_value in values:
+                    ind_per_budget.append(float(budget_value[indicator]))
                 new_ind_per_opt.update({opt_name:ind_per_budget})
             y_tmp.update({indicator: new_ind_per_opt})
+        
+
             
         #plotting
         self.plot_evaluation(X=np.array(budget),Y=y_tmp,label_y = indicator_list, label=optimizer_list, max_budgets = max_budgets)
+        # self.plot_time_evolution(y_tmp,label_y = indicator_list, label=optimizer_list, max_budgets = max_budgets)
+
+    def plot_time_evolution(self, data, label_y : List['str'], label : List = ["Optimizer"], max_budgets = 0):
+        #init subplot
+        print(data)
+        
+        fig, axs = plt.subplots(1, len(label_y)-1, figsize=(12, 4))        
+        
+        # data integration        
+        for n_axs in range(1,len(axs)) :
+            dict_ = data[label_y[n_axs]]
+            for opt_name, value in dict_.items():
+                axs[n_axs].scatter(data["execution_time (s)"][opt_name], value, alpha=0.5, lw=2, label=str(opt_name))
+        
+        # plots parametrizations    
+        for n_axs in range(0,len(axs)) :
+            axs[n_axs].grid()
+            axs[n_axs].yaxis.set_tick_params(length=0)
+            axs[n_axs].xaxis.set_tick_params(length=0)
+            axs[n_axs].set_xlabel('Budgets')
+            #axs[n_axs].yaxis.set_major_formatter(StrMethodFormatter("{x}"+units[0]))
+            axs[n_axs].set_ylabel(label_y[n_axs])
+            axs[n_axs].legend()
+            
+        fig.tight_layout()
+        plt.show()
+        
