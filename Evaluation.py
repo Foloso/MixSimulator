@@ -76,7 +76,7 @@ class EvaluationBudget:
             break
      
         # data integration
-        texts=[]        
+        #texts=[]        
         for n_axs in range(0,max_col) :
             dict_ = Y[label_y[n_axs]]
             for opt_name, value in dict_.items():
@@ -192,22 +192,8 @@ class EvaluationBudget:
         #plotting
         self.plot_evaluation_2(X=np.array(budget),Y=y_tmp,label_y = indicator_list, label=optimizer_list, max_budgets = max_budgets)
         # self.plot_time_evolution(y_tmp,label_y = indicator_list, label=optimizer_list, max_budgets = max_budgets)    
-
-class EvaluationTime():
-
-    def __init__(self):
-        tmp = opt.Optimizer()
-        self.__available_optimizers = tmp.getOptimizerList()
-
-    def check_opt_list(self,optimizer_list):
-        for index in range(0, len(optimizer_list)):
-            try :
-                if optimizer_list[index] not in self.__available_optimizers:
-                    optimizer_list.pop(index)
-            except IndexError :
-                self.check_opt_list(optimizer_list)
-
-    def evaluate(self, mix, sequence, max_budgets, optimizer_list: List['str'], indicator_list: List['str'], bind = None, carbonProdLimit: float = 39500000000, time_interval : float = 1):
+        
+    def evaluate_by_step(self, mix, sequence, max_budgets, optimizer_list: List['str'], indicator_list: List['str'], bind = None, carbonProdLimit: float = 39500000000, time_interval : float = 1):
         #setting dataset
             
         if bind != None:

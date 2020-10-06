@@ -1,6 +1,7 @@
 import matplotlib.pyplot as plt
 from . import SegmentOptimizer as sOpt
 from .centrals import PowerCentral as pc
+from . import Demand as de
 import numpy as np
 import pandas as pd
 import warnings
@@ -15,6 +16,7 @@ class MixSimulator:
         self.__reset_centrals()
         self.__demand = 0
         self.__lost = 0
+        
 
     def __reset_centrals(self):
         self.__centrals = {}
@@ -87,8 +89,6 @@ class MixSimulator:
         if lost is None:
             lost = self.__lost
 
-        start_time = time.time()
-
         #Get GREEN and the NON-GREEN PowerPlant
         green_mix = sOpt.SegmentOptimizer()
         non_green_mix = sOpt.SegmentOptimizer()
@@ -135,20 +135,18 @@ class MixSimulator:
 
         return results
 
-    def simuleMix(self, current_usage_coef, carbonProdLimit, demand: float= None, 
-                  lost: float=None, time_interval: float = 1, carbon_cost: float = None, 
-                  verbose: int = 0, plot: str = "default" ,optimize_with = ["OnePlusOne"], budgets = [100], instrum = None, step: int =1):
+    def simuleMix(self, current_usage_coef, carbonProdLimit: float = 999999999999, demand: float = None, 
+                  lost: float = None, time_interval: float = 1, carbon_cost: float = None, 
+                  optimize_with = ["OnePlusOne"], budgets = [100], instrum = None, verbose: int = 0, plot: str = "default", step : int = None, time_index : int = 24*365):
         
         """Simulate and compare the current_mix and the theorical_optimum Mix"""
         # initialization
-        if demand is None:
+        if demand is None :
             demand = self.__demand
-        if lost is None:
+        if lost is None :
             lost = self.__lost
-
-        # optimum usage and results/perf
-        theorical_optimum = self.optimizeMix(carbonProdLimit, demand, lost, time_interval, carbon_cost, optimize_with = optimize_with, budgets = budgets, instrum = instrum, step= step)
-        theorical_optimum = theorical_optimum[len(theorical_optimum)-1]
+        if step is None :
+            step = budgets
 
         ##### actual perf
         current_perf = {}
@@ -168,24 +166,33 @@ class MixSimulator:
         for index in range(0, len(current_usage_coef)):
             coef_dict.update({self.__init_list[index]:current_usage_coef[index]})
         current_perf.update({"usage_coefficient": coef_dict})
+        
+        # optimization over the year 
+        data_per_interval = []
+        current_demand=de.Demand(self.__demand,0.5,0.8)
+        for t in range(0,time_index):
+            self.set_demand(current_demand.get_demand_approxima(t,time_interval))
+            data = self.optimizeMix(carbonProdLimit= carbonProdLimit,
+                                time_interval = time_interval, optimize_with = optimize_with, budgets = budgets, step = step)
+        data_per_interval.append(data)
 
         # verbosity
         if verbose == 1 :
-            print("theorical_optimum : ",theorical_optimum)
+            print("theorical_optimum : ",data_per_interval)
             print("current_perf : ", current_perf)
         
         #plotting
         if plot == "default" :
-            self.plotResults(theorical_optimum,current_perf,mode = plot)
+            self.plotResults(data_per_interval[-1][-1], current_perf, mode = plot , time_interval = time_interval)
         else :
             if plot == "none" :
                 pass
             else :
                 warnings.warn("Available plot options : \n \t 'default' : show and save the results plots; \n \t 'none' : no plots.")
         
-        return theorical_optimum
+        return data_per_interval
 
-    def plotResults(self, optimum : dict = {}, current : dict = {}, mode : str = "default") :
+    def plotResults(self, optimum : dict = {}, current : dict = {}, mode : str = "default", time_interval : int = 1) :
         columns=[]
         tmp=[]
         data=[]
@@ -278,6 +285,11 @@ class MixSimulator:
             xycoords=('axes fraction', 'figure fraction'),
             textcoords='offset points',
             size=10, ha='center', va='bottom')
+        plt.annotate("Best coef. in last: "+str(time_interval)+"hour(s)",
+            xy=(0.5, 0), xytext=(0, 10),
+            xycoords=('axes fraction', 'figure fraction'),
+            textcoords='offset points',
+            size=10, ha='center', va='top')
                               
         # Adjust layout to make room for the table:
         plt.subplots_adjust(left=0.2, bottom=0.2)
