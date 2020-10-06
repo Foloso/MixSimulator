@@ -1,4 +1,4 @@
-from .centrals import PowerCentral as pc
+from centrals import PowerCentral as pc
 from math import cos, pi
 from typing import List
 
