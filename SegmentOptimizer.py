@@ -21,46 +21,8 @@ class SegmentOptimizer:
         self.__demand = 1
         #Static lost
         self.__lost = 0
-        self.duration = 1
-        pass
+        self.duration = 1     
     
-    def set_data_csv(self, bind: str, delimiter: str=";"):
-        try :
-            data = pd.DataFrame(pd.read_csv(bind,delimiter=delimiter))
-            
-        except FileNotFoundError as e :
-            print("Error occured on pandas.read_csv : ",e)
-            print("Please check your file")
-            raise           
-        except Exception as e:
-            print("Error occured on pandas.read_csv : ",e)
-            raise
-        
-        centrals = []
-        
-        try :
-            for i in range (0,data.shape[0]):
-                centrale = data["tuneable"][i]
-                centrale = pc.PowerCentral(centrale)
-                centrale.set_id(str(data["centrals"][i]))
-                centrale.set_fuel_consumption(data["fuel_consumption"][i])
-                centrale.setAvailability(data["availability"][i])
-                centrale.set_fuel_cost(data["fuel_cost"][i])
-                centrale.set_initial_value(data["init_value"][i])
-                centrale.set_lifetime(data["lifetime"][i])
-                centrale.setCarbonProd(data["carbon_production"][i])
-                centrale.setRawPower(data["raw_power"][i])
-                centrale.set_nb_employees(data["nb_employees"][i])
-                centrale.setMeanEmployeesSalary(data["mean_salary"][i])
-                centrale.setGreenEnergy(data["green"][i])
-                centrals.append(centrale)
-            self.__demand=data["Demand"][0]
-            self.__lost=data["lost"][0]
-        except KeyError:
-            print("One of columns missing : tuneable, centrals, fuel_consumption, availability, fuel_cost, init_value, lifetime, carbon_cost, raw_power, nb_employees, mean_salary")
-        return centrals
-        
-
     def setCentrals(self, centrals: List[str]):
         self.__centrals.clear()
         for central in centrals:
