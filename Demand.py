@@ -1,14 +1,21 @@
+from math import pi
+
 class Demand:
     """
         Manage the Demands data
     """
-    def __init__(self):
+    def __init__(self,demand,var_per_day,var_per_season):
         self.__demandeData = {}
-        pass
+        self.__var_per_day = var_per_day
+        self.__var_per_season = var_per_season
+        self.__mean_demand = demand
 
-    def getDemande(self, timerange: range=range(0,24)) -> dict[float, float]:
+    def get_demand_approxima(self,t):
+        return self.__mean_demand * (1 + (cos(2 * pi * t / 24))* self.__var_per_day + (cos(2 * pi * t / (24*365)))* self.__var_per_season)
+
+    #def getDemande(self, timerange: range=range(0,24)) -> dict[float, float]:
         #get demand per hour in a day 
-        demand = {}
-        for i in timerange:
-            demand.update(i, self.__demandData.get(i))
-        return demand
+    #    demand = {}
+    #    for i in timerange:
+    #        demand.update(i, self.__demandData.get(i))
+    #    return demand
