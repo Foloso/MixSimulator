@@ -6,15 +6,14 @@ class HydroCentral(pc):
     """
         Class of power plant with the specifications of a HydroElectric Power Plant
     """
-    def __init__(self):
-        self.__hauteur
-        self.__debit
-        self.__moyenne_apport # m3/s
-        self.__capacity = 1 # m3
-        self.__available_stock # m3
+    def __init__(self, hauteur, moyenne_apport, capacity, available_stock, var_per_day, var_per_season ):
+        self.__hauteur = hauteur
+        self.__moyenne_apport = moyenne_apport # m3/s
+        self.__capacity = capacity # m3
+        self.__available_stock =  available_stock# m3
         self.__tuneable = True
-        self.__var_per_day
-        self.__var_per_season
+        self.__var_per_day = var_per_day
+        self.__var_per_season = var_per_season
 
     def __get_natural_availability(self, t, interval) -> float:
         debit_t = self.__moyenne_apport * (1 + (cos(2 * pi * ( t * interval )/ 24))* self.__var_per_day + (cos(2 * pi * ( t * interval ) / (24*365)))* self.__var_per_season)
