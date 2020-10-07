@@ -211,6 +211,9 @@ class MixSimulator:
         
         return data_per_interval
 
+    def moving_average(self, x, w):
+        return np.convolve(x, np.ones(w), 'valid') / w
+
     def plotResults(self, optimum : dict = {}, current : dict = {}, mode : str = "default", time_interval : int = 1) :
         columns=[]
         tmp=[]
@@ -320,3 +323,50 @@ class MixSimulator:
         plt.title('Optimum and Current values')
 
         plt.show()
+
+        if mode == "default" :
+            print("ok")
+
+        elif mode == "coef" :
+            #init subplot
+
+            #set X
+            print(optimum)
+            X=[]
+            for index in range(0,len(optimum)) :
+                X.append(optimum[index][-1]["coef"])
+                print() 
+
+
+            fig, axs = plt.subplots(1, 1, figsize=(4, 4))        
+            
+            #set the moving average wide
+            for opt_name, value in Y[label_y[0]].items():
+                average_wide = ceil(len(value)/4)
+                #units=self.set_units(value[0])
+                break
+        
+            # data integration        
+            for n_axs in range(0,len(axs)) :
+                dict_ = Y[label_y[n_axs]]
+                for opt_name, value in dict_.items():
+                    smooth_value = self.moving_average(value,average_wide)
+                    axs[n_axs].plot(X[(average_wide - 1):], smooth_value, alpha=0.5, lw=2, label=str(opt_name))
+            
+            # plots parametrizations    
+            for n_axs in range(0,len(axs)) :
+                axs[n_axs].grid()
+                axs[n_axs].yaxis.set_tick_params(length=0)
+                axs[n_axs].xaxis.set_tick_params(length=0)
+                axs[n_axs].set_xlabel('Budgets')
+                #axs[n_axs].yaxis.set_major_formatter(StrMethodFormatter("{x}"+units[0]))
+                axs[n_axs].set_ylabel(label_y[n_axs])
+                axs[n_axs].legend()
+                
+            fig.tight_layout()
+            plt.show()
+
+        elif mode == "None" :
+            pass
+        else :
+            warnings.warn("Choose an available option : default, coef and None")
