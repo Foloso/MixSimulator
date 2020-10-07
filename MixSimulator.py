@@ -372,7 +372,7 @@ class MixSimulator:
             for n_axs in range(0,1) :
                 for central, value in Y.items():
                     smooth_value = self.moving_average(value,average_wide)
-                    axs.plot(X[(average_wide - 1):], smooth_value, 'x-' ,alpha=0.5, lw=2, label=central)
+                    axs.plot(X[(average_wide - 1):], smooth_value, '.-' ,alpha=0.5, lw=2, label=central)
             
             # plots parametrizations    
             axs.grid()
