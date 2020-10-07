@@ -8,6 +8,7 @@ import pandas as pd
 import warnings
 import time
 from typing import List
+from math import ceil
 
 class MixSimulator:
     """
@@ -150,7 +151,7 @@ class MixSimulator:
 
     def simuleMix(self, current_usage_coef, carbonProdLimit: float = 99999999999, demand: float = None, 
                   lost: float = None, time_interval: float = 1, carbon_cost: float = None, 
-                  optimize_with = ["OnePlusOne"], budgets = [100], instrum = None, verbose: int = 0, plot: str = "default", step : int = None, time_index : int = 24*365):
+                  optimize_with = ["OnePlusOne"], budgets = [100], instrum = None, verbose: int = 0, plot: str = "default", step : int = None, time_index : int = 24*365, average_wide : int = 1):
         
         """Simulate and compare the current_mix and the theorical_optimum Mix"""
         # initialization
@@ -196,14 +197,15 @@ class MixSimulator:
         
         #plotting
         # for plot_nb in range(0,time_index):
-        self.plotResults(data_per_interval, current_perf, mode = plot , time_interval = time_interval, result_to_display= 24)
+        self.plotResults(data_per_interval, current_perf, mode = plot , time_interval = time_interval, result_to_display = 24, average_wide = average_wide)
         # warnings.warn("Available plot options : \n \t 'default' : show and save the results plots; \n \t 'none' : no plots.")
         
-        return data_per_interval
+        return [data_per_interval , current_perf , time_interval]
 
+    def moving_average(self, x, w):
+        return np.convolve(x, np.ones(w), 'valid') / w
 
-
-    def plotResults(self, optimum : List = [], current : dict = {}, mode : str = "default", result_to_display = -1, time_interval : int = 1) :
+    def plotResults(self, optimum : List = [], current : dict = {} , mode : str = "default", result_to_display = -1, time_interval : int = 1, average_wide : int = 1) :
         columns=[]
         tmp=[]
         data=[]
@@ -348,4 +350,44 @@ class MixSimulator:
             plt.xticks([])
             plt.title('Optimum and Current values')
 
+            plt.show()
+
+        elif mode == "coef" :
+            #init subplot
+
+            #set Y
+            Y={}
+            label_y=[]
+            for key, value in optimum[0][-1]["usage_coefficient"].items() :
+                label_y.append(key)
+                Y.update({key:[]})
+            for index in range(0,len(optimum)) :
+                for key, value in optimum[index][-1]["usage_coefficient"].items() :
+                    Y[key].append(value)
+
+            fig, axs = plt.subplots(1, 1, figsize=(6, 6))        
+            
+            # data integration        
+            X = [i for i in range(len(optimum))]  
+            for n_axs in range(0,1) :
+                for central, value in Y.items():
+                    smooth_value = self.moving_average(value,average_wide)
+                    axs.plot(X[(average_wide - 1):], smooth_value, alpha=0.5, lw=2, label=central)
+            
+            # plots parametrizations    
+            axs.grid()
+            axs.yaxis.set_tick_params(length=0)
+            axs.xaxis.set_tick_params(length=0)
+            axs.set_xlabel('hours')
+            #axs[n_axs].yaxis.set_major_formatter(StrMethodFormatter("{x}"+units[0]))
+            axs.set_ylabel('coef (%)')
+            axs.legend()
+                
+            fig.tight_layout()
+            plt.show()
+
+        elif mode == "None" :
+            pass
+        else :
+            warnings.warn("Choose an available option : default, coef and None")
             plt.show()
