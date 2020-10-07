@@ -186,6 +186,7 @@ class EvaluationBudget:
                     ind_per_budget.append(float(budget_value[indicator]))
                 new_ind_per_opt.update({opt_name:ind_per_budget})
             y_tmp.update({indicator: new_ind_per_opt})
+        print(y_tmp)
         
 
             
@@ -193,31 +194,35 @@ class EvaluationBudget:
         self.plot_evaluation_2(X=np.array(budget),Y=y_tmp,label_y = indicator_list, label=optimizer_list, max_budgets = max_budgets)
         # self.plot_time_evolution(y_tmp,label_y = indicator_list, label=optimizer_list, max_budgets = max_budgets)    
         
-    def evaluate_by_step(self, mix, sequence, max_budgets, optimizer_list: List['str'], indicator_list: List['str'], bind = None, carbonProdLimit: float = 39500000000, time_interval : float = 1):
+    def evaluate_total_time(self, mix, sequence, max_budgets, optimizer_list: List['str'],
+                            indicator_list: List['str'], bind = None, carbonProdLimit: float = 39500000000,
+                            time_index: int = 1, time_interval : float = 1):
         #setting dataset
-            
+        
+        budget = np.arange(0, max_budgets, sequence)
+
         if bind != None:
             mix.set_data_csv(str(bind))
 
         self.check_opt_list(optimizer_list) 
         if optimizer_list == [] :
             raise IndexError("Selected optimizers are not available.")
-
+        
        #process
         data_interval = []
-        current_demand=de.Demand(10,0.2,0.3)
-        for time in range(0,sequence):
+        current_demand=de.Demand(12,0.2,0.3)
+        for time in range(0,time_index):
             mix.set_demand(current_demand.get_demand_approxima(time,time_interval))
             print(current_demand.get_demand_approxima(time,time_interval))
             ind_per_opt = {}
             for opt_name in optimizer_list:
                 data = mix.optimizeMix(carbonProdLimit= carbonProdLimit,
-                                time_interval = time_interval, optimize_with = [opt_name], budgets = [max_budgets], step = max_budgets)
+                                time_interval = time_interval, optimize_with = [opt_name], budgets = [max_budgets], step = sequence)
                 ind_per_opt.update({opt_name:data})
             data_interval.append(ind_per_opt)
         
         Y = []
-        for time in range(0,sequence):
+        for time in range(0,time_index):
             y_tmp = {}
             for indicator in indicator_list:
                 new_ind_per_opt = {}
@@ -228,4 +233,19 @@ class EvaluationBudget:
                     new_ind_per_opt.update({opt_name:ind_per_budget})
                 y_tmp.update({indicator: new_ind_per_opt})
             Y.append(y_tmp)
-        print(Y)
+
+        result = {}
+        for indicator in indicator_list:
+            optimizers_dict = {}
+            for opt_name in optimizer_list:
+                per_budget = []
+                for budget_step in range(0,len(budget)):
+                    value = 0
+                    for time in range (0, time_index):
+                        value += Y[time][indicator][opt_name][budget_step]
+                    per_budget.append(value)
+                optimizers_dict.update({opt_name:per_budget})
+            result.update({indicator: optimizers_dict})
+        
+        print(result)
+                
