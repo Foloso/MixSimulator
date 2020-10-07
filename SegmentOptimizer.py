@@ -21,7 +21,8 @@ class SegmentOptimizer:
         self.__demand = 1
         #Static lost
         self.__lost = 0
-        self.duration = 1     
+        self.duration = 1
+        self.__time_index = 1
     
     def setCentrals(self, centrals: List[str]):
         self.__centrals.clear()
@@ -77,12 +78,18 @@ class SegmentOptimizer:
         for central in centrals:
             carbon_prod.append(central.getCarbonProd())
         return np.array(carbon_prod)
+        
+    def set_time_index(self,time):
+        self.__time_index = time
 
     def get_avaibility_limit(self, centrals: List[str] = None):
         centrals = self.__getCentrals(centrals)
         avaibility_limit = []
         for central in centrals:
-            avaibility_limit.append(central.getAvailability())
+            if central.isGreen():
+                 avaibility_limit.append(central.get__availability(self.__time_index,self.get_time()))
+            else :
+                avaibility_limit.append(central.getAvailability())
         return np.array(avaibility_limit)
 
     def set_time(self, duration):

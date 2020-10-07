@@ -35,9 +35,9 @@ mix.simuleMix(current_usage_coef=[0.6, 0.2, 0.7, 0.95], carbonProdLimit= 3950000
     Minimization of the cost production of the energy mix in the inter-connected Grid of Toamasina ( time_interval = 2 hours )
 """
 mix = ms.MixSimulator()
-mix.set_data_csv("dataset_RI_Toamasina.csv")
+mix.set_data_csv("MixSimulator/data/RIToamasina/dataset_RI_Toamasina.csv")
 #Here we chained two Optimizers (optimize_with = ["OnePlusOne","DE"])
-data=mix.simuleMix(current_usage_coef=[0.6, 0.2, 0.7, 0.95], optimize_with = ["OnePlusOne"], budgets = [10],step = 2, time_index = 24)
+data=mix.simuleMix(current_usage_coef=[0.6, 0.2, 0.7, 0.95], optimize_with = ["OnePlusOne"], budgets = [10],step = 2, time_index = 1)
 #print(data)
 
 """

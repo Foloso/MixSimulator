@@ -259,7 +259,9 @@ class Optimizer():
         # recommendation = optimizer.minimize(func_to_optimize, verbosity=0)
         for tmp_budget in range(0, total_budget):
             x = optimizer.ask()
+            print(x)
             loss = func_to_optimize(*x.args, **x.kwargs)
+            print(loss)            
             optimizer.tell(x, loss)
             if (tmp_budget+1)%step == 0:
                 result_per_budget = {}
@@ -272,6 +274,7 @@ class Optimizer():
                 result.append(result_per_budget)
         #print(recommendation.satisfies_constraints())
         
+        #TODO
         # self.set_satisfied_constraints(recommendation.value, constraints, min_prod, tolerance, fully_used, not_used)
         #self.show_satisfied_constraints()        
         return result

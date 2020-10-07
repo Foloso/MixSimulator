@@ -1,6 +1,7 @@
 import matplotlib.pyplot as plt
 from . import SegmentOptimizer as sOpt
 from .centrals import PowerCentral as pc
+from .centrals import HydroCentral as hc 
 from . import Demand as de
 import numpy as np
 import pandas as pd
@@ -41,7 +42,10 @@ class MixSimulator:
         try :
             for i in range (0,data.shape[0]):
                 centrale = data["tuneable"][i]
-                centrale = pc.PowerCentral(centrale)
+                if centrale == False :
+                    centrale = hc.HydroCentral(data["height"][i],data["flow"][i],data["capacity"][i],data["stock_available"][i],0.1,0.8)
+                else :
+                    centrale = pc.PowerCentral(centrale)
                 centrale.set_id(str(data["centrals"][i]))
                 centrale.set_fuel_consumption(data["fuel_consumption"][i])
                 centrale.setAvailability(data["availability"][i])
@@ -78,7 +82,7 @@ class MixSimulator:
                     self.__centrals["non_green"].append(centrale)
 
     def optimizeMix(self, carbonProdLimit, demand: float= None, lost: float=None, 
-                    time_interval: float = 1, carbon_cost: float = None, optimize_with = ["OnePlusOne"], budgets = [100], instrum = None, step: int = 1):
+                    time_interval: float = 1, carbon_cost: float = None, optimize_with = ["OnePlusOne"], budgets = [100], instrum = None, step: int = 1, time_index: int = 24*365):
         
         """Initiate the Mix's parameters and calculate the optimal coef_usage with the given optimizer"""
         # default parameter
@@ -100,10 +104,16 @@ class MixSimulator:
         non_green_mix.set_time(time_interval)
 
         # prioriser d'abord les energies renouvelables
+        green_mix.set_time_index(time_index)
         GREEN_RESULT = green_mix.getOptimumUsageCoef(carbonProdLimit=carbonProdLimit, 
                                                      demand= demand, lost=lost, optimize_with = optimize_with, budgets = budgets, instrum = instrum, step=step)
         new_carbonProdLimit = carbonProdLimit - GREEN_RESULT[len(GREEN_RESULT)-1]["carbonProd"]
         new_demand = demand - GREEN_RESULT[len(GREEN_RESULT)-1]["production"]
+        i=0        
+        for green in self.__centrals["green"]:
+            green.back_propagate(GREEN_RESULT[len(GREEN_RESULT)-1]["coef usage"][i], time_index, time_interval)
+            i=i+1
+            
 
         # ensuite s'occuper des centrales "non-green"
         NON_GREEN_RESULT = non_green_mix.getOptimumUsageCoef(carbonProdLimit=new_carbonProdLimit, 
@@ -135,7 +145,7 @@ class MixSimulator:
 
         return results
 
-    def simuleMix(self, current_usage_coef, carbonProdLimit: float = 999999999999, demand: float = None, 
+    def simuleMix(self, current_usage_coef, carbonProdLimit: float = 99999999999, demand: float = None, 
                   lost: float = None, time_interval: float = 1, carbon_cost: float = None, 
                   optimize_with = ["OnePlusOne"], budgets = [100], instrum = None, verbose: int = 0, plot: str = "default", step : int = None, time_index : int = 24*365):
         
@@ -167,13 +177,13 @@ class MixSimulator:
             coef_dict.update({self.__init_list[index]:current_usage_coef[index]})
         current_perf.update({"usage_coefficient": coef_dict})
         
-        # optimization over the year 
+        # optimization over  
         data_per_interval = []
         current_demand=de.Demand(self.__demand,0.5,0.8)
         for t in range(0,time_index):
             self.set_demand(current_demand.get_demand_approxima(t,time_interval))
             data = self.optimizeMix(carbonProdLimit= carbonProdLimit,
-                                time_interval = time_interval, optimize_with = optimize_with, budgets = budgets, step = step)
+                                time_interval = time_interval, optimize_with = optimize_with, budgets = budgets, step = step, time_index = t)
         data_per_interval.append(data)
 
         # verbosity
