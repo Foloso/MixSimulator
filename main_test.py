@@ -4,7 +4,7 @@
 
 #Way to import from local
 import MixSimulator.MixSimulator as ms 
-#from MixSimulator.Evaluation import Evaluation
+import MixSimulator.Evaluation as ev
 
 #Centrales personnalisées
 """
@@ -37,11 +37,13 @@ mix.simuleMix(current_usage_coef=[0.6, 0.2, 0.7, 0.95], carbonProdLimit= 3950000
 mix = ms.MixSimulator()
 mix.set_data_csv("MixSimulator/data/RIToamasina/dataset_RI_Toamasina.csv")
 #Here we chained two Optimizers (optimize_with = ["OnePlusOne","DE"])
-data=mix.simuleMix(current_usage_coef=[0.6, 0.2, 0.7, 0.95], optimize_with = ["OnePlusOne"], budgets = [10],step = 2, time_index = 1)
+data=mix.simuleMix(current_usage_coef=[0.6, 0.2, 0.7, 0.95], optimize_with = ["OnePlusOne"], budgets = [100],step = 2, time_index = 72, plot = "coef", average_wide = 4)
 #print(data)
+
+#mix.plotResults(data[0], data[1], mode = "default" , time_interval = data[2], result_to_display = -1, average_wide = 4)
 
 """
      Evaluation of performance indicators with one (or more) optimizer on each (budget + 10) up to max budgets (300).
 """
-#eva=Evaluation()
-#eva.evaluate(mix, 10, 30, ["OnePlusOne","DE"], ["production_cost ($)","carbon_impacte (g/MWh)","unsatisfied_demand (MWh)","execution_time (s)"])
+eva=ev.EvaluationBudget()
+eva.evaluate_total_time(mix, 10, 1000, ["OnePlusOne","DE"], ["production_cost ($)","carbon_impacte (g/MWh)","unsatisfied_demand (MWh)","execution_time (s)"])

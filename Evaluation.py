@@ -5,6 +5,7 @@ import matplotlib.pyplot as plt
 import numpy as np
 from math import ceil
 from math import floor
+import itertools
 from typing import List
 from .nevergradBased import Optimizer as opt
 from . import Demand as de
@@ -14,6 +15,7 @@ class EvaluationBudget:
     def __init__(self):
         tmp = opt.Optimizer()
         self.__available_optimizers = tmp.getOptimizerList()
+        self.__marker = itertools.cycle((',', '+', '.', 'o', '*','x','v','^','s')) 
         
     def moving_average(self, x, w):
         return np.convolve(x, np.ones(w), 'valid') / w
@@ -48,7 +50,7 @@ class EvaluationBudget:
             dict_ = Y[label_y[n_axs]]
             for opt_name, value in dict_.items():
                 smooth_value = self.moving_average(value,average_wide)
-                axs[n_axs].plot(X[(average_wide - 1):], smooth_value, alpha=0.5, lw=2, label=str(opt_name))
+                axs[n_axs].plot(X[(average_wide - 1):], smooth_value, marker = next(self.__marker), alpha=0.5, lw=2, label=str(opt_name))
         
         # plots parametrizations    
         for n_axs in range(0,len(axs)) :
@@ -81,7 +83,9 @@ class EvaluationBudget:
             dict_ = Y[label_y[n_axs]]
             for opt_name, value in dict_.items():
                 smooth_value = self.moving_average(value,average_wide)
-                axs[0][n_axs].plot(X[(average_wide - 1):], smooth_value, alpha=0.5, lw=2, label=opt_name)
+                axs[0][n_axs].plot(X[(average_wide - 1):], smooth_value, marker = next(self.__marker), alpha=0.5, lw=2, label=opt_name)
+                #axs[0][n_axs].xticks(np.arrange(min(X),max(X)+1,1.0))
+                #axs[0][n_axs].yticks(np.arrange(min(smooth_value),max(smooth_value)+1,1.0))
                 #label_per_opt = axs[0][n_axs].text(X[-1],smooth_value[-1],opt_name+"("+str(float("{:.2f}".format(smooth_value[-1])))+")")
                 #texts.append(label_per_opt)
                 #axs[0][n_axs].annotate( label_per_opt,
@@ -94,7 +98,9 @@ class EvaluationBudget:
             dict_ = Y[label_y[max_col+n_axs]]
             for opt_name, value in dict_.items():
                 smooth_value = self.moving_average(value,average_wide)
-                axs[1][n_axs].plot(X[(average_wide - 1):], smooth_value, alpha=0.5, lw=2, label=opt_name)
+                axs[1][n_axs].plot(X[(average_wide - 1):], smooth_value, marker = next(self.__marker), alpha=0.5, lw=2, label=opt_name)
+                #axs[1][n_axs].xticks(np.arrange(min(X),max(X)+1,1.0))
+                #axs[1][n_axs].yticks(np.arrange(min(smooth_value),max(smooth_value)+1,1.0))
                 #axs[1][n_axs].annotate(opt_name+"("+str(float("{:.2f}".format(smooth_value[-1])))+")",
                 #              xy     = (     X[-1], smooth_value[-1]),
                 #              xytext = (1.02*X[-1], smooth_value[-1]),
@@ -186,9 +192,6 @@ class EvaluationBudget:
                     ind_per_budget.append(float(budget_value[indicator]))
                 new_ind_per_opt.update({opt_name:ind_per_budget})
             y_tmp.update({indicator: new_ind_per_opt})
-        print(y_tmp)
-        
-
             
         #plotting
         self.plot_evaluation_2(X=np.array(budget),Y=y_tmp,label_y = indicator_list, label=optimizer_list, max_budgets = max_budgets)
@@ -247,5 +250,6 @@ class EvaluationBudget:
                 optimizers_dict.update({opt_name:per_budget})
             result.update({indicator: optimizers_dict})
         
-        print(result)
+        self.plot_evaluation_2(X=np.array(budget),Y=result,label_y = indicator_list, label=optimizer_list, max_budgets = max_budgets)
+        
                 
