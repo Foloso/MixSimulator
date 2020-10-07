@@ -199,7 +199,7 @@ class EvaluationBudget:
         
     def evaluate_total_time(self, mix, sequence, max_budgets, optimizer_list: List['str'],
                             indicator_list: List['str'], bind = None, carbonProdLimit: float = 39500000000,
-                            time_index: int = 1, time_interval : float = 1):
+                            time_index: int = 24*265, time_interval : float = 1):
         #setting dataset
         
         budget = np.arange(0, max_budgets, sequence)
