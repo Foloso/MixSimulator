@@ -41,11 +41,12 @@ class MixSimulator:
         centrale_tmp = []
         try :
             for i in range (0,data.shape[0]):
-                centrale = data["tuneable"][i]
-                if centrale == False :
+                centrale = data["hydro"][i]
+                if centrale == True :
                     centrale = hc.HydroCentral(data["height"][i],data["flow"][i],data["capacity"][i],data["stock_available"][i],0.1,0.8)
                 else :
-                    centrale = pc.PowerCentral(centrale)
+                    centrale = pc.PowerCentral()
+                centrale.setTuneable(data["tuneable"][i])
                 centrale.set_id(str(data["centrals"][i]))
                 centrale.set_fuel_consumption(data["fuel_consumption"][i])
                 centrale.setAvailability(data["availability"][i])
@@ -104,20 +105,28 @@ class MixSimulator:
         non_green_mix.set_time(time_interval)
 
         # prioriser d'abord les energies renouvelables
+        print("DEMANDE INITIALE", demand)
         green_mix.set_time_index(time_index)
         GREEN_RESULT = green_mix.getOptimumUsageCoef(carbonProdLimit=carbonProdLimit, 
                                                      demand= demand, lost=lost, optimize_with = optimize_with, budgets = budgets, instrum = instrum, step=step)
         new_carbonProdLimit = carbonProdLimit - GREEN_RESULT[len(GREEN_RESULT)-1]["carbonProd"]
-        new_demand = demand - GREEN_RESULT[len(GREEN_RESULT)-1]["production"]
+        new_demand = (demand+lost) - GREEN_RESULT[len(GREEN_RESULT)-1]["production"]
+        print(GREEN_RESULT[len(GREEN_RESULT)-1]["production"])
+        
+
+        print("NEW_DEMANDE:" , new_demand)
+        print(GREEN_RESULT[len(GREEN_RESULT)-1]["coef"][0])
+        
         i=0        
         for green in self.__centrals["green"]:
-            green.back_propagate(GREEN_RESULT[len(GREEN_RESULT)-1]["coef usage"][i], time_index, time_interval)
+            print(green.get_id(), " ", GREEN_RESULT[len(GREEN_RESULT)-1]["coef"][i])
+            green.back_propagate(GREEN_RESULT[len(GREEN_RESULT)-1]["coef"][i], time_index, time_interval)
             i=i+1
             
 
         # ensuite s'occuper des centrales "non-green"
         NON_GREEN_RESULT = non_green_mix.getOptimumUsageCoef(carbonProdLimit=new_carbonProdLimit, 
-                                                             demand=new_demand, lost=lost, optimize_with = optimize_with, budgets = budgets, instrum = instrum, step=step)        
+                                                             demand=new_demand, lost=0, optimize_with = optimize_with, budgets = budgets, instrum = instrum, step=step)        
 
         for budget_step in range(0, len(GREEN_RESULT)):
             tmp_result = {}
@@ -179,7 +188,7 @@ class MixSimulator:
         
         # optimization over  
         data_per_interval = []
-        current_demand=de.Demand(self.__demand,0.5,0.8)
+        current_demand=de.Demand(self.__demand, 1, 1)
         for t in range(0,time_index):
             self.set_demand(current_demand.get_demand_approxima(t,time_interval))
             data = self.optimizeMix(carbonProdLimit= carbonProdLimit,

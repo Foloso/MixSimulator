@@ -94,6 +94,8 @@ class Optimizer():
                     continue
             else:
                 continue
+        if (constraints["demand"]+ constraints["lost"]) <= 1:
+            max_bound = 0.000000000000000000000000001
         self.__max_bound = max_bound
         self.__parametrization.set_bounds(lower=0, upper=self.__max_bound)
 
@@ -257,11 +259,10 @@ class Optimizer():
         
         #let's minimize
         # recommendation = optimizer.minimize(func_to_optimize, verbosity=0)
+        optimizer.suggest([0.]*len(constraints["availability"]))
         for tmp_budget in range(0, total_budget):
             x = optimizer.ask()
-            print(x)
             loss = func_to_optimize(*x.args, **x.kwargs)
-            print(loss)            
             optimizer.tell(x, loss)
             if (tmp_budget+1)%step == 0:
                 result_per_budget = {}

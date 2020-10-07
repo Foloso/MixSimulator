@@ -84,6 +84,9 @@ class PowerCentral:
     def setMeanEmployeesSalary(self, mean_salary):
         self._meanSalary = mean_salary
 
+    def setTuneable(self, tuneable: bool) -> None:
+        self._tuneable = tuneable
+
     def __getUsageCoef(self, usage_coef: float) -> float:
         if(self._tuneable):
             usage_coef = min(self._availability, usage_coef)
