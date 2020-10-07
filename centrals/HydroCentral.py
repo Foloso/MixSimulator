@@ -25,21 +25,17 @@ class HydroCentral(pc):
         return power/self._rawPower
 
     def __get__artificial_availability(self, t, interval) ->float:
-        print("T", t)
-        print("STOCK", self.__available_stock)
         debit_t_max = self.__available_stock/(interval*3600)
         power = (self.__hauteur * debit_t_max * 9.8 * 0.9 * 997) /1000000 # unit is MW
         return power/self._rawPower
 
     def get__availability(self, t, interval) -> float:
         dummy_availability = self.__get__artificial_availability(t, interval) + self.__get_natural_availability(t, interval)
-        print("ART", self.__get__artificial_availability(t, interval))
         if dummy_availability > 1:
             dummy_availability = 1
         return dummy_availability
 
     def back_propagate(self, usage_coef, t, interval):
-        print("usage, ", usage_coef)
         diff = usage_coef - self.__get_natural_availability(t, interval)
         diff_power = diff * self._rawPower
         # back to m3/s so diff_power has to be in W not in MW ===> *1000
