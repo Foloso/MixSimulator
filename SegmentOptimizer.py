@@ -98,7 +98,7 @@ class SegmentOptimizer:
     def get_time(self):
         return self.duration
     
-    def prod_cost_objective_function(self,coef_usage):
+    def prod_cost_function(self,coef_usage):
         return sum((( self.get_fuel_cost() * self.get_fuel_consumption() * coef_usage * self.get_rawPower() )
         + (self.get_salary_cost() + self.get_amortized_cost()))* self.get_time()) 
 
@@ -140,7 +140,7 @@ class SegmentOptimizer:
             self.__optimizer.set_parametrization(instrum, np.amax(self.get_avaibility_limit()))
 
         
-        prod_cost_optimal = self.__optimizer.opt_With(self.prod_cost_objective_function, constrains, optimize_with,budgets, step= step)
+        prod_cost_optimal = self.__optimizer.opt_With(self.prod_cost_function, constrains, optimize_with,budgets, step= step)
         
         return prod_cost_optimal
 

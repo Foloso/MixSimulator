@@ -176,7 +176,7 @@ class MixSimulator:
                 centrals.append(central)
         current_mix.setCentrals(centrals)
         current_mix.set_time(time_interval)
-        current_perf.update({"production_cost ($)": current_mix.prod_cost_objective_function(current_usage_coef)})
+        current_perf.update({"production_cost ($)": current_mix.prod_cost_function(current_usage_coef)})
         current_perf.update({"carbon_impacte (g/MWh)": current_mix.get_carbon_prod_constraint(current_usage_coef)})
         current_perf.update({"unsatisfied_demand (MWh)": demand - current_mix.get_production_constraint(current_usage_coef)})
         coef_dict = {}

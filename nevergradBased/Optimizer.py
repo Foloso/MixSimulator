@@ -94,8 +94,8 @@ class Optimizer():
                     continue
             else:
                 continue
-        if (constraints["demand"]+ constraints["lost"]) <= 1:
-            max_bound = 0.000000000000000000000000001
+        # if (constraints["demand"]+ constraints["lost"]) <= 1:
+        #     max_bound = 0.000000000000000000000000001
         self.__max_bound = max_bound
         self.__parametrization.set_bounds(lower=0, upper=self.__max_bound)
 
@@ -228,23 +228,24 @@ class Optimizer():
         chaining_algo = ng.optimizers.Chaining(self.__optimizers,current_budgets[:-1])
         optimizer = chaining_algo(parametrization=self.get_parametrization(), budget=self.get_budget())
         if constraints != None:
-            #if contraint initiate
+            #Environmental constraint
             try: 
                 optimizer.parametrization.register_cheap_constraint(lambda x: constraints["carbonProd"](x) <= constraints["carbonProdLimit"])
-                #Environmental constraint
                 
             except: #if no contraint assigned
                 pass
-            try:
-                tolerance = 2 * 10**(math.log10(constraints["demand"] + constraints["lost"])-2)
-                min_prod = constraints["demand"] + constraints["lost"]
-                optimizer.parametrization.register_cheap_constraint(lambda x: np.abs(constraints["production"](x) - min_prod) < tolerance )
-                #Demand constraint
-            except:
-                pass
+            
+            # try:
+            #     tolerance = 2 * 10**(math.log10(constraints["demand"] + constraints["lost"])-2)
+            #     min_prod = constraints["demand"] + constraints["lost"]
+            #     optimizer.parametrization.register_cheap_constraint(lambda x: np.abs(constraints["production"](x) - min_prod) < tolerance )
+            #     #Demand constraint
+            # except:
+            #     pass
+            
+            #Availability constraint
             try:
                 optimizer.parametrization.register_cheap_constraint(lambda x: (np.array(x) <= constraints["availability"]).all())
-                #Availability constraint
             except:
                 pass
             try:
@@ -262,7 +263,7 @@ class Optimizer():
         optimizer.suggest([0.]*len(constraints["availability"]))
         for tmp_budget in range(0, total_budget):
             x = optimizer.ask()
-            loss = func_to_optimize(*x.args, **x.kwargs)
+            loss = func_to_optimize(*x.args, **x.kwargs) + 1000000000000 * np.abs(constraints["production"](*x.args, **x.kwargs) - constraints["demand"] + constraints["lost"])
             optimizer.tell(x, loss)
             if (tmp_budget+1)%step == 0:
                 result_per_budget = {}
