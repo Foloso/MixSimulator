@@ -200,7 +200,7 @@ class MixSimulator:
         for t in range(0,time_index):
             self.set_demand(current_demand.get_demand_approxima(t,time_interval))
             data = self.optimizeMix(carbonProdLimit= carbonProdLimit,
-                                time_interval = time_interval, optimize_with = optimize_with, budgets = budgets, step = step, time_index = t, penalisation = self.get_penalisation_cost)
+                                time_interval = time_interval, optimize_with = optimize_with, budgets = budgets, step = step, time_index = t, penalisation = self.get_penalisation_cost())
             data_per_interval.append(data)
 
         # verbosity
