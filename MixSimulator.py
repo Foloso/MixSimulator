@@ -9,6 +9,7 @@ import warnings
 import time
 from typing import List
 from math import ceil
+from datetime import datetime
 
 class MixSimulator:
     """
@@ -396,7 +397,9 @@ class MixSimulator:
             axs.legend()
                 
             fig.tight_layout()
-            plt.show()
+            name = "Coef_per_centrals_"+datetime.now().strftime("%H:%M:%S")+".png"
+            fig.savefig(name)
+            #plt.show()
 
         elif mode == "None" :
             pass
