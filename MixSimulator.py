@@ -363,7 +363,8 @@ class MixSimulator:
             plt.xticks([])
             plt.title('Optimum and Current values')
 
-            plt.show()
+            name = "Coef_per_centrals_"+datetime.now().strftime("%H:%M:%S")+".png"
+            plt.savefig(name)
 
         elif mode == "coef" :
             #init subplot
@@ -405,4 +406,4 @@ class MixSimulator:
             pass
         else :
             warnings.warn("Choose an available option : default, coef and None")
-            plt.show()
+            #plt.show()

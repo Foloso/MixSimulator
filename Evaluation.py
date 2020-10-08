@@ -86,7 +86,7 @@ class EvaluationBudget:
             #For label y more than 1
             max_col = ceil(len(label_y)/2)
             min_col = floor(len(label_y)/2)
-            fig, axs = plt.subplots(2, max_col, figsize=(10, 8))        
+            fig, axs = plt.subplots(2, max_col, figsize=(12, 8))        
          
             # data integration
             #texts=[]        
@@ -148,6 +148,13 @@ class EvaluationBudget:
                         #axs[n_axs].yaxis.set_major_formatter(StrMethodFormatter("{x}"+units[0]))
                         axs[row][n_axs].set_ylabel(label_y[max_col+n_axs])
                         axs[row][n_axs].legend()
+            
+            #(bug TODO)
+            #hide 6th (or the 4th) subplot 
+            if len(label_y) == 5:
+                axs[1][2].axis('off')
+            if len(label_y) == 3:
+                axs[1][1].axis('off')
                 
             fig.tight_layout()
             
@@ -253,7 +260,10 @@ class EvaluationBudget:
         
         Y = []
         indicator_list_WO_penalisation = indicator_list.copy()
-        indicator_list_WO_penalisation.remove("penalized cost production ($)")
+        try:
+            indicator_list_WO_penalisation.remove("penalized cost production ($)")
+        except:
+            pass
         for time in range(0,time_index):
             y_tmp = {}
             for indicator in indicator_list_WO_penalisation:
