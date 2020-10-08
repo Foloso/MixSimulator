@@ -220,7 +220,7 @@ class EvaluationBudget:
         return [np.array(budget),y_tmp,optimizer_list,max_budgets]
         
     def evaluate_total_time(self, mix, sequence, max_budgets, optimizer_list: List['str'],
-                            indicator_list: List['str'], bind = None, carbonProdLimit: float = 39500000000,
+                            indicator_list: List['str'], bind = None, carbonProdLimit: float = 500000,
                             time_index: int = 24*265, time_interval : float = 1, average_wide : int = None):
         #setting dataset
         

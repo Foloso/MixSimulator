@@ -98,7 +98,6 @@ class Optimizer():
         #     max_bound = 0.000000000000000000000000001
         self.__max_bound = max_bound
         self.__parametrization.set_bounds(lower=0, upper=self.__max_bound)
-
         
     def __set_min_loss(self, constraints):
         self.__constraints = constraints

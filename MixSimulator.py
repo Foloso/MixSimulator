@@ -152,7 +152,7 @@ class MixSimulator:
 
         return results
 
-    def simuleMix(self, current_usage_coef, carbonProdLimit: float = 99999999999, demand: float = None, 
+    def simuleMix(self, current_usage_coef, carbonProdLimit: float = 500000, demand: float = None, 
                   lost: float = None, time_interval: float = 1, carbon_cost: float = None, 
                   optimize_with = ["OnePlusOne"], budgets = [100], instrum = None, verbose: int = 0, plot: str = "default", step : int = None, time_index : int = 24*365, average_wide : int = 1):
         
