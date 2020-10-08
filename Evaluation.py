@@ -9,6 +9,7 @@ from math import floor
 from typing import List
 from .nevergradBased import Optimizer as opt
 from . import Demand as de
+from datetime import datetime
 #from matplotlib import ticker
 
 class EvaluationBudget:
@@ -36,7 +37,7 @@ class EvaluationBudget:
                 labelY=''
         return [labelY,units]
         
-    def plot_evaluation_2(self, X, Y, label_y : List['str'], label : List = ["Optimizer"], max_budgets = 0, average_wide : int = None):
+    def plot_evaluation_2(self, X, Y, label_y : List['str'], label : List = ["Optimizer"], max_budgets = 0, average_wide : int = None, plot = "default"):
         
         #set the moving average wide
         if average_wide is None :
@@ -149,7 +150,12 @@ class EvaluationBudget:
                         axs[row][n_axs].legend()
                 
             fig.tight_layout()
-            plt.show()
+            
+            if plot == "save": 
+                name = "Evaluation_"+datetime.now().strftime("%H:%M:%S")+".png"
+                fig.savefig(name)
+            else :
+                plt.show()
 
     def plot_time_evolution(self, data, label_y : List['str'], label : List = ["Optimizer"], max_budgets = 0):
         #init subplot
@@ -221,7 +227,7 @@ class EvaluationBudget:
         
     def evaluate_total_time(self, mix, sequence, max_budgets, optimizer_list: List['str'],
                             indicator_list: List['str'], bind = None, carbonProdLimit: float = 500000,
-                            time_index: int = 24*265, time_interval : float = 1, average_wide : int = None, penalisation : float = 1000000000000):
+                            time_index: int = 24*265, time_interval : float = 1, average_wide : int = None, penalisation : float = 1000000000000, plot : str = "default"):
         #setting dataset
         
         budget = np.arange(0, max_budgets, sequence)
@@ -269,16 +275,14 @@ class EvaluationBudget:
                     value = 0
                     for time in range (0, time_index):
                         if indicator == "penalized cost production ($)":
-                            value += Y[time]["production_cost ($)"][opt_name][budget_step] +
-                             (mix.get_penalisation_cost() * Y[time]["unsatisfied_demand (MWh)"][opt_name][budget_step])
-                            print(value)
+                            value += Y[time]["production_cost ($)"][opt_name][budget_step] + (mix.get_penalisation_cost() * Y[time]["unsatisfied_demand (MWh)"][opt_name][budget_step])
                         else :
                             value += Y[time][indicator][opt_name][budget_step]
                     per_budget.append(value)
                 optimizers_dict.update({opt_name:per_budget})
             result.update({indicator: optimizers_dict})
-        print(mix.get_penalisation_cost())
-        self.plot_evaluation_2(X=np.array(budget),Y=result,label_y = indicator_list, label=optimizer_list, max_budgets = max_budgets,average_wide = average_wide)
+
+        self.plot_evaluation_2(X=np.array(budget),Y=result,label_y = indicator_list, label=optimizer_list, max_budgets = max_budgets,average_wide = average_wide, plot = plot)
         #return X, Y, opt_list, max_budgets
         return [np.array(budget),result,optimizer_list,max_budgets]
                 
