@@ -75,6 +75,9 @@ class MixSimulator:
 
     def set_demand(self,demand):
         self.__demand = demand
+    
+    def get_demand(self):
+        return self.__demand
 
     def __splitCentrals(self, centrals: List[str]):
         for centrale in centrals:

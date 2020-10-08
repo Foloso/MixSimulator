@@ -37,12 +37,6 @@ class EvaluationBudget:
         return [labelY,units]
         
     def plot_evaluation_2(self, X, Y, label_y : List['str'], label : List = ["Optimizer"], max_budgets = 0, average_wide : int = None):
-        #init subplot
-        if len(label_y) == 1 : 
-            raise IndexError("Can't plot with one label (work in progress) --> choose at least two performance indicators")
-        max_col = ceil(len(label_y)/2)
-        min_col = floor(len(label_y)/2)
-        fig, axs = plt.subplots(2, max_col, figsize=(10, 8))        
         
         #set the moving average wide
         if average_wide is None :
@@ -50,15 +44,17 @@ class EvaluationBudget:
                 average_wide = ceil(len(value)/4)
                 #units=self.set_units(value[0])
                 break
-     
-        # data integration
-        #texts=[]        
-        for n_axs in range(0,max_col) :
-            dict_ = Y[label_y[n_axs]]
+                
+        #Label y = 1
+        if len(label_y) == 1 : 
+            fig, axs = plt.subplots(1, 1, figsize=(6, 6))        
+            
+            # data integration        
+            dict_ = Y[label_y[0]]
             it = 3 #index debut cycle
             for opt_name, value in dict_.items():
                 smooth_value = self.moving_average(value,average_wide)
-                axs[0][n_axs].plot(X[(average_wide - 1):], smooth_value, marker = self.__marker[it % len(dict_)],markevery = 0.1, alpha=0.5, lw=2, label=opt_name)
+                axs.plot(X[(average_wide - 1):], smooth_value, marker = self.__marker[it % len(dict_)],markevery = 0.1, alpha=0.5, lw=2, label=opt_name)
                 #axs[0][n_axs].xaxis.set_minor_locator(ticker.MultipleLocator(len(smooth_value)))
                 #axs[0][n_axs].yaxis.set_major_locator(ticker.MultipleLocator(1))                 
                 it = it + 1                 
@@ -70,50 +66,90 @@ class EvaluationBudget:
                 #              xy     = (     X[-1], smooth_value[-1]),
                 #              xytext = (1.02*X[-1], smooth_value[-1]),
                 #            )
-        #adjust_text(texts)       
-        
-        for n_axs in range(0,min_col) :
-            dict_ = Y[label_y[max_col+n_axs]]
-            it = 3 #index debut cycle
-            for opt_name, value in dict_.items():
-                smooth_value = self.moving_average(value,average_wide)
-                axs[1][n_axs].plot(X[(average_wide - 1):], smooth_value, marker = self.__marker[it % len(dict_)],markevery = 0.1, alpha=0.5, lw=2, label=opt_name)
-                #axs[1][n_axs].xaxis.set_minor_locator(ticker.MultipleLocator(len(smooth_value)))
-                #axs[1][n_axs].yaxis.set_major_locator(ticker.MultipleLocator(1))                
-                it = it + 1                
-                #axs[1][n_axs].xaxis.set_ticks(np.arange(min(X),max(X)+1,1.0))
-                #axs[1][n_axs].yticks(np.arrange(min(smooth_value),max(smooth_value)+1,1.0))
-                #axs[1][n_axs].annotate(opt_name+"("+str(float("{:.2f}".format(smooth_value[-1])))+")",
-                #              xy     = (     X[-1], smooth_value[-1]),
-                #              xytext = (1.02*X[-1], smooth_value[-1]),
-                #            )
-
-        
-        # plots parametrizations   
-        for row in range (0,2):
-            if row == 0 :
-                for n_axs in range(0,max_col) :
-                    axs[row][n_axs].grid()
-                    axs[row][n_axs].yaxis.set_tick_params(which='major', width=1.00, length=5)
-                    axs[row][n_axs].xaxis.set_tick_params(which='major', width=1.00, length=5)
-                    axs[row][n_axs].xaxis.set_tick_params(which='minor', width=0.75, length=2.5, labelsize=10)
-                    axs[row][n_axs].set_xlabel('Budgets')
-                    #axs[n_axs].yaxis.set_major_formatter(StrMethodFormatter("{x}"+units[0]))
-                    axs[row][n_axs].set_ylabel(label_y[n_axs])
-                    axs[row][n_axs].legend()
-            else :
-                for n_axs in range(0,min_col) :
-                    axs[row][n_axs].grid()
-                    axs[row][n_axs].yaxis.set_tick_params(which='major', width=1.00, length=5)
-                    axs[row][n_axs].xaxis.set_tick_params(which='major', width=1.00, length=5)
-                    axs[row][n_axs].xaxis.set_tick_params(which='minor', width=0.75, length=2.5, labelsize=10)
-                    axs[row][n_axs].set_xlabel('Budgets')
-                    #axs[n_axs].yaxis.set_major_formatter(StrMethodFormatter("{x}"+units[0]))
-                    axs[row][n_axs].set_ylabel(label_y[max_col+n_axs])
-                    axs[row][n_axs].legend()
+            #adjust_text(texts)            
             
-        fig.tight_layout()
-        plt.show()
+            # plots parametrizations    
+            axs.grid()
+            axs.yaxis.set_tick_params(which='major', width=1.00, length=5)
+            axs.xaxis.set_tick_params(which='major', width=1.00, length=5)
+            axs.xaxis.set_tick_params(which='minor', width=0.75, length=2.5, labelsize=10)
+            axs.set_xlabel('Budgets')
+            #axs[n_axs].yaxis.set_major_formatter(StrMethodFormatter("{x}"+units[0]))
+            axs.set_ylabel(label_y[0])
+            axs.legend()
+                
+            fig.tight_layout()
+            plt.show()
+            
+        else :
+            #For label y more than 1
+            max_col = ceil(len(label_y)/2)
+            min_col = floor(len(label_y)/2)
+            fig, axs = plt.subplots(2, max_col, figsize=(10, 8))        
+         
+            # data integration
+            #texts=[]        
+            for n_axs in range(0,max_col) :
+                dict_ = Y[label_y[n_axs]]
+                it = 3 #index debut cycle
+                for opt_name, value in dict_.items():
+                    smooth_value = self.moving_average(value,average_wide)
+                    axs[0][n_axs].plot(X[(average_wide - 1):], smooth_value, marker = self.__marker[it % len(dict_)],markevery = 0.1, alpha=0.5, lw=2, label=opt_name)
+                    #axs[0][n_axs].xaxis.set_minor_locator(ticker.MultipleLocator(len(smooth_value)))
+                    #axs[0][n_axs].yaxis.set_major_locator(ticker.MultipleLocator(1))                 
+                    it = it + 1                 
+                    #axs[0][n_axs].xaxis.set_ticks(np.arange(min(X),max(X)+1,1.0))
+                    #axs[0][n_axs].yticks(np.arrange(min(smooth_value),max(smooth_value)+1,1.0))
+                    #label_per_opt = axs[0][n_axs].text(X[-1],smooth_value[-1],opt_name+"("+str(float("{:.2f}".format(smooth_value[-1])))+")")
+                    #texts.append(label_per_opt)
+                    #axs[0][n_axs].annotate( label_per_opt,
+                    #              xy     = (     X[-1], smooth_value[-1]),
+                    #              xytext = (1.02*X[-1], smooth_value[-1]),
+                    #            )
+            #adjust_text(texts)       
+            
+            for n_axs in range(0,min_col) :
+                dict_ = Y[label_y[max_col+n_axs]]
+                it = 3 #index debut cycle
+                for opt_name, value in dict_.items():
+                    smooth_value = self.moving_average(value,average_wide)
+                    axs[1][n_axs].plot(X[(average_wide - 1):], smooth_value, marker = self.__marker[it % len(dict_)],markevery = 0.1, alpha=0.5, lw=2, label=opt_name)
+                    #axs[1][n_axs].xaxis.set_minor_locator(ticker.MultipleLocator(len(smooth_value)))
+                    #axs[1][n_axs].yaxis.set_major_locator(ticker.MultipleLocator(1))                
+                    it = it + 1                
+                    #axs[1][n_axs].xaxis.set_ticks(np.arange(min(X),max(X)+1,1.0))
+                    #axs[1][n_axs].yticks(np.arrange(min(smooth_value),max(smooth_value)+1,1.0))
+                    #axs[1][n_axs].annotate(opt_name+"("+str(float("{:.2f}".format(smooth_value[-1])))+")",
+                    #              xy     = (     X[-1], smooth_value[-1]),
+                    #              xytext = (1.02*X[-1], smooth_value[-1]),
+                    #            )
+    
+            
+            # plots parametrizations   
+            for row in range (0,2):
+                if row == 0 :
+                    for n_axs in range(0,max_col) :
+                        axs[row][n_axs].grid()
+                        axs[row][n_axs].yaxis.set_tick_params(which='major', width=1.00, length=5)
+                        axs[row][n_axs].xaxis.set_tick_params(which='major', width=1.00, length=5)
+                        axs[row][n_axs].xaxis.set_tick_params(which='minor', width=0.75, length=2.5, labelsize=10)
+                        axs[row][n_axs].set_xlabel('Budgets')
+                        #axs[n_axs].yaxis.set_major_formatter(StrMethodFormatter("{x}"+units[0]))
+                        axs[row][n_axs].set_ylabel(label_y[n_axs])
+                        axs[row][n_axs].legend()
+                else :
+                    for n_axs in range(0,min_col) :
+                        axs[row][n_axs].grid()
+                        axs[row][n_axs].yaxis.set_tick_params(which='major', width=1.00, length=5)
+                        axs[row][n_axs].xaxis.set_tick_params(which='major', width=1.00, length=5)
+                        axs[row][n_axs].xaxis.set_tick_params(which='minor', width=0.75, length=2.5, labelsize=10)
+                        axs[row][n_axs].set_xlabel('Budgets')
+                        #axs[n_axs].yaxis.set_major_formatter(StrMethodFormatter("{x}"+units[0]))
+                        axs[row][n_axs].set_ylabel(label_y[max_col+n_axs])
+                        axs[row][n_axs].legend()
+                
+            fig.tight_layout()
+            plt.show()
 
     def plot_time_evolution(self, data, label_y : List['str'], label : List = ["Optimizer"], max_budgets = 0):
         #init subplot
@@ -178,11 +214,14 @@ class EvaluationBudget:
             y_tmp.update({indicator: new_ind_per_opt})
             
         #plotting
-        self.plot_evaluation_2(X=np.array(budget),Y=y_tmp,label_y = indicator_list, label=optimizer_list, max_budgets = max_budgets, average_wide = average_wide)   
+        self.plot_evaluation_2(X=np.array(budget),Y=y_tmp,label_y = indicator_list, label=optimizer_list, max_budgets = max_budgets, average_wide = average_wide)
+        
+        #return X, Y, opt_list, max_budgets
+        return [np.array(budget),y_tmp,optimizer_list,max_budgets]
         
     def evaluate_total_time(self, mix, sequence, max_budgets, optimizer_list: List['str'],
                             indicator_list: List['str'], bind = None, carbonProdLimit: float = 39500000000,
-                            time_index: int = 24*265, time_interval : float = 1):
+                            time_index: int = 24*265, time_interval : float = 1, average_wide : int = None):
         #setting dataset
         
         budget = np.arange(0, max_budgets, sequence)
@@ -196,10 +235,9 @@ class EvaluationBudget:
         
        #process
         data_interval = []
-        current_demand=de.Demand(12,0.2,0.3)
+        current_demand=de.Demand(mix.get_demand(),0.2,0.3)
         for time in range(0,time_index):
             mix.set_demand(current_demand.get_demand_approxima(time,time_interval))
-            print(current_demand.get_demand_approxima(time,time_interval))
             ind_per_opt = {}
             for opt_name in optimizer_list:
                 data = mix.optimizeMix(carbonProdLimit= carbonProdLimit,
@@ -233,6 +271,8 @@ class EvaluationBudget:
                 optimizers_dict.update({opt_name:per_budget})
             result.update({indicator: optimizers_dict})
         
-        self.plot_evaluation_2(X=np.array(budget),Y=result,label_y = indicator_list, label=optimizer_list, max_budgets = max_budgets)
+        self.plot_evaluation_2(X=np.array(budget),Y=result,label_y = indicator_list, label=optimizer_list, max_budgets = max_budgets,average_wide = average_wide)
         
+        #return X, Y, opt_list, max_budgets
+        return [np.array(budget),result,optimizer_list,max_budgets]
                 

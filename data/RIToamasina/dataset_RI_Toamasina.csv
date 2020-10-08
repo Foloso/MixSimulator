@@ -1,5 +1,5 @@
 centrals;tuneable;fuel;hydro;green;fuel_consumption;fuel_cost;availability;init_value;lifetime;carbon_production;raw_power;nb_employees;mean_salary;height;flow;stock_available;capacity;Demand;lost
-Volobe;TRUE;FALSE;TRUE;TRUE;1;1;0.650887574;269750000;100;0;6;1;1E-10;10;235;250;250;30;0.1
+Volobe;TRUE;FALSE;TRUE;TRUE;1;1;0.650887574;269750000;100;0;6;1;1E-10;10;235;250;250;12;0.1
 572;TRUE;TRUE;FALSE;FALSE;230000;0.000686;0.833333333;18400;16;730000;12;1;0.000004;;;;;;
 573;TRUE;TRUE;FALSE;FALSE;230000;0.000686;0.833333333;18400;16;730000;12;1;0.000004;;;;;;
 Betainomby;TRUE;TRUE;FALSE;FALSE;230000;0.000686;0.440828402;64400;8;730000;59.15;1;0.000004;;;;;;
