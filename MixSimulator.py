@@ -18,7 +18,7 @@ class MixSimulator:
         self.__reset_centrals()
         self.__demand = 0
         self.__lost = 0
-        
+        self.__penalisation_cost = 0        
 
     def __reset_centrals(self):
         self.__centrals = {}
@@ -79,6 +79,12 @@ class MixSimulator:
     def get_demand(self):
         return self.__demand
 
+    def set_penalisation_cost(self, k):
+        self.__penalisation_cost = k
+
+    def get_penalisation_cost(self):
+        return self.__penalisation_cost
+
     def __splitCentrals(self, centrals: List[str]):
         for centrale in centrals:
                 if centrale.isGreen():
@@ -87,11 +93,12 @@ class MixSimulator:
                     self.__centrals["non_green"].append(centrale)
 
     def optimizeMix(self, carbonProdLimit, demand: float= None, lost: float=None, 
-                    time_interval: float = 1, carbon_cost: float = None, optimize_with = ["OnePlusOne"], budgets = [100], instrum = None, step: int = 1, time_index: int = 24*365):
+                    time_interval: float = 1, carbon_cost: float = None, optimize_with = ["OnePlusOne"], budgets = [100], instrum = None, step: int = 1, time_index: int = 24*365, penalisation : float = 1000000000000):
         
         """Initiate the Mix's parameters and calculate the optimal coef_usage with the given optimizer"""
         # default parameter
         results = []
+        self.set_penalisation_cost(penalisation) 
 
         if demand is None:
             demand = self.__demand
@@ -111,7 +118,7 @@ class MixSimulator:
         # prioriser d'abord les energies renouvelables
         green_mix.set_time_index(time_index)
         GREEN_RESULT = green_mix.getOptimumUsageCoef(carbonProdLimit=carbonProdLimit, 
-                                                     demand= demand, lost=lost, optimize_with = optimize_with, budgets = budgets, instrum = instrum, step=step)
+                                                     demand= demand, lost=lost, optimize_with = optimize_with, budgets = budgets, instrum = instrum, step=step, penalisation = self.get_penalisation_cost())
         new_carbonProdLimit = carbonProdLimit - GREEN_RESULT[len(GREEN_RESULT)-1]["carbonProd"]
         new_demand = (demand+lost) - GREEN_RESULT[len(GREEN_RESULT)-1]["production"]
 
@@ -124,7 +131,7 @@ class MixSimulator:
 
         # ensuite s'occuper des centrales "non-green"
         NON_GREEN_RESULT = non_green_mix.getOptimumUsageCoef(carbonProdLimit=new_carbonProdLimit, 
-                                                             demand=new_demand, lost=0, optimize_with = optimize_with, budgets = budgets, instrum = instrum, step=step)        
+                                                             demand=new_demand, lost=0, optimize_with = optimize_with, budgets = budgets, instrum = instrum, step=step, penalisation = self.get_penalisation_cost())        
 
         for budget_step in range(0, len(GREEN_RESULT)):
             tmp_result = {}
@@ -154,7 +161,8 @@ class MixSimulator:
 
     def simuleMix(self, current_usage_coef, carbonProdLimit: float = 500000, demand: float = None, 
                   lost: float = None, time_interval: float = 1, carbon_cost: float = None, 
-                  optimize_with = ["OnePlusOne"], budgets = [100], instrum = None, verbose: int = 0, plot: str = "default", step : int = None, time_index : int = 24*365, average_wide : int = 1):
+                  optimize_with = ["OnePlusOne"], budgets = [100], instrum = None, verbose: int = 0,
+                   plot: str = "default", step : int = None, time_index : int = 24*365, average_wide : int = 1, penalisation : float = 1000000000000):
         
         """Simulate and compare the current_mix and the theorical_optimum Mix"""
         # initialization
@@ -164,6 +172,7 @@ class MixSimulator:
             lost = self.__lost
         if step is None :
             step = budgets
+        self.set_penalisation_cost(penalisation)
 
         ##### actual perf
         current_perf = {}
@@ -190,7 +199,7 @@ class MixSimulator:
         for t in range(0,time_index):
             self.set_demand(current_demand.get_demand_approxima(t,time_interval))
             data = self.optimizeMix(carbonProdLimit= carbonProdLimit,
-                                time_interval = time_interval, optimize_with = optimize_with, budgets = budgets, step = step, time_index = t)
+                                time_interval = time_interval, optimize_with = optimize_with, budgets = budgets, step = step, time_index = t, penalisation = self.get_penalisation_cost)
             data_per_interval.append(data)
 
         # verbosity

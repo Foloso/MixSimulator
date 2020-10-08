@@ -184,7 +184,7 @@ class Optimizer():
             print(checking)
             print("**************************************************************************************************")
     
-    def opt_With(self, func_to_optimize, constraints = None, optimizers : list = ["OnePlusOne"], budgets : list = [100], step : int = 1):
+    def opt_With(self, func_to_optimize, constraints = None, optimizers : list = ["OnePlusOne"], budgets : list = [100], step : int = 1, k : float =  1000000000000):
         #Define chaining algo  
         self.__optimizers = []
         for opt in optimizers:
@@ -262,7 +262,7 @@ class Optimizer():
         optimizer.suggest([0.]*len(constraints["availability"]))
         for tmp_budget in range(0, total_budget):
             x = optimizer.ask()
-            loss = func_to_optimize(*x.args, **x.kwargs) + 1000000000000 * np.abs(constraints["production"](*x.args, **x.kwargs) - constraints["demand"] + constraints["lost"])
+            loss = func_to_optimize(*x.args, **x.kwargs) + float(k) * np.abs(constraints["production"](*x.args, **x.kwargs) - constraints["demand"] + constraints["lost"])
             optimizer.tell(x, loss)
             if (tmp_budget+1)%step == 0:
                 result_per_budget = {}

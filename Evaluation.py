@@ -185,7 +185,7 @@ class EvaluationBudget:
                 self.check_opt_list(optimizer_list)
 
 
-    def evaluate(self, mix, sequence, max_budgets, optimizer_list: List['str'], indicator_list: List['str'], bind=None, carbonProdLimit: float = 39500000000, time_interval : float = 1, average_wide : int = None) :        
+    def evaluate(self, mix, sequence, max_budgets, optimizer_list: List['str'], indicator_list: List['str'], bind=None, carbonProdLimit: float = 39500000000, time_interval : float = 1, average_wide : int = None, penalisation : float = 1000000000000) :        
         #setting dataset
         if bind != None:
             mix.set_data_csv(str(bind))
@@ -201,7 +201,7 @@ class EvaluationBudget:
         ind_per_opt = {}
         for opt_name in optimizer_list:
             data = mix.optimizeMix(carbonProdLimit= carbonProdLimit,
-                            time_interval = time_interval, optimize_with = [opt_name], budgets = [max_budgets], step = sequence)
+                            time_interval = time_interval, optimize_with = [opt_name], budgets = [max_budgets], step = sequence, penalisation = penalisation)
             ind_per_opt.update({opt_name:data})
 
         for indicator in indicator_list:
@@ -221,7 +221,7 @@ class EvaluationBudget:
         
     def evaluate_total_time(self, mix, sequence, max_budgets, optimizer_list: List['str'],
                             indicator_list: List['str'], bind = None, carbonProdLimit: float = 500000,
-                            time_index: int = 24*265, time_interval : float = 1, average_wide : int = None):
+                            time_index: int = 24*265, time_interval : float = 1, average_wide : int = None, penalisation : float = 1000000000000):
         #setting dataset
         
         budget = np.arange(0, max_budgets, sequence)
@@ -241,14 +241,16 @@ class EvaluationBudget:
             ind_per_opt = {}
             for opt_name in optimizer_list:
                 data = mix.optimizeMix(carbonProdLimit= carbonProdLimit,
-                                time_interval = time_interval, optimize_with = [opt_name], budgets = [max_budgets], step = sequence)
+                                time_interval = time_interval, optimize_with = [opt_name], budgets = [max_budgets], step = sequence,  penalisation = penalisation)
                 ind_per_opt.update({opt_name:data})
             data_interval.append(ind_per_opt)
         
         Y = []
+        indicator_list_WO_penalisation = indicator_list.copy()
+        indicator_list_WO_penalisation.remove("penalized cost production ($)")
         for time in range(0,time_index):
             y_tmp = {}
-            for indicator in indicator_list:
+            for indicator in indicator_list_WO_penalisation:
                 new_ind_per_opt = {}
                 for opt_name, values in ind_per_opt.items():
                     ind_per_budget = []
@@ -266,13 +268,17 @@ class EvaluationBudget:
                 for budget_step in range(0,len(budget)):
                     value = 0
                     for time in range (0, time_index):
-                        value += Y[time][indicator][opt_name][budget_step]
+                        if indicator == "penalized cost production ($)":
+                            value += Y[time]["production_cost ($)"][opt_name][budget_step] +
+                             (mix.get_penalisation_cost() * Y[time]["unsatisfied_demand (MWh)"][opt_name][budget_step])
+                            print(value)
+                        else :
+                            value += Y[time][indicator][opt_name][budget_step]
                     per_budget.append(value)
                 optimizers_dict.update({opt_name:per_budget})
             result.update({indicator: optimizers_dict})
-        
+        print(mix.get_penalisation_cost())
         self.plot_evaluation_2(X=np.array(budget),Y=result,label_y = indicator_list, label=optimizer_list, max_budgets = max_budgets,average_wide = average_wide)
-        
         #return X, Y, opt_list, max_budgets
         return [np.array(budget),result,optimizer_list,max_budgets]
                 

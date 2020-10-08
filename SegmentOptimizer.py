@@ -112,7 +112,7 @@ class SegmentOptimizer:
         # return sum(self.get_rawPower() * coef_usage * self.get_time())
 
     def getOptimumUsageCoef(self, carbonProdLimit: float = None, demand: float = None,
-                            lost: float = None, optimize_with = ["OnePlusOne"], budgets = [100], instrum = None, step: int =1) -> List[float]:
+                            lost: float = None, optimize_with = ["OnePlusOne"], budgets = [100], instrum = None, step: int =1, penalisation : float = 1000000000000) -> List[float]:
         centrals = self.__getCentrals() 
         if demand == None : 
             demand = self.__demand
@@ -140,7 +140,7 @@ class SegmentOptimizer:
             self.__optimizer.set_parametrization(instrum, np.amax(self.get_avaibility_limit()))
 
         
-        prod_cost_optimal = self.__optimizer.opt_With(self.prod_cost_function, constrains, optimize_with,budgets, step= step)
+        prod_cost_optimal = self.__optimizer.opt_With(self.prod_cost_function, constrains, optimize_with,budgets, step= step, k = penalisation)
         
         return prod_cost_optimal
 
