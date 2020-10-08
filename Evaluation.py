@@ -86,7 +86,7 @@ class EvaluationBudget:
             #For label y more than 1
             max_col = ceil(len(label_y)/2)
             min_col = floor(len(label_y)/2)
-            fig, axs = plt.subplots(2, max_col, figsize=(12, 8))        
+            fig, axs = plt.subplots(2, max_col, figsize=(10, 8))        
          
             # data integration
             #texts=[]        
@@ -147,15 +147,13 @@ class EvaluationBudget:
                         axs[row][n_axs].set_xlabel('Budgets')
                         #axs[n_axs].yaxis.set_major_formatter(StrMethodFormatter("{x}"+units[0]))
                         axs[row][n_axs].set_ylabel(label_y[max_col+n_axs])
-                        axs[row][n_axs].legend()
+                        axs[row][n_axs].legend()                        
             
-            #(bug TODO)
-            #hide 6th (or the 4th) subplot 
-            if len(label_y) == 5:
-                axs[1][2].axis('off')
-            if len(label_y) == 3:
-                axs[1][1].axis('off')
-                
+            for row in range (0,2):
+                for n_axs in range(0,max_col) :
+                    if not axs[row][n_axs].has_data():
+                        fig.delaxes(axs[row][n_axs])
+                    
             fig.tight_layout()
             
             if plot == "save": 
