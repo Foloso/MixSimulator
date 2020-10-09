@@ -154,7 +154,7 @@ class MixSimulator:
                 pass
             else :
                 tmp_result.update({"carbon_cost ($/MWh)":   (NON_GREEN_RESULT[budget_step]["carbonProd"] + GREEN_RESULT[budget_step]["carbonProd"])* carbon_cost})
-            tmp_result.update({"unsatisfied_demand (MWh)": demand - (NON_GREEN_RESULT[budget_step]["production"] + GREEN_RESULT[budget_step]["production"])})
+            tmp_result.update({"unsatisfied_demand (MWh)": demand + lost - (NON_GREEN_RESULT[budget_step]["production"] + GREEN_RESULT[budget_step]["production"])})
             tmp_result.update({"usage_coefficient": usage_coef})
             results.append(tmp_result)
 
