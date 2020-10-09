@@ -259,7 +259,7 @@ class EvaluationBudget:
         Y = []
         indicator_list_WO_penalisation = indicator_list.copy()
         try:
-            indicator_list_WO_penalisation.remove("penalized cost production ($)")
+            indicator_list_WO_penalisation.remove("penalized production cost (loss)")
         except:
             pass
         for time in range(0,time_index):
@@ -282,11 +282,11 @@ class EvaluationBudget:
                 for budget_step in range(0,len(budget)):
                     value = 0
                     for time in range (0, time_index):
-                        if indicator == "penalized cost production ($)":
+                        if indicator == "penalized production cost (loss)":
                             value += Y[time]["production_cost ($)"][opt_name][budget_step] + np.abs((mix.get_penalisation_cost() * Y[time]["unsatisfied_demand (MWh)"][opt_name][budget_step]))
                         else :
                             value += Y[time][indicator][opt_name][budget_step]
-                    if indicator == "penalized cost production ($)":
+                    if indicator == "penalized production cost (loss)":
                         value = np.log10(value)
                     per_budget.append(value)
                 optimizers_dict.update({opt_name:per_budget})
