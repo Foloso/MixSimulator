@@ -283,9 +283,10 @@ class EvaluationBudget:
                     value = 0
                     for time in range (0, time_index):
                         if indicator == "penalized cost production ($)":
-                            value += np.log10(Y[time]["production_cost ($)"][opt_name][budget_step] + np.abs((mix.get_penalisation_cost() * Y[time]["unsatisfied_demand (MWh)"][opt_name][budget_step])))
+                            value += Y[time]["production_cost ($)"][opt_name][budget_step] + np.abs((mix.get_penalisation_cost() * Y[time]["unsatisfied_demand (MWh)"][opt_name][budget_step]))
                         else :
                             value += Y[time][indicator][opt_name][budget_step]
+                    value = np.log10(value)
                     per_budget.append(value)
                 optimizers_dict.update({opt_name:per_budget})
             result.update({indicator: optimizers_dict})
