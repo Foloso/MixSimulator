@@ -97,6 +97,7 @@ class MixSimulator:
                     time_interval: float = 1, carbon_cost: float = None, optimize_with = ["OnePlusOne"], budgets = [100], instrum = None, step: int = 1, time_index: int = 24*365, penalisation : float = 1000000000000):
         
         """Initiate the Mix's parameters and calculate the optimal coef_usage with the given optimizer"""
+        # Init ndim branch
         # default parameter
         results = []
         self.set_penalisation_cost(penalisation) 
