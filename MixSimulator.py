@@ -1,16 +1,14 @@
-import matplotlib.pyplot as plt
-from . import SegmentOptimizer as sOpt
 from .centrals import PowerCentral as pc
 from .centrals import HydroCentral as hc 
-from . import Demand as de
+from .Demand import Demand
+from .nevergradBased.Optimizer import Optimizer
 import numpy as np
 import pandas as pd
-import warnings
-import time
-from typing import List
-from math import ceil
-from datetime import datetime
-from .Demand import Demand
+#import warnings
+#import time
+#from typing import List
+#from datetime import datetime
+#import matplotlib.pyplot as plt
 
 class MixSimulator:
     """
@@ -21,7 +19,8 @@ class MixSimulator:
         self.__reset_centrals()
         self.__demand = Demand(20, 0.2, 0.2)
         self.__lost = 0
-        self.__penalisation_cost = 0
+        self.__penalisation_cost = 1000000000000
+        self.__optimizer =  Optimizer()
 
     def __reset_centrals(self):
         self.__centrals = []
@@ -73,21 +72,8 @@ class MixSimulator:
     def set_penalisation_cost(self, k):
         self.__penalisation_cost = k
 
-
-
     def get_penalisation_cost(self):
         return self.__penalisation_cost
-
-
-
-    def optimizeMix(self, carbonProdLimit, demand: float = None, lost: float = None, 
-                    optimizer: Optimizer = None,
-                    time_index: int = 24*365, time_interval: float = 1,
-                    penalisation : float = 1000000000000):
-
-        optimizer = optimizer()
-        optimizer.setDim(time_index, len(central))
-
 
     ## EVALUATION FONCTION ##
 
@@ -113,7 +99,7 @@ class MixSimulator:
         return ( self.__demand.get_demand_approxima(time_index, time_interval) - self.get_production_at_t(usage_coef, time_interval))
 
 
-    def loss_function(self, usage_coef, time_interval):
+    def loss_function(self, usage_coef, time_interval : int = 1) -> float : 
         loss = 0
         for t in range(0, len(usage_coef)):
             loss += self.get_production_cost_at_t(usage_coef[t], t, time_interval) + self.get_penalisation_cost() * np.abs( self.get_unsatisfied_demand_at_t(usage_coef, t, time_interval))
@@ -162,3 +148,32 @@ class MixSimulator:
             if not satisfied_constraint:
                 break
         return satisfied_constraint
+        
+        
+    ## OPTiMiZATION ##
+        
+    
+    def optimizeMix(self, carbonProdLimit, demand: Demand = None, lost: float = None, 
+                    optimizer: Optimizer = None,
+                    time_index: int = 24*365, time_interval: float = 1,
+                    penalisation : float = None):
+        
+        #init params                
+        if demand is not None : self.__demand = demand
+        if lost is not None : self.__lost = lost
+        if penalisation is not None : self.set_penalisation_cost(penalisation)
+            
+        #init constraints
+        constraints = {}
+        constraints.update({"carbonLimit":self.check_carbon_production_limit_constraint(time_interval = time_interval, carbon_production_limit = carbonProdLimit)})
+        constraints.update({"availability":self.check_availability_constraint()})
+        constraints.update({"tuneablity":self.check_tuneablity_constraint()})
+
+        #let's optimize
+        if optimizer is None :
+            optimizer = self.__optimizer
+        optimizer.setDim(time_index, len(self.__centrals))
+        results = optimizer.optimize(self.loss_function(time_interval = time_interval),
+                                     constraints = constraints, step = time_index, k = self.get_penalisation_cost())
+        
+        return results
