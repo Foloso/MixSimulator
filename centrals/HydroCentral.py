@@ -25,28 +25,15 @@ class HydroCentral(pc):
         return power/self._rawPower
 
     def __get__artificial_availability(self, t, interval) ->float:
-        debit_t_max = self.__available_stock/(interval*3600)
+        debit_t_max = self.__get_available_stock(t)/(interval*3600)
         power = (self.__hauteur * debit_t_max * 9.8 * 0.9 * 997) /1000000 # unit is MW
         return power/self._rawPower
 
-    def get__availability(self, t, interval) -> float:
+    def get_availability(self, t, interval) -> float:
         dummy_availability = self.__get__artificial_availability(t, interval) + self.__get_natural_availability(t, interval)
         if dummy_availability > 1:
             dummy_availability = 1
         return dummy_availability
 
-    def back_propagate(self, usage_coef, t, interval):
-        diff = usage_coef - self.__get_natural_availability(t, interval)
-        diff_power = diff * self._rawPower
-        # back to m3/s so diff_power has to be in W not in MW ===> *1000
-        bandwidth = (diff_power* 1000000) / (9.8*self.__hauteur* 0.9 * 997)  
-        self.__update_stock(bandwidth, interval)
-
-    def __update_stock(self, bandwidth, interval):
-        # bandwidth can be either positive or negative
-        #### if positiv, we have used stocked water
-        #### if not the stock has been increased
-        self.__available_stock += -bandwidth*(interval*3600)
-        if self.__available_stock > self.__capacity:
-            self.__available_stock = self.__capacity
-        
+    def __get_available_stock(self, t):
+        return self.__available_stock
