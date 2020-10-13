@@ -154,7 +154,7 @@ class MixSimulator:
         
     
     def optimizeMix(self, carbonProdLimit, demand: Demand = None, lost: float = None, 
-                    optimizer: Optimizer = None,
+                    optimizer: Optimizer = None, step : int = 1,
                     time_index: int = 24*365, time_interval: float = 1,
                     penalisation : float = None):
         
@@ -165,15 +165,17 @@ class MixSimulator:
             
         #init constraints
         constraints = {}
-        constraints.update({"carbonLimit":self.check_carbon_production_limit_constraint})
-        constraints.update({"availability":self.check_availability_constraint})
-        constraints.update({"tuneablity":self.check_tuneablity_constraint})
+        constraints.update({"carbonLimit_function":self.check_carbon_production_limit_constraint})
+        constraints.update({"carbonLimit":carbonProdLimit})
+        constraints.update({"time_interval":time_interval})
+        constraints.update({"availability_function":self.check_availability_constraint})
+        constraints.update({"tuneablity_function":self.check_tuneablity_constraint})
 
         #let's optimize
         if optimizer is None :
             optimizer = self.__optimizer
         optimizer.setDim(time_index, len(self.__centrals))
         results = optimizer.optimize(self.loss_function, constraints = constraints,
-                                    step = time_index, k = self.get_penalisation_cost())
+                                    step = step, k = self.get_penalisation_cost())
         
         return results

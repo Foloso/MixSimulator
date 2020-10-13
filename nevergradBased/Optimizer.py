@@ -76,42 +76,25 @@ class Optimizer():
         self.__available_optimizers.update({"LHSSearch":ng.optimizers.LHSSearch})
         self.__available_optimizers.update({"CauchyLHSSearch":ng.optimizers.CauchyLHSSearch})
         self.__available_optimizers.update({"CauchyScrHammersleySearch":ng.optimizers.CauchyScrHammersleySearch})
-    
-    def __opt_parameters(self, constraints):
-        max_bound = self.__max_bound
-        for index in range(0, len(constraints["availability"])):
-            usage_coef = [0.] * len(constraints["availability"])
-            usage_coef[index] = constraints["availability"][index]
-            if constraints["production"](usage_coef) > (constraints["demand"]+ constraints["lost"]):
-                self.__set_min_loss(constraints)
-                tmp_optimizer = Optimizer()
-                tmp_optimizer.set_parametrization(ng.p.Array(shape=(len(usage_coef),)), np.amax(np.array(usage_coef)))
-                optimizer = ng.optimizers.OnePlusOne(parametrization=tmp_optimizer.get_parametrization(), budget=100)
-                optimizer.parametrization.register_cheap_constraint(lambda x: (np.array(x)>np.array([0]*len(usage_coef))).all() )
-                recommendation = optimizer.minimize(self.__min_loss, verbosity=0)
-                if max_bound > max(recommendation.value):
-                    max_bound = max(recommendation.value)
-                else:
-                    continue
-            else:
-                continue
-        # if (constraints["demand"]+ constraints["lost"]) <= 1:
-        #     max_bound = 0.000000000000000000000000001
-        self.__max_bound = max_bound
-        self.__parametrization.set_bounds(lower=0, upper=self.__max_bound)
         
-    def __set_min_loss(self, constraints):
-        self.__constraints = constraints
-
-    def __min_loss(self, usage_coef):
-        return np.abs(self.__constraints["production"](usage_coef) - (self.__constraints["demand"]+ self.__constraints["lost"]))
-
-    def set_parametrization(self,instrum, max):
-        #setting parametrization for our objective function
-        #self.__parametrization=ng.p.Array(shape=(instrum,))
-        self.__parametrization = instrum
-        self.__max_bound = max
+    def get_available_optimizers(self):
+        tmp = Optimizer()
+        return tmp.__available_optimizers.keys()
     
+    def get_unavailable_optimizers(self):
+        tmp = Optimizer()
+        result = []
+        tmp = tmp.__available_optimizers.keys()
+        list = sorted(ng.optimizers.registry.keys())
+        for opt in list:
+            if opt not in tmp:
+                result.append(opt)
+        return result
+
+    def set_parametrization(self, instrum):
+        #setting parametrization for our objective function
+        self.__parametrization = instrum
+        
     def get_parametrization(self):
         return self.__parametrization
         
@@ -126,35 +109,12 @@ class Optimizer():
     def setDim(self, n : int = None, m : int = None):
         if n or m is None : raise ValueError("Enter a valid value(s) (integer)")
         self.__parametrization = ng.p.Array(shape=(n,m))
-        
-    def getOptimizerList(self):
-        tmp = Optimizer()
-        return tmp.__available_optimizers.keys()
-    
-    def getNonAvailableOptimizers(self):
-        tmp = Optimizer()
-        result = []
-        tmp = tmp.__available_optimizers.keys()
-        list = sorted(ng.optimizers.registry.keys())
-        for opt in list:
-            if opt not in tmp:
-                result.append(opt)
-        return result
-
+        self.__parametrization.set_bounds(lower=0, upper=1)
     
     def optimize(self, func_to_optimize, constraints = None, step : int = 1, k : float =  1000000000000):
         
         #setting budgets
         budgets = self.get_budget()
-        
-        #Define chaining algo  
-        #self.__optimizers = []
-        #for opt in optimizers:
-        #    self.__optimizers.append(self.__available_optimizers.get(opt))
-        #    if None in self.__optimizers:
-        #        print (opt, "optimizer not included. Please Choose one of availible optimizer :\n \t ",self.getOptimizerList(),
-        #        "\n\n (non exhaustive optimizer list, more will be added)\nFor more informations, check https://facebookresearch.github.io/nevergrad/optimizers_ref.html\n")
-        #       raise NameError(opt, "optimizer not included") 
                 
         if len(budgets) != len(self.__optimizers) :
             raise IndexError ("\n The length of budgets and the length of optimizers list should be the same.\n")
@@ -165,27 +125,24 @@ class Optimizer():
         result = []
         start_time = time.time()
 
-        # find optimum bounds & optimizer initialization
-        self.__opt_parameters(constraints)
-
         #optimization under constraints
         chaining_algo = ng.optimizers.Chaining(self.__optimizers,budgets[:-1])
-        optimizer = chaining_algo(parametrization=self.get_parametrization(), budget=budgets[-1])
+        optimizer = chaining_algo(parametrization=self.get_parametrization(), budget=budgets[-1], num_workers=30)
         if constraints != None:
             #Environmental constraint
             try: 
-                optimizer.parametrization.register_cheap_constraint(lambda x: constraints["carbonProd"](x))
+                optimizer.parametrization.register_cheap_constraint(lambda x: constraints["carbonLimit_function"](x, constraints["time_interval"] ,constraints["carbonLimit"]))
                 
             except: #if no contraint assigned
                 pass
             
             try :
-                optimizer.parametrization.register_cheap_constraint(lambda x: constraints["availability"](x))
+                optimizer.parametrization.register_cheap_constraint(lambda x: constraints["availability_function"](x))
             except:                
                 pass
             
             try :
-                optimizer.parametrization.register_cheap_constraint(lambda x: constraints["tuneability"](x))
+                optimizer.parametrization.register_cheap_constraint(lambda x: constraints["tuneability_function"](x))
             except :
                 pass
             
@@ -195,15 +152,15 @@ class Optimizer():
         #optimizer.suggest([0.]*len(constraints["availability"]))
         for tmp_budget in range(0, total_budget):
             x = optimizer.ask()
-            loss = func_to_optimize(x)
+            loss = func_to_optimize(x, constraints["time_interval"])
             optimizer.tell(x, loss)
             if (tmp_budget+1)%step == 0:
                 result_per_budget = {}
                 recommendation = optimizer.provide_recommendation()
-                result_per_budget.update({"carbonProd": constraints["carbonProd"](recommendation.value)})
+                # result_per_budget.update({"carbonProd": constraints[""](recommendation.value)})
                 #result_per_budget.update({"production": constraints["production"](recommendation.value)})
                 #result_per_budget.update({"production_cost": func_to_optimize(recommendation.value)})
-                result_per_budget.update({"loss": func_to_optimize(recommendation.value)})
+                result_per_budget.update({"loss": func_to_optimize(recommendation.value, constraints["time_interval"])})
                 result_per_budget.update({"coef": recommendation.value})
                 result_per_budget.update({"elapsed_time": time.time() - start_time})
                 result.append(result_per_budget)
