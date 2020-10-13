@@ -165,15 +165,15 @@ class MixSimulator:
             
         #init constraints
         constraints = {}
-        constraints.update({"carbonLimit":self.check_carbon_production_limit_constraint(time_interval = time_interval, carbon_production_limit = carbonProdLimit)})
-        constraints.update({"availability":self.check_availability_constraint()})
-        constraints.update({"tuneablity":self.check_tuneablity_constraint()})
+        constraints.update({"carbonLimit":self.check_carbon_production_limit_constraint})
+        constraints.update({"availability":self.check_availability_constraint})
+        constraints.update({"tuneablity":self.check_tuneablity_constraint})
 
         #let's optimize
         if optimizer is None :
             optimizer = self.__optimizer
         optimizer.setDim(time_index, len(self.__centrals))
-        results = optimizer.optimize(self.loss_function(time_interval = time_interval),
-                                     constraints = constraints, step = time_index, k = self.get_penalisation_cost())
+        results = optimizer.optimize(self.loss_function, constraints = constraints,
+                                    step = time_index, k = self.get_penalisation_cost())
         
         return results
