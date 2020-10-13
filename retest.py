@@ -1,20 +1,6 @@
-import nevergrad as ng
+from MixSimulator.MixSimulator import MixSimulator
 
-def square(x, y=12):
-    return sum((x - .5)**2) + abs(y)
-
-def constraint_check(x):
-    constraint = True
-    for i in range(0, len(x)):
-        if x[i] < 1:
-            constraint = False
-            break
-    return constraint
-
-# optimization on x as an array of shape (2,)
-optimizer = ng.optimizers.OnePlusOne(parametrization=2, budget=100)
-
-optimizer.parametrization.register_cheap_constraint(lambda x: constraint_check(x))
-
-recommendation = optimizer.minimize(square)
-print(recommendation.value)
+mix = MixSimulator()
+mix.set_data_csv("MixSimulator/data/RIToamasina/dataset_RI_Toamasina.csv")
+print(mix.optimizeMix(999999999999999999999, step = 10,
+                    time_index = 2))

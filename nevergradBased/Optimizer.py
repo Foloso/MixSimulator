@@ -10,10 +10,9 @@ class Optimizer():
         list of available: self.getOptimizerList()
         
     """ 
-    def __init__(self, opt = ng.optimizers.OnePlusOne, budget: int = 100, instrum = ng.p.Array(shape=(2,))):
-        self.__max_bound = 1.
+    def __init__(self, opt = [ng.optimizers.OnePlusOne], budget: int = [100], instrum = ng.p.Array(shape=(2,))):
         self.set_budget(budget)
-        self.set_parametrization(instrum, self.__max_bound)
+        self.set_parametrization(instrum)
         self.__optimizers = opt
 
         ### available optimizers
@@ -98,7 +97,7 @@ class Optimizer():
     def get_parametrization(self):
         return self.__parametrization
         
-    def set_budget(self,budget: int=100):
+    def set_budget(self,budget: int = [100]):
         #setting budget 
         #possible to do? auto calculate a optimal budget depending of the size of data
         self.__budget = budget
@@ -107,7 +106,7 @@ class Optimizer():
         return self.__budget
         
     def setDim(self, n : int = None, m : int = None):
-        if n or m is None : raise ValueError("Enter a valid value(s) (integer)")
+        if n is None or m is None : raise ValueError("Enter a valid value(s) (integer)")
         self.__parametrization = ng.p.Array(shape=(n,m))
         self.__parametrization.set_bounds(lower=0, upper=1)
     
@@ -126,8 +125,8 @@ class Optimizer():
         start_time = time.time()
 
         #optimization under constraints
-        chaining_algo = ng.optimizers.Chaining(self.__optimizers,budgets[:-1])
-        optimizer = chaining_algo(parametrization=self.get_parametrization(), budget=budgets[-1], num_workers=30)
+        chaining_algo = ng.optimizers.Chaining(self.__optimizers, budgets[:-1])
+        optimizer = chaining_algo(parametrization=self.get_parametrization(), budget = budgets[-1], num_workers=30)
         if constraints != None:
             #Environmental constraint
             try: 
@@ -142,7 +141,7 @@ class Optimizer():
                 pass
             
             try :
-                optimizer.parametrization.register_cheap_constraint(lambda x: constraints["tuneability_function"](x))
+                optimizer.parametrization.register_cheap_constraint(lambda x: constraints["tuneablity_function"](x))
             except :
                 pass
             
@@ -152,7 +151,7 @@ class Optimizer():
         #optimizer.suggest([0.]*len(constraints["availability"]))
         for tmp_budget in range(0, total_budget):
             x = optimizer.ask()
-            loss = func_to_optimize(x, constraints["time_interval"])
+            loss = func_to_optimize(*x.args, constraints["time_interval"])
             optimizer.tell(x, loss)
             if (tmp_budget+1)%step == 0:
                 result_per_budget = {}

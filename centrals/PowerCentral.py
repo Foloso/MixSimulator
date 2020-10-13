@@ -54,7 +54,7 @@ class PowerCentral:
         #is controlled or not
         return self._tuneable
 
-    def get_carbon_prod(self) -> float: # g/MWh
+    def get_carbon_production(self) -> float: # g/MWh
         return self._carbon_prod
 
     def set_carbon_prod(self, carbonCost: float=0) -> None:
@@ -66,7 +66,7 @@ class PowerCentral:
     def get_raw_power(self) -> float: # MW
         return self._raw_power
 
-    def get_availability(self, time_index, time_intervale) -> float: # percent
+    def get_availability(self, time_index) -> float: # percent
         return self._availability
 
     def set_availability(self, availability: float):

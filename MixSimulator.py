@@ -57,7 +57,7 @@ class MixSimulator:
                 centrale.set_nb_employees(data["nb_employees"][i])
                 centrale.set_mean_employees_salary(data["mean_salary"][i])
                 self.__centrals.append(centrale)
-            self.__demand=data["Demand"][0]
+            self.__demand.set_mean_demand(data["Demand"][0])
             self.__lost=data["lost"][0]
         except KeyError:
             print("Columns must be in: tuneable, centrals, fuel_consumption, availability, fuel_cost, init_value, lifetime, carbon_cost, raw_power, nb_employees, mean_salary, demand, lost")
@@ -102,7 +102,7 @@ class MixSimulator:
     def loss_function(self, usage_coef, time_interval : int = 1) -> float : 
         loss = 0
         for t in range(0, len(usage_coef)):
-            loss += self.get_production_cost_at_t(usage_coef[t], t, time_interval) + self.get_penalisation_cost() * np.abs( self.get_unsatisfied_demand_at_t(usage_coef, t, time_interval))
+            loss += self.get_production_cost_at_t(usage_coef[t], t, time_interval) + self.get_penalisation_cost() * np.abs( self.get_unsatisfied_demand_at_t(usage_coef[t], t, time_interval))
         return loss
 
 
@@ -174,7 +174,7 @@ class MixSimulator:
         #let's optimize
         if optimizer is None :
             optimizer = self.__optimizer
-        optimizer.setDim(time_index, len(self.__centrals))
+        optimizer.setDim(n = time_index, m = len(self.__centrals))
         results = optimizer.optimize(self.loss_function, constraints = constraints,
                                     step = step, k = self.get_penalisation_cost())
         
