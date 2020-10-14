@@ -77,14 +77,15 @@ class Optimizer():
         self.__available_optimizers.update({"CauchyScrHammersleySearch":ng.optimizers.CauchyScrHammersleySearch})
         
         convert_opt = []
-        for opt_ng in opt :
-            if type(opt_ng) == str:
-                convert_opt.append(self.__available_optimizers[opt_ng])
-            else :
+        for opt_ng in opt:
+            if opt_ng in list(self.__available_optimizers.values()):
                 convert_opt.append(opt_ng)
-                
+                continue
+            try:
+                convert_opt.append(self.__available_optimizers[str(opt_ng)])
+            except:
+                raise KeyError(str(opt_ng) + " not available")
         self.__optimizers = convert_opt
-            
         
     def get_available_optimizers(self):
         tmp = Optimizer()
@@ -154,7 +155,7 @@ class Optimizer():
                 pass
             
             try :
-                optimizer.parametrization.register_cheap_constraint(lambda x: constraints["availability_function"](x))
+                optimizer.parametrization.register_cheap_constraint(lambda x: constraints["availability_function"](x, constraints["time_interval"]))
             except:                
                 pass
             

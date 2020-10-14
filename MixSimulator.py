@@ -115,6 +115,7 @@ class MixSimulator:
 
 
     ## CONSTRAINTS ##
+    
     def check_carbon_production_limit_constraint(self, usage_coef, time_interval, carbon_production_limit: float = 50000):
         emited_carbon = 0 # (g)
         total_production = 1
@@ -125,15 +126,28 @@ class MixSimulator:
         return carbon_production<carbon_production_limit
 
 
-    def check_availability_constraint(self, usage_coef):
+    def check_availability_constraint(self, usage_coef, time_interval):
         satisfied_constraint = True
         for t in range(0, len(usage_coef)):
             for central_index in range(0, len(usage_coef[t])):
                 if usage_coef[t][central_index] > self.__centrals[central_index].get_availability(t):
                     satisfied_constraint = False
                     break
+                else:
+                    try:
+                        self.__centrals[central_index].back_propagate(usage_coef[t][central_index], t, time_interval)
+                    # Not a hydro power plant, so the methode does not exist
+                    except:
+                        pass
             if not satisfied_constraint:
                 break
+
+        for central_index in range(0, len(usage_coef[0])):
+            try:
+                self.__centrals[central_index].reset_stock()
+            # Not a hydro power plant, so the methode does not exist
+            except:
+                pass
         return satisfied_constraint
 
 
@@ -152,7 +166,6 @@ class MixSimulator:
         
     ## OPTiMiZATION ##
         
-    
     def optimizeMix(self, carbonProdLimit, demand: Demand = None, lost: float = None, 
                     optimizer: Optimizer = None, step : int = 1,
                     time_index: int = 24*365, time_interval: float = 1,

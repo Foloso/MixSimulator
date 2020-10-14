@@ -11,7 +11,8 @@ class HydroCentral(pc):
         self.__hauteur = hauteur
         self.__moyenne_apport = moyenne_apport # m3/s
         self.__capacity = capacity # m3
-        self.__available_stock =  available_stock# m3
+        self.__init_stock = available_stock
+        self.__available_stock =  [available_stock]# m3
         self.__tuneable = True
         self.__var_per_day = var_per_day
         self.__var_per_season = var_per_season
@@ -36,4 +37,24 @@ class HydroCentral(pc):
         return dummy_availability
 
     def __get_available_stock(self, t):
-        return self.__available_stock
+        return self.__available_stock[t]
+
+    def back_propagate(self, usage_coef, t, interval):
+        diff = usage_coef - self.__get_natural_availability(t)
+        diff_power = diff * self._raw_power
+        # back to m3/s so diff_power has to be in W not in MW ===> *1000
+        bandwidth = (diff_power* 1000000) / (9.8*self.__hauteur* 0.9 * 997)  
+        self.__update_stock(bandwidth, interval, t)
+
+    def __update_stock(self, bandwidth, interval, t):
+        # bandwidth can be either positive or negative
+        #### if positiv, we have used stocked water
+        #### if not the stock has been increased
+        current_availability = self.__available_stock[t]
+        current_availability += -bandwidth*(interval*3600)
+        if current_availability > self.__capacity:
+            current_availability = self.__capacity
+        self.__available_stock.append(current_availability)
+
+    def reset_stock(self):
+        self.__available_stock = [self.__init_stock]
