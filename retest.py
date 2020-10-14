@@ -1,6 +1,18 @@
-from MixSimulator.MixSimulator import MixSimulator
+# Two way to import from package mixsimulator
+#import mixsimulator.MixSimulator as ms
+#from mixsimulator.Evaluation import Evaluation
 
-mix = MixSimulator()
+#Way to import from local
+import MixSimulator.MixSimulator as ms 
+import MixSimulator.nevergradBased.Optimizer as opt
+
+opt_CMA = opt.Optimizer(opt = ["OnePlusOne"], budget = [20], num_worker = 1) 
+opt_CMA_30 = opt.Optimizer(opt = ["OnePlusOne"], budget = [20], num_worker = 30)
+
+mix = ms.MixSimulator()
 mix.set_data_csv("MixSimulator/data/RIToamasina/dataset_RI_Toamasina.csv")
-print(mix.optimizeMix(999999999999999999999, step = 10,
-                    time_index = 2))
+
+print(mix.optimizeMix(9999999999,optimizer = opt_CMA, step = 5),"num_worker <------------ 1")
+print(mix.optimizeMix(9999999999,optimizer = opt_CMA_30, step = 5),"num_worker <------------ 30")
+
+    

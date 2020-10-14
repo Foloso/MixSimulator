@@ -10,12 +10,12 @@ class Optimizer():
         list of available: self.getOptimizerList()
         
     """ 
-    def __init__(self, opt = [ng.optimizers.OnePlusOne], budget: int = [100], instrum = ng.p.Array(shape=(2,))):
+    def __init__(self, opt = [ng.optimizers.OnePlusOne], budget: int = [100], num_worker: int = 1, instrum = ng.p.Array(shape=(2,))):
         self.set_budget(budget)
         self.set_parametrization(instrum)
-        self.__optimizers = opt
-
-        ### available optimizers
+        self.set_num_worker(num_worker)
+        
+         ### available optimizers
         self.__available_optimizers = {}
         self.__available_optimizers.update({"ASCMA2PDEthird":ng.optimizers.ASCMA2PDEthird})
         self.__available_optimizers.update({"ASCMADEQRthird":ng.optimizers.ASCMADEQRthird})
@@ -76,6 +76,16 @@ class Optimizer():
         self.__available_optimizers.update({"CauchyLHSSearch":ng.optimizers.CauchyLHSSearch})
         self.__available_optimizers.update({"CauchyScrHammersleySearch":ng.optimizers.CauchyScrHammersleySearch})
         
+        convert_opt = []
+        for opt_ng in opt :
+            if type(opt_ng) == str:
+                convert_opt.append(self.__available_optimizers[opt_ng])
+            else :
+                convert_opt.append(opt_ng)
+                
+        self.__optimizers = convert_opt
+            
+        
     def get_available_optimizers(self):
         tmp = Optimizer()
         return tmp.__available_optimizers.keys()
@@ -104,6 +114,14 @@ class Optimizer():
     
     def get_budget(self):
         return self.__budget
+    
+    def set_num_worker(self,n_work):
+        #setting budget 
+        #possible to do? auto calculate a optimal budget depending of the size of data
+        self.__num_worker = n_work
+    
+    def get_num_worker(self):
+        return self.__num_worker
         
     def setDim(self, n : int = None, m : int = None):
         if n is None or m is None : raise ValueError("Enter a valid value(s) (integer)")
@@ -114,7 +132,7 @@ class Optimizer():
         
         #setting budgets
         budgets = self.get_budget()
-                
+        
         if len(budgets) != len(self.__optimizers) :
             raise IndexError ("\n The length of budgets and the length of optimizers list should be the same.\n")
         
@@ -126,7 +144,7 @@ class Optimizer():
 
         #optimization under constraints
         chaining_algo = ng.optimizers.Chaining(self.__optimizers, budgets[:-1])
-        optimizer = chaining_algo(parametrization=self.get_parametrization(), budget = budgets[-1], num_workers=30)
+        optimizer = chaining_algo(parametrization=self.get_parametrization(), budget = budgets[-1], num_workers=self.get_num_worker())
         if constraints != None:
             #Environmental constraint
             try: 

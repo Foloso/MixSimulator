@@ -117,7 +117,7 @@ class MixSimulator:
     ## CONSTRAINTS ##
     def check_carbon_production_limit_constraint(self, usage_coef, time_interval, carbon_production_limit: float = 50000):
         emited_carbon = 0 # (g)
-        total_production = 0
+        total_production = 1
         for t in range(0, len(usage_coef)):
             emited_carbon += self.get_carbon_production_at_t(usage_coef[t], time_interval)
             total_production += self.get_production_at_t(usage_coef[t], time_interval)
