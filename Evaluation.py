@@ -16,7 +16,7 @@ class EvaluationBudget:
 
     def __init__(self):
         tmp = opt.Optimizer()
-        self.__available_optimizers = tmp.getOptimizerList()
+        self.__available_optimizers = tmp.get_available_optimizers()
         self.__marker = [',', '+', '.','<','>','p','h','H','*','x','v','^','s','1','2','3','4','8']
         
     def moving_average(self, x, w):
@@ -47,46 +47,55 @@ class EvaluationBudget:
                 break
                 
         #Label y = 1
-        if len(label_y) == 1 : 
-            fig, axs = plt.subplots(1, 1, figsize=(6, 6))        
+        if len(label_y) == 1 or len(label_y) == 2 : 
+            fig, axs = plt.subplots(2, figsize=(6, 6))        
             
             # data integration        
             dict_ = Y[label_y[0]]
             it = 3 #index debut cycle
-            for opt_name, value in dict_.items():
-                smooth_value = self.moving_average(value,average_wide)
-                axs.plot(X[(average_wide - 1):], smooth_value, marker = self.__marker[it % len(dict_)],markevery = 0.1, alpha=0.5, lw=2, label=opt_name)
-                #axs[0][n_axs].xaxis.set_minor_locator(ticker.MultipleLocator(len(smooth_value)))
-                #axs[0][n_axs].yaxis.set_major_locator(ticker.MultipleLocator(1))                 
-                it = it + 1                 
-                #axs[0][n_axs].xaxis.set_ticks(np.arange(min(X),max(X)+1,1.0))
-                #axs[0][n_axs].yticks(np.arrange(min(smooth_value),max(smooth_value)+1,1.0))
-                #label_per_opt = axs[0][n_axs].text(X[-1],smooth_value[-1],opt_name+"("+str(float("{:.2f}".format(smooth_value[-1])))+")")
-                #texts.append(label_per_opt)
-                #axs[0][n_axs].annotate( label_per_opt,
-                #              xy     = (     X[-1], smooth_value[-1]),
-                #              xytext = (1.02*X[-1], smooth_value[-1]),
-                #            )
-            #adjust_text(texts)            
+            for n_axs in range(0,len(label_y)):
+                for opt_name, value in dict_.items():
+                    smooth_value = self.moving_average(value,average_wide)
+                    axs[n_axs].plot(X[(average_wide - 1):], smooth_value, marker = self.__marker[it % len(dict_)],markevery = 0.1, alpha=0.5, lw=2, label=opt_name)
+                    #axs[0][n_axs].xaxis.set_minor_locator(ticker.MultipleLocator(len(smooth_value)))
+                    #axs[0][n_axs].yaxis.set_major_locator(ticker.MultipleLocator(1))                 
+                    it = it + 1                 
+                    #axs[0][n_axs].xaxis.set_ticks(np.arange(min(X),max(X)+1,1.0))
+                    #axs[0][n_axs].yticks(np.arrange(min(smooth_value),max(smooth_value)+1,1.0))
+                    #label_per_opt = axs[0][n_axs].text(X[-1],smooth_value[-1],opt_name+"("+str(float("{:.2f}".format(smooth_value[-1])))+")")
+                    #texts.append(label_per_opt)
+                    #axs[0][n_axs].annotate( label_per_opt,
+                    #              xy     = (     X[-1], smooth_value[-1]),
+                    #              xytext = (1.02*X[-1], smooth_value[-1]),
+                    #            )
+                #adjust_text(texts)            
+                
+                    # plots parametrizations    
+                    axs[n_axs].grid()
+                    axs[n_axs].yaxis.set_tick_params(which='major', width=1.00, length=5)
+                    axs[n_axs].xaxis.set_tick_params(which='major', width=1.00, length=5)
+                    axs[n_axs].xaxis.set_tick_params(which='minor', width=0.75, length=2.5, labelsize=10)
+                    axs[n_axs].set_xlabel('Budgets')
+                    #axs[n_axs].yaxis.set_major_formatter(StrMethodFormatter("{x}"+units[0]))
+                    try :
+                        axs[n_axs].set_ylabel(label_y[n_axs])
+                    except :
+                        pass
+                    axs[n_axs].legend()
             
-            # plots parametrizations    
-            axs.grid()
-            axs.yaxis.set_tick_params(which='major', width=1.00, length=5)
-            axs.xaxis.set_tick_params(which='major', width=1.00, length=5)
-            axs.xaxis.set_tick_params(which='minor', width=0.75, length=2.5, labelsize=10)
-            axs.set_xlabel('Budgets')
-            #axs[n_axs].yaxis.set_major_formatter(StrMethodFormatter("{x}"+units[0]))
-            axs.set_ylabel(label_y[0])
-            axs.legend()
+
+            for n_axs in range(0,2) :
+                if not axs[n_axs].has_data():
+                    fig.delaxes(axs[n_axs])
                 
             fig.tight_layout()
             plt.show()
             
         else :
-            #For label y more than 1
+            #For label y more than 2
             max_col = ceil(len(label_y)/2)
             min_col = floor(len(label_y)/2)
-            fig, axs = plt.subplots(2, max_col, figsize=(10, 8))        
+            fig, axs = plt.subplots(2, 1, figsize=(10, 8))        
          
             # data integration
             #texts=[]        
@@ -196,7 +205,7 @@ class EvaluationBudget:
                 self.check_opt_list(optimizer_list)
 
 
-    def evaluate(self, mix, sequence, max_budgets, optimizer_list: List['str'], indicator_list: List['str'], bind=None, carbonProdLimit: float = 39500000000, time_interval : float = 1, average_wide : int = None, penalisation : float = 1000000000000) :        
+    def evaluate(self, mix, sequence, max_budgets, optimizer_list: List['str'], indicator_list: List['str'], num_worker: int = 1, bind: str = None, time_index: int = 24, carbonProdLimit: float = 39500000000, time_interval : float = 1, average_wide : int = None, penalisation : float = 1000000000000) :        
         #setting dataset
         if bind != None:
             mix.set_data_csv(str(bind))
@@ -211,8 +220,9 @@ class EvaluationBudget:
 
         ind_per_opt = {}
         for opt_name in optimizer_list:
-            data = mix.optimizeMix(carbonProdLimit= carbonProdLimit,
-                            time_interval = time_interval, optimize_with = [opt_name], budgets = [max_budgets], step = sequence, penalisation = penalisation)
+            opt_index = opt.Optimizer(opt=[opt_name], budget = [max_budgets], num_worker = num_worker)
+            data = mix.optimizeMix(carbonProdLimit,
+                            time_interval = time_interval, optimizer = opt_index, step = sequence, penalisation = penalisation, time_index = time_index)
             ind_per_opt.update({opt_name:data})
 
         for indicator in indicator_list:
