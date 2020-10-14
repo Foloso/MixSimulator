@@ -51,9 +51,9 @@ class EvaluationBudget:
             fig, axs = plt.subplots(2, figsize=(6, 6))        
             
             # data integration        
-            dict_ = Y[label_y[0]]
             it = 3 #index debut cycle
             for n_axs in range(0,len(label_y)):
+                dict_ = Y[label_y[n_axs]]
                 for opt_name, value in dict_.items():
                     smooth_value = self.moving_average(value,average_wide)
                     axs[n_axs].plot(X[(average_wide - 1):], smooth_value, marker = self.__marker[it % len(dict_)],markevery = 0.1, alpha=0.5, lw=2, label=opt_name)
