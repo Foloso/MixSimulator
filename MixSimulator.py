@@ -4,6 +4,8 @@ from .Demand import Demand
 from .nevergradBased.Optimizer import Optimizer
 import numpy as np
 import pandas as pd
+import pkgutil
+import csv
 #import warnings
 #import time
 #from typing import List
@@ -25,17 +27,31 @@ class MixSimulator:
     def __reset_centrals(self):
         self.__centrals = []
 
-    def set_data_csv(self, bind: str, delimiter: str=";"):
-        try :
-            data = pd.DataFrame(pd.read_csv(bind,delimiter=delimiter))
-            
-        except FileNotFoundError as e :
-            print("Error occured on pandas.read_csv : ",e)
-            print("Please check your file")
-            raise           
-        except Exception as e:
-            print("Error occured on pandas.read_csv : ",e)
-            raise
+    def set_data_csv(self, bind = None, raw_data = None, delimiter: str=";"):
+        if raw_data is not None :
+            data = pd.DataFrame(raw_data)
+            #set columns & index           
+            header = data.iloc[0]
+            data = data[1:]
+            data.columns = header
+            data = data.reset_index(drop=True)
+            for column in data.columns.tolist():
+                try:
+                    # convert numeric values
+                    data[column] = pd.to_numeric(data[column])
+                except:
+                    pass
+        else :
+            try :
+                data = pd.DataFrame(pd.read_csv(bind,delimiter=delimiter))
+                print(data)
+            except FileNotFoundError as e :
+                print("Error occured on pandas.read_csv : ",e)
+                print("Please check your file")
+                raise           
+            except Exception as e:
+                print("Error occured on pandas.read_csv : ",e)
+                raise
             
         self.__reset_centrals()
         try :
@@ -62,6 +78,13 @@ class MixSimulator:
         except KeyError:
             print("Columns must be in: tuneable, centrals, fuel_consumption, availability, fuel_cost, init_value, lifetime, carbon_cost, raw_power, nb_employees, mean_salary, demand, lost")
             raise
+            
+    def set_data_to(self, dataset):
+        #if dataset == "Toamasina":
+        #by defaut we keep it "Toamasina"
+        data = pkgutil.get_data('MixSimulator', '/data/RIToamasina/dataset_RI_Toamasina.csv')
+        data = csv.reader(data.decode('utf-8').splitlines(), delimiter=';')
+        self.set_data_csv(raw_data=data)
             
     def set_demand(self, demand: Demand):
         self.__demand = demand
