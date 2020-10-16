@@ -147,13 +147,6 @@ class Optimizer():
         chaining_algo = ng.optimizers.Chaining(self.__optimizers, budgets[:-1])
         optimizer = chaining_algo(parametrization=self.get_parametrization(), budget = budgets[-1], num_workers=self.get_num_worker())
         if constraints != None:
-            #Environmental constraint
-            try: 
-                optimizer.parametrization.register_cheap_constraint(lambda x: constraints["carbonLimit_function"](x, constraints["time_interval"] ,constraints["carbonLimit"]))
-                
-            except: #if no contraint assigned
-                pass
-            
             try :
                 optimizer.parametrization.register_cheap_constraint(lambda x: constraints["availability_function"](x, constraints["time_interval"]))
             except:                

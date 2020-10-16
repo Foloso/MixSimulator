@@ -212,8 +212,6 @@ class MixSimulator:
         """
         #init constraints
         constraints = {}
-        constraints.update({"carbonLimit_function":self.check_carbon_production_limit_constraint})
-        constraints.update({"carbonLimit":carbonProdLimit})
         constraints.update({"time_interval":time_interval})
         constraints.update({"availability_function":self.check_availability_constraint})
         constraints.update({"tuneablity_function":self.check_tuneablity_constraint})
