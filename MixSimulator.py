@@ -16,13 +16,15 @@ class MixSimulator:
     """
         The simulator Base            
     """
-    def __init__(self):
+    def __init__(self, carbon_cost: float = 0, penalisation_cost: float = 1000000000000):
         self.__centrals = []
         self.__reset_centrals()
         self.__demand = Demand(20, 0.2, 0.2)
         self.__lost = 0
-        self.__penalisation_cost = 1000000000000
+        self.__penalisation_cost = penalisation_cost
         self.__optimizer =  Optimizer()
+        self.__carbon_cost = carbon_cost
+        self.__carbon_quota = 100000 #g or #Kg depending on the cost ($/g or $/kg)
 
     def __reset_centrals(self):
         self.__centrals = []
@@ -97,6 +99,12 @@ class MixSimulator:
 
     def get_penalisation_cost(self):
         return self.__penalisation_cost
+        
+    def set_carbon_cost(self, carbon_cost):
+        self.__carbon_cost = carbon_cost
+
+    def get_carbon_cost(self):
+        return self.__carbon_cost
 
     ## EVALUATION FONCTION ##
 
@@ -120,21 +128,23 @@ class MixSimulator:
 
     def get_unsatisfied_demand_at_t(self, usage_coef, time_index, time_interval):
         return ( self.__demand.get_demand_approxima(time_index, time_interval) - self.get_production_at_t(usage_coef, time_interval))
-
-
-    def loss_function(self, usage_coef, time_interval : int = 1) -> float : 
-        loss = 0
-        for t in range(0, len(usage_coef)):
-            loss += self.get_production_cost_at_t(usage_coef[t], t, time_interval) + self.get_penalisation_cost() * np.abs( self.get_unsatisfied_demand_at_t(usage_coef[t], t, time_interval))
-        return loss
-
-
+        
     def get_carbon_production_at_t(self, usage_coef, time_interval):
         carbon_prod = 0
         for centrale_index in range (0, len(self.__centrals)):
             central = self.__centrals[centrale_index]
             carbon_prod += (central.get_carbon_production() * usage_coef[centrale_index] * central.get_raw_power()) * time_interval
         return carbon_prod
+        
+    def get_carbon_over_production(self, usage_coef, time_index, time_interval):
+        return ( self.get_carbon_production_at_t(usage_coef, time_interval) - self.__carbon_quota)
+
+
+    def loss_function(self, usage_coef, time_interval : int = 1) -> float : 
+        loss = 0
+        for t in range(0, len(usage_coef)):
+            loss += self.get_production_cost_at_t(usage_coef[t], t, time_interval) + ( self.get_penalisation_cost() * np.abs( self.get_unsatisfied_demand_at_t(usage_coef[t], t, time_interval)) ) + ( self.get_carbon_cost() * (self.get_carbon_over_production(usage_coef[t], time_interval) ) )
+        return loss
 
 
     ## CONSTRAINTS ##
@@ -189,7 +199,7 @@ class MixSimulator:
         
     ## OPTiMiZATION ##
         
-    def optimizeMix(self, carbonProdLimit, demand: Demand = None, lost: float = None, 
+    def optimizeMix(self, carbon_quota: float = None, demand: Demand = None, lost: float = None, 
                     optimizer: Optimizer = None, step : int = 1,
                     time_index: int = 24*365, time_interval: float = 1,
                     penalisation : float = None):
@@ -198,7 +208,9 @@ class MixSimulator:
         if demand is not None : self.__demand = demand
         if lost is not None : self.__lost = lost
         if penalisation is not None : self.set_penalisation_cost(penalisation)
-            
+        if carbon_quota is not None : self.__carbon_quota = carbon_quota
+        
+        """
         #init constraints
         constraints = {}
         constraints.update({"carbonLimit_function":self.check_carbon_production_limit_constraint})
@@ -206,12 +218,12 @@ class MixSimulator:
         constraints.update({"time_interval":time_interval})
         constraints.update({"availability_function":self.check_availability_constraint})
         constraints.update({"tuneablity_function":self.check_tuneablity_constraint})
-
+        """
+        
         #let's optimize
         if optimizer is None :
             optimizer = self.__optimizer
-        optimizer.setDim(n = time_index, m = len(self.__centrals))
-        results = optimizer.optimize(self.loss_function, constraints = constraints,
-                                    step = step, k = self.get_penalisation_cost())
+        optimizer.get_dim(n = time_index, m = len(self.__centrals))
+        results = optimizer.optimize(self.loss_function, step = step, k = self.get_penalisation_cost())
         
         return results
