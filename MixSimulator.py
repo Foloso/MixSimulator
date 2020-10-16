@@ -136,9 +136,8 @@ class MixSimulator:
             carbon_prod += (central.get_carbon_production() * usage_coef[centrale_index] * central.get_raw_power()) * time_interval
         return carbon_prod
         
-    def get_carbon_over_production(self, usage_coef, time_index, time_interval):
+    def get_carbon_over_production(self, usage_coef, time_interval):
         return ( self.get_carbon_production_at_t(usage_coef, time_interval) - self.__carbon_quota)
-
 
     def loss_function(self, usage_coef, time_interval : int = 1) -> float : 
         loss = 0
