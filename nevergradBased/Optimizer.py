@@ -10,7 +10,7 @@ class Optimizer():
         list of available: self.getOptimizerList()
         
     """ 
-    def __init__(self, opt = [ng.optimizers.OnePlusOne], budget: int = [100], num_worker: int = 1, instrum = ng.p.Array(shape=(2,))):
+    def __init__(self, opt = [ng.optimizers.OnePlusOne], budget: int = [100], num_worker: int = 1, instrum = [ng.p.Array(shape=(2,))]):
         self.set_budget(budget)
         self.set_parametrization(instrum)
         self.set_num_worker(num_worker)
@@ -100,10 +100,9 @@ class Optimizer():
             if opt not in tmp:
                 result.append(opt)
         return result
-
+    
     def set_parametrization(self, instrum):
-        #setting parametrization for our objective function
-        self.__parametrization = instrum
+        self.__parametrization = ng.p.Tuple(*instrum)
         
     def get_parametrization(self):
         return self.__parametrization
@@ -124,11 +123,6 @@ class Optimizer():
     def get_num_worker(self):
         return self.__num_worker
         
-    def set_dim(self, n : int = None, m : int = None):
-        if n is None or m is None : raise ValueError("Enter a valid value(s) (integer)")
-        self.__parametrization = ng.p.Array(shape=(n,m))
-        self.__parametrization.set_bounds(lower=0, upper=1)
-    
     def optimize(self, func_to_optimize, constraints = None, step : int = 1, k : float =  1000000000000):
         
         #setting budgets
@@ -151,13 +145,8 @@ class Optimizer():
         #         optimizer.parametrization.register_cheap_constraint(lambda x: constraints["availability_function"](x, constraints["time_interval"]))
         #     except:                
         #         pass
-            
-        #     try :
-        #         optimizer.parametrization.register_cheap_constraint(lambda x: constraints["tuneablity_function"](x))
-        #     except :
-        #         pass
-            
-        
+
+         
         #let's minimize
         # recommendation = optimizer.minimize(func_to_optimize, verbosity=0)
         #optimizer.suggest([0.]*len(constraints["availability"]))

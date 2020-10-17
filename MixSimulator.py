@@ -1,6 +1,7 @@
 from .centrals import PowerCentral as pc
 from .centrals import HydroCentral as hc 
 from .Demand import Demand
+import nevergrad as ng
 from .nevergradBased.Optimizer import Optimizer
 import numpy as np
 import pandas as pd
@@ -150,12 +151,24 @@ class MixSimulator:
         return weighted_coef
 
     def loss_function(self, usage_coef, time_interval : int = 1) -> float :
+        usage_coef = self.__arrange_coef_as_array_of_array(usage_coef)
         weighted_coef = self.get_weighted_coef(usage_coef, time_interval=time_interval)
         loss = 0
         for t in range(0, len(weighted_coef)):
             loss += self.get_production_cost_at_t(weighted_coef[t], t, time_interval) + ( self.get_penalisation_cost() * np.abs( self.get_unsatisfied_demand_at_t(weighted_coef[t], t, time_interval)) )
         loss +=  self.get_carbon_cost() * (self.get_carbon_over_production(weighted_coef, time_interval) )
         return loss
+
+    def __arrange_coef_as_array_of_array(self, raw_usage_coef):
+        ordered_coef = []
+        cur_time_coef = []
+        for coef_index in range(len(raw_usage_coef)):
+            cur_time_coef.append(raw_usage_coef[coef_index])
+            ## indice de la premiere cenrtale a t+1
+            if (coef_index+1)%len(self.__centrals) == 0:
+                ordered_coef.append(cur_time_coef)
+                cur_time_coef = []
+        return ordered_coef
 
     ## CONSTRAINTS ##
     # def check_availability_constraint(self, usage_coef, time_interval):
@@ -181,34 +194,30 @@ class MixSimulator:
         #     except:
         #         pass
         # return satisfied_constraint
+        
 
 
-    def check_tuneablity_constraint(self, usage_coef):
-        satisfied_constraint = True
-        for t in range(0, len(usage_coef)):
-            for central_index in range(0, len(usage_coef[t])):
-                if not self.__centrals[central_index].is_tuneable():
-                    if usage_coef[t][central_index] > 0.1 and np.abs(usage_coef[t][central_index] - self.__centrals[central_index].get_availability(t)) > 0.1:
-                        satisfied_constraint = False
-                        break
-            if not satisfied_constraint:
-                break
-        return satisfied_constraint
-        
-        
+
+
+
     ## OPTiMiZATION ##
 
-    def __opt_params(self):
-        tuneability_indexes = [True] * len(self.__centrals)
-        for central_index in range(len(self.__centrals)):
-            tuneability_indexes[central_index] = self.__centrals[central_index].is_tuneable()
-        print(tuneability_indexes)
+    def __opt_params(self, time_index):
+        variable_parametrization = []
+        for _ in range(time_index):
+            for central_index in range(len(self.__centrals)):
+                if not self.__centrals[central_index].is_tuneable():
+                    variable_parametrization += [ng.p.Choice([0.,1.])]
+                else:
+                    variable_parametrization += [ng.p.Scalar(lower=0., upper=1.)]
+        self.__optimizer.set_parametrization(variable_parametrization)
 
-        
     def optimizeMix(self, carbon_quota: float = None, demand: Demand = None, lost: float = None, 
                     optimizer: Optimizer = None, step : int = 1,
                     time_index: int = 24*365, time_interval: float = 1,
                     penalisation : float = None):
+
+        self.__time_index = time_index
         
         # init params                
         if demand is not None : self.__demand = demand
@@ -219,7 +228,7 @@ class MixSimulator:
             optimizer = self.__optimizer
         
         # tune optimizer parametrization
-        self.__opt_params()
+        self.__opt_params(time_index)
         
         #init constraints
         constraints = {}
@@ -229,5 +238,5 @@ class MixSimulator:
         
         #let's optimize
         results = optimizer.optimize(self.loss_function, constraints=constraints, step = step, k = self.get_penalisation_cost())
-        
+
         return results
