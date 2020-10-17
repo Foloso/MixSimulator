@@ -130,7 +130,6 @@ class MixSimulator:
         carbon_prod = 0
         for centrale_index in range (0, len(self.__centrals)):
             central = self.__centrals[centrale_index]
-            print(centrale_index)
             carbon_prod += (central.get_carbon_production() * usage_coef[centrale_index] * central.get_raw_power()) * time_interval
         return carbon_prod
         
@@ -158,6 +157,8 @@ class MixSimulator:
         loss +=  self.get_carbon_cost() * (self.get_carbon_over_production(weighted_coef, time_interval) )
         return loss
 
+    def __opt_params(self):
+        tuneability_indexes = [True] * len(self.__centrals)
 
     ## CONSTRAINTS ##
     # def check_availability_constraint(self, usage_coef, time_interval):
@@ -211,6 +212,8 @@ class MixSimulator:
         if penalisation is not None : self.set_penalisation_cost(penalisation)
         if carbon_quota is not None : self.__carbon_quota = carbon_quota
         
+
+        self.__opt_params()
         """
         #init constraints
         constraints = {}
