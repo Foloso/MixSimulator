@@ -137,7 +137,13 @@ class MixSimulator:
         return carbon_prod
         
     def get_carbon_over_production(self, usage_coef, time_interval):
-        return ( self.get_carbon_production_at_t(usage_coef, time_interval) - self.__carbon_quota)
+        emited_carbon = 0 # (g)
+        total_production = 1
+        for t in range(0, len(usage_coef)):
+            emited_carbon += self.get_carbon_production_at_t(usage_coef[t], time_interval)
+            total_production += self.get_production_at_t(usage_coef[t], time_interval)
+        carbon_production = emited_carbon/total_production
+        return carbon_production # (g/MWh)
 
     def loss_function(self, usage_coef, time_interval : int = 1) -> float : 
         loss = 0
@@ -147,17 +153,6 @@ class MixSimulator:
 
 
     ## CONSTRAINTS ##
-    
-    def check_carbon_production_limit_constraint(self, usage_coef, time_interval, carbon_production_limit: float = 50000):
-        emited_carbon = 0 # (g)
-        total_production = 1
-        for t in range(0, len(usage_coef)):
-            emited_carbon += self.get_carbon_production_at_t(usage_coef[t], time_interval)
-            total_production += self.get_production_at_t(usage_coef[t], time_interval)
-        carbon_production = emited_carbon/total_production
-        return carbon_production<carbon_production_limit
-
-
     def check_availability_constraint(self, usage_coef, time_interval):
         satisfied_constraint = True
         for t in range(0, len(usage_coef)):
