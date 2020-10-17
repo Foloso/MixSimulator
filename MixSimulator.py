@@ -215,10 +215,22 @@ class MixSimulator:
         #init constraints
         constraints = {}
         constraints.update({"time_interval":time_interval})
-        #constraints.update({"availability_function":self.check_availability_constraint})
-        #constraints.update({"tuneablity_function":self.check_tuneablity_constraint})
         
         #let's optimize
         results = optimizer.optimize(self.loss_function, constraints=constraints, step = step, k = self.get_penalisation_cost())
+        
+        results = self.__reshape_results(results, time_interval)
+        return results
 
+    def __reshape_results(self, results, time_interval):
+        for tmp in results:
+            usage_coef = self.__arrange_coef_as_array_of_array(tmp['coef'])
+            tmp.update({"coef":self.get_weighted_coef(usage_coef, time_interval)})
+
+        for central_index in range(0, len(self.__centrals)):
+            try:
+                print(self.__centrals[central_index].get_stock_evolution())
+            # Not a hydro power plant, so the methode does not exist
+            except:
+                pass
         return results

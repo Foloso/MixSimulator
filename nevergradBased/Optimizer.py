@@ -140,16 +140,8 @@ class Optimizer():
         #optimization under constraints
         chaining_algo = ng.optimizers.Chaining(self.__optimizers, budgets[:-1])
         optimizer = chaining_algo(parametrization=self.get_parametrization(), budget = budgets[-1], num_workers=self.get_num_worker())
-        # if constraints != None:
-        #     try :
-        #         optimizer.parametrization.register_cheap_constraint(lambda x: constraints["availability_function"](x, constraints["time_interval"]))
-        #     except:                
-        #         pass
-
          
         #let's minimize
-        # recommendation = optimizer.minimize(func_to_optimize, verbosity=0)
-        #optimizer.suggest([0.]*len(constraints["availability"]))
         for tmp_budget in range(0, total_budget):
             x = optimizer.ask()
             loss = func_to_optimize(*x.args, constraints["time_interval"])
@@ -157,14 +149,10 @@ class Optimizer():
             if (tmp_budget+1)%step == 0:
                 result_per_budget = {}
                 recommendation = optimizer.provide_recommendation()
-                # result_per_budget.update({"carbonProd": constraints[""](recommendation.value)})
-                #result_per_budget.update({"production": constraints["production"](recommendation.value)})
-                #result_per_budget.update({"production_cost": func_to_optimize(recommendation.value)})
                 result_per_budget.update({"loss": func_to_optimize(recommendation.value, constraints["time_interval"])})
                 result_per_budget.update({"coef": recommendation.value})
                 result_per_budget.update({"elapsed_time": time.time() - start_time})
                 result.append(result_per_budget)
-        #print(recommendation.satisfies_constraints())
                 
         #TODO --> Check Constraints     
         return result
