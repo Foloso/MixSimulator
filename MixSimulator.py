@@ -117,14 +117,12 @@ class MixSimulator:
             + central.get_amortized_cost(time_index) ) ) * time_interval
         return production_cost
 
-
     def get_production_at_t(self, usage_coef, time_interval):
         production = 0
         for centrale_index in range (0, len(self.__centrals)):
             central = self.__centrals[centrale_index]
             production += (central.get_raw_power() * usage_coef[centrale_index]) * time_interval
         return production
-
 
     def get_unsatisfied_demand_at_t(self, usage_coef, time_index, time_interval):
         return ( self.__demand.get_demand_approxima(time_index, time_interval) - self.get_production_at_t(usage_coef, time_interval))
@@ -146,36 +144,43 @@ class MixSimulator:
         return carbon_production # (g/MWh)
 
     def loss_function(self, usage_coef, time_interval : int = 1) -> float : 
+        weighted_coef = self.get_weighted_coef(usage_coef)
         loss = 0
-        for t in range(0, len(usage_coef)):
-            loss += self.get_production_cost_at_t(usage_coef[t], t, time_interval) + ( self.get_penalisation_cost() * np.abs( self.get_unsatisfied_demand_at_t(usage_coef[t], t, time_interval)) ) + ( self.get_carbon_cost() * (self.get_carbon_over_production(usage_coef[t], time_interval) ) )
+        for t in range(0, len(weighted_coef)):
+            loss += self.get_production_cost_at_t(weighted_coef[t], t, time_interval) + ( self.get_penalisation_cost() * np.abs( self.get_unsatisfied_demand_at_t(weighted_coef[t], t, time_interval)) ) + ( self.get_carbon_cost() * (self.get_carbon_over_production(weighted_coef[t], time_interval) ) )
         return loss
 
+    def get_weighted_coef(self, usage_coef, time_interval):
+        weighted_coef = usage_coef.copy()
+        for t in range(0, len(weighted_coef)):
+            for central_index in range(0, len(weighted_coef[t])):
+                weighted_coef[t][central_index] = weighted_coef[t][central_index] * self.__centrals[central_index].get_availability(t)
+        return weighted_coef
 
     ## CONSTRAINTS ##
-    def check_availability_constraint(self, usage_coef, time_interval):
-        satisfied_constraint = True
-        for t in range(0, len(usage_coef)):
-            for central_index in range(0, len(usage_coef[t])):
-                if usage_coef[t][central_index] > self.__centrals[central_index].get_availability(t):
-                    satisfied_constraint = False
-                    break
-                else:
-                    try:
-                        self.__centrals[central_index].back_propagate(usage_coef[t][central_index], t, time_interval)
-                    # Not a hydro power plant, so the methode does not exist
-                    except:
-                        pass
-            if not satisfied_constraint:
-                break
+    # def check_availability_constraint(self, usage_coef, time_interval):
+    #     satisfied_constraint = True
+    #     for t in range(0, len(usage_coef)):
+    #         for central_index in range(0, len(usage_coef[t])):
+    #             if usage_coef[t][central_index] > self.__centrals[central_index].get_availability(t):
+    #                 satisfied_constraint = False
+    #                 break
+    #             else:
+    #                 try:
+    #                     self.__centrals[central_index].back_propagate(usage_coef[t][central_index], t, time_interval)
+    #                 # Not a hydro power plant, so the methode does not exist
+    #                 except:
+    #                     pass
+    #         if not satisfied_constraint:
+    #             break
 
-        for central_index in range(0, len(usage_coef[0])):
-            try:
-                self.__centrals[central_index].reset_stock()
-            # Not a hydro power plant, so the methode does not exist
-            except:
-                pass
-        return satisfied_constraint
+        # for central_index in range(0, len(usage_coef[0])):
+        #     try:
+        #         self.__centrals[central_index].reset_stock()
+        #     # Not a hydro power plant, so the methode does not exist
+        #     except:
+        #         pass
+        # return satisfied_constraint
 
 
     def check_tuneablity_constraint(self, usage_coef):

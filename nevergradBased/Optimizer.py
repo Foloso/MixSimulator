@@ -146,16 +146,16 @@ class Optimizer():
         #optimization under constraints
         chaining_algo = ng.optimizers.Chaining(self.__optimizers, budgets[:-1])
         optimizer = chaining_algo(parametrization=self.get_parametrization(), budget = budgets[-1], num_workers=self.get_num_worker())
-        if constraints != None:
-            try :
-                optimizer.parametrization.register_cheap_constraint(lambda x: constraints["availability_function"](x, constraints["time_interval"]))
-            except:                
-                pass
+        # if constraints != None:
+        #     try :
+        #         optimizer.parametrization.register_cheap_constraint(lambda x: constraints["availability_function"](x, constraints["time_interval"]))
+        #     except:                
+        #         pass
             
-            try :
-                optimizer.parametrization.register_cheap_constraint(lambda x: constraints["tuneablity_function"](x))
-            except :
-                pass
+        #     try :
+        #         optimizer.parametrization.register_cheap_constraint(lambda x: constraints["tuneablity_function"](x))
+        #     except :
+        #         pass
             
         
         #let's minimize
@@ -163,7 +163,7 @@ class Optimizer():
         #optimizer.suggest([0.]*len(constraints["availability"]))
         for tmp_budget in range(0, total_budget):
             x = optimizer.ask()
-            loss = func_to_optimize(*x.args, constraints["time_interval"])
+            loss, weighted_coef = func_to_optimize(*x.args, constraints["time_interval"])
             optimizer.tell(x, loss)
             if (tmp_budget+1)%step == 0:
                 result_per_budget = {}
