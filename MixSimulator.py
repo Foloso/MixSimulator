@@ -141,7 +141,7 @@ class MixSimulator:
             emited_carbon += self.get_carbon_production_at_t(usage_coef[t], time_interval)
             total_production += self.get_production_at_t(usage_coef[t], time_interval)
         carbon_production = emited_carbon/total_production
-        return carbon_production # (g/MWh)
+        return max(0, carbon_production - self.__carbon_quota) # (g/MWh)
 
     def loss_function(self, usage_coef, time_interval : int = 1) -> float : 
         weighted_coef = self.get_weighted_coef(usage_coef)
