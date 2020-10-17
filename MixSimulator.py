@@ -144,10 +144,21 @@ class MixSimulator:
         return max(0, carbon_production - self.__carbon_quota) # (g/MWh)
 
     def get_weighted_coef(self, usage_coef, time_interval):
+        for central_index in range(0, len(usage_coef[0])):
+            try:
+                self.__centrals[central_index].reset_stock()
+            # Not a hydro power plant, so the methode does not exist
+            except:
+                pass
         weighted_coef = usage_coef.copy()
         for t in range(0, len(weighted_coef)):
             for central_index in range(0, len(weighted_coef[t])):
                 weighted_coef[t][central_index] = weighted_coef[t][central_index] * self.__centrals[central_index].get_availability(t)
+                try:
+                    self.__centrals[central_index].back_propagate(weighted_coef[t][central_index], t, time_interval)
+                # Not a hydro power plant, so the methode does not exist
+                except:
+                    pass
         return weighted_coef
 
     def loss_function(self, usage_coef, time_interval : int = 1) -> float :
@@ -169,35 +180,6 @@ class MixSimulator:
                 ordered_coef.append(cur_time_coef)
                 cur_time_coef = []
         return ordered_coef
-
-    ## CONSTRAINTS ##
-    # def check_availability_constraint(self, usage_coef, time_interval):
-    #     satisfied_constraint = True
-    #     for t in range(0, len(usage_coef)):
-    #         for central_index in range(0, len(usage_coef[t])):
-    #             if usage_coef[t][central_index] > self.__centrals[central_index].get_availability(t):
-    #                 satisfied_constraint = False
-    #                 break
-    #             else:
-    #                 try:
-    #                     self.__centrals[central_index].back_propagate(usage_coef[t][central_index], t, time_interval)
-    #                 # Not a hydro power plant, so the methode does not exist
-    #                 except:
-    #                     pass
-    #         if not satisfied_constraint:
-    #             break
-
-        # for central_index in range(0, len(usage_coef[0])):
-        #     try:
-        #         self.__centrals[central_index].reset_stock()
-        #     # Not a hydro power plant, so the methode does not exist
-        #     except:
-        #         pass
-        # return satisfied_constraint
-        
-
-
-
 
 
     ## OPTiMiZATION ##
