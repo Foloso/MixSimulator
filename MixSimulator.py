@@ -157,9 +157,6 @@ class MixSimulator:
         loss +=  self.get_carbon_cost() * (self.get_carbon_over_production(weighted_coef, time_interval) )
         return loss
 
-    def __opt_params(self):
-        tuneability_indexes = [True] * len(self.__centrals)
-
     ## CONSTRAINTS ##
     # def check_availability_constraint(self, usage_coef, time_interval):
     #     satisfied_constraint = True
@@ -200,35 +197,37 @@ class MixSimulator:
         
         
     ## OPTiMiZATION ##
+
+    def __opt_params(self):
+        tuneability_indexes = [True] * len(self.__centrals)
+        for central_index in range(len(self.__centrals)):
+            tuneability_indexes[central_index] = self.__centrals[central_index].is_tuneable()
+        print(tuneability_indexes)
+
         
     def optimizeMix(self, carbon_quota: float = None, demand: Demand = None, lost: float = None, 
                     optimizer: Optimizer = None, step : int = 1,
                     time_index: int = 24*365, time_interval: float = 1,
                     penalisation : float = None):
         
-        #init params                
+        # init params                
         if demand is not None : self.__demand = demand
         if lost is not None : self.__lost = lost
         if penalisation is not None : self.set_penalisation_cost(penalisation)
         if carbon_quota is not None : self.__carbon_quota = carbon_quota
+        if optimizer is None :
+            optimizer = self.__optimizer
         
-
+        # tune optimizer parametrization
         self.__opt_params()
-        """
+        
         #init constraints
         constraints = {}
         constraints.update({"time_interval":time_interval})
-        constraints.update({"availability_function":self.check_availability_constraint})
-        constraints.update({"tuneablity_function":self.check_tuneablity_constraint})
-        """
-        constraints = {}
-        constraints.update({"time_interval":time_interval})
-
+        #constraints.update({"availability_function":self.check_availability_constraint})
+        #constraints.update({"tuneablity_function":self.check_tuneablity_constraint})
         
         #let's optimize
-        if optimizer is None :
-            optimizer = self.__optimizer
-        optimizer.set_dim(n = time_index, m = len(self.__centrals))
         results = optimizer.optimize(self.loss_function, constraints=constraints, step = step, k = self.get_penalisation_cost())
         
         return results
