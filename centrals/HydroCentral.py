@@ -37,7 +37,7 @@ class HydroCentral(pc):
         return dummy_availability
 
     def __get_available_stock(self, t):
-        return self.__available_stock[t]
+        return self.__available_stock[0]
 
     def back_propagate(self, usage_coef, t, interval):
         diff = usage_coef - self.__get_natural_availability(t)

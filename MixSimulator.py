@@ -107,7 +107,6 @@ class MixSimulator:
         return self.__carbon_cost
 
     ## EVALUATION FONCTION ##
-
     def get_production_cost_at_t(self, usage_coef, time_index, time_interval):
         production_cost = 0
         for centrale_index in range (0, len(self.__centrals)):
@@ -131,6 +130,7 @@ class MixSimulator:
         carbon_prod = 0
         for centrale_index in range (0, len(self.__centrals)):
             central = self.__centrals[centrale_index]
+            print(centrale_index)
             carbon_prod += (central.get_carbon_production() * usage_coef[centrale_index] * central.get_raw_power()) * time_interval
         return carbon_prod
         
@@ -143,19 +143,21 @@ class MixSimulator:
         carbon_production = emited_carbon/total_production
         return max(0, carbon_production - self.__carbon_quota) # (g/MWh)
 
-    def loss_function(self, usage_coef, time_interval : int = 1) -> float : 
-        weighted_coef = self.get_weighted_coef(usage_coef)
-        loss = 0
-        for t in range(0, len(weighted_coef)):
-            loss += self.get_production_cost_at_t(weighted_coef[t], t, time_interval) + ( self.get_penalisation_cost() * np.abs( self.get_unsatisfied_demand_at_t(weighted_coef[t], t, time_interval)) ) + ( self.get_carbon_cost() * (self.get_carbon_over_production(weighted_coef[t], time_interval) ) )
-        return loss
-
     def get_weighted_coef(self, usage_coef, time_interval):
         weighted_coef = usage_coef.copy()
         for t in range(0, len(weighted_coef)):
             for central_index in range(0, len(weighted_coef[t])):
                 weighted_coef[t][central_index] = weighted_coef[t][central_index] * self.__centrals[central_index].get_availability(t)
         return weighted_coef
+
+    def loss_function(self, usage_coef, time_interval : int = 1) -> float :
+        weighted_coef = self.get_weighted_coef(usage_coef, time_interval=time_interval)
+        loss = 0
+        for t in range(0, len(weighted_coef)):
+            loss += self.get_production_cost_at_t(weighted_coef[t], t, time_interval) + ( self.get_penalisation_cost() * np.abs( self.get_unsatisfied_demand_at_t(weighted_coef[t], t, time_interval)) )
+        loss +=  self.get_carbon_cost() * (self.get_carbon_over_production(weighted_coef, time_interval) )
+        return loss
+
 
     ## CONSTRAINTS ##
     # def check_availability_constraint(self, usage_coef, time_interval):
@@ -216,11 +218,14 @@ class MixSimulator:
         constraints.update({"availability_function":self.check_availability_constraint})
         constraints.update({"tuneablity_function":self.check_tuneablity_constraint})
         """
+        constraints = {}
+        constraints.update({"time_interval":time_interval})
+
         
         #let's optimize
         if optimizer is None :
             optimizer = self.__optimizer
         optimizer.set_dim(n = time_index, m = len(self.__centrals))
-        results = optimizer.optimize(self.loss_function, step = step, k = self.get_penalisation_cost())
+        results = optimizer.optimize(self.loss_function, constraints=constraints, step = step, k = self.get_penalisation_cost())
         
         return results

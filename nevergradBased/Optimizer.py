@@ -124,7 +124,7 @@ class Optimizer():
     def get_num_worker(self):
         return self.__num_worker
         
-    def setDim(self, n : int = None, m : int = None):
+    def set_dim(self, n : int = None, m : int = None):
         if n is None or m is None : raise ValueError("Enter a valid value(s) (integer)")
         self.__parametrization = ng.p.Array(shape=(n,m))
         self.__parametrization.set_bounds(lower=0, upper=1)
@@ -163,7 +163,7 @@ class Optimizer():
         #optimizer.suggest([0.]*len(constraints["availability"]))
         for tmp_budget in range(0, total_budget):
             x = optimizer.ask()
-            loss, weighted_coef = func_to_optimize(*x.args, constraints["time_interval"])
+            loss = func_to_optimize(*x.args, constraints["time_interval"])
             optimizer.tell(x, loss)
             if (tmp_budget+1)%step == 0:
                 result_per_budget = {}
