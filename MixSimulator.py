@@ -24,7 +24,7 @@ class MixSimulator:
         self.__penalisation_cost = penalisation_cost
         self.__optimizer =  Optimizer()
         self.__carbon_cost = carbon_cost
-        self.__carbon_quota = 100000 #g or #Kg depending on the cost ($/g or $/kg)
+        self.__carbon_quota = 800139 # (g/MWh)
 
     def __reset_centrals(self):
         self.__centrals = []
