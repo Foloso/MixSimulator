@@ -220,7 +220,7 @@ class MixSimulator:
         #let's optimize
         if optimizer is None :
             optimizer = self.__optimizer
-        optimizer.get_dim(n = time_index, m = len(self.__centrals))
+        optimizer.set_dim(n = time_index, m = len(self.__centrals))
         results = optimizer.optimize(self.loss_function, step = step, k = self.get_penalisation_cost())
         
         return results
