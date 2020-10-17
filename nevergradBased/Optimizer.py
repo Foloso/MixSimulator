@@ -123,7 +123,7 @@ class Optimizer():
     def get_num_worker(self):
         return self.__num_worker
         
-    def optimize(self, func_to_optimize, constraints = None, step : int = 1, k : float =  1000000000000):
+    def optimize(self, func_to_optimize, constraints = None, step : int = 1):
         
         #setting budgets
         budgets = self.get_budget()

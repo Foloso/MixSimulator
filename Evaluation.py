@@ -205,7 +205,7 @@ class EvaluationBudget:
                 self.check_opt_list(optimizer_list)
 
 
-    def evaluate(self, mix, sequence, max_budgets, optimizer_list: List['str'], indicator_list: List['str'], num_worker: int = 1, bind: str = None, time_index: int = 24, carbonProdLimit: float = 39500000000, time_interval : float = 1, average_wide : int = None, penalisation : float = 1000000000000) :        
+    def evaluate(self, mix, sequence, max_budgets, optimizer_list: List['str'], indicator_list: List['str'], num_worker: int = 1, bind: str = None, time_index: int = 24, carbonProdLimit: float = 39500000000, time_interval : float = 1, average_wide : int = None, penalisation : float = 1000000000000, carbon_cost: float = 0) :        
         #setting dataset
         if bind != None:
             mix.set_data_csv(str(bind))
@@ -221,8 +221,8 @@ class EvaluationBudget:
         ind_per_opt = {}
         for opt_name in optimizer_list:
             opt_index = opt.Optimizer(opt=[opt_name], budget = [max_budgets], num_worker = num_worker)
-            data = mix.optimizeMix(carbonProdLimit,
-                            time_interval = time_interval, optimizer = opt_index, step = sequence, penalisation = penalisation, time_index = time_index)
+            data = mix.optimizeMix(carbon_quota = carbonProdLimit,
+                            time_interval = time_interval, optimizer = opt_index, step = sequence, penalisation = penalisation, time_index = time_index, carbon_cost = carbon_cost)
             ind_per_opt.update({opt_name:data})
 
         for indicator in indicator_list:

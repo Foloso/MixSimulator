@@ -193,11 +193,21 @@ class MixSimulator:
                 else:
                     variable_parametrization += [ng.p.Scalar(lower=0., upper=1.)]
         self.__optimizer.set_parametrization(variable_parametrization)
+        
+    def get_opt_params(self, time_index):
+        variable_parametrization = []
+        for _ in range(time_index):
+            for central_index in range(len(self.__centrals)):
+                if not self.__centrals[central_index].is_tuneable():
+                    variable_parametrization += [ng.p.Choice([0.,1.])]
+                else:
+                    variable_parametrization += [ng.p.Scalar(lower=0., upper=1.)]
+        return ng.p.Tuple(*variable_parametrization)
 
     def optimizeMix(self, carbon_quota: float = None, demand: Demand = None, lost: float = None, 
                     optimizer: Optimizer = None, step : int = 1,
                     time_index: int = 24*365, time_interval: float = 1,
-                    penalisation : float = None):
+                    penalisation : float = None, carbon_cost : float = None):
 
         self.__time_index = time_index
         
@@ -205,9 +215,9 @@ class MixSimulator:
         if demand is not None : self.__demand = demand
         if lost is not None : self.__lost = lost
         if penalisation is not None : self.set_penalisation_cost(penalisation)
+        if carbon_cost is not None : self.set_carbon_cost(carbon_cost)
         if carbon_quota is not None : self.__carbon_quota = carbon_quota
-        if optimizer is None :
-            optimizer = self.__optimizer
+        if optimizer is not None : self.__optimizer = optimizer
         
         # tune optimizer parametrization
         self.__opt_params(time_index)
@@ -217,7 +227,7 @@ class MixSimulator:
         constraints.update({"time_interval":time_interval})
         
         #let's optimize
-        results = optimizer.optimize(self.loss_function, constraints=constraints, step = step, k = self.get_penalisation_cost())
+        results = self.__optimizer.optimize(self.loss_function, constraints=constraints, step = step)
         
         results = self.__reshape_results(results, time_interval)
         return results
