@@ -10,7 +10,7 @@ class Optimizer():
         list of available: self.getOptimizerList()
         
     """ 
-    def __init__(self, opt = [ng.optimizers.OnePlusOne], budget: int = [100], num_worker: int = 1, instrum = [ng.p.Array(shape=(2,))]):
+    def __init__(self, opt = [ng.optimizers.OnePlusOne], budget: int = [100], num_worker: int = 1, instrum = ng.p.Array(shape=(2,))):
         self.set_budget(budget)
         self.set_parametrization(instrum)
         self.set_num_worker(num_worker)
@@ -102,7 +102,7 @@ class Optimizer():
         return result
     
     def set_parametrization(self, instrum):
-        self.__parametrization = ng.p.Tuple(*instrum)
+        self.__parametrization = instrum
         
     def get_parametrization(self):
         return self.__parametrization

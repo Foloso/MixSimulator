@@ -185,14 +185,7 @@ class MixSimulator:
     ## OPTiMiZATION ##
 
     def __opt_params(self, time_index):
-        variable_parametrization = []
-        for _ in range(time_index):
-            for central_index in range(len(self.__centrals)):
-                if not self.__centrals[central_index].is_tuneable():
-                    variable_parametrization += [ng.p.Choice([0.,1.])]
-                else:
-                    variable_parametrization += [ng.p.Scalar(lower=0., upper=1.)]
-        self.__optimizer.set_parametrization(variable_parametrization)
+        self.__optimizer.set_parametrization(self.get_opt_params(time_index))
         
     def get_opt_params(self, time_index):
         variable_parametrization = []
