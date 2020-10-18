@@ -8,6 +8,7 @@ import pandas as pd
 import pkgutil
 import csv
 import warnings
+from math import ceil
 #import time
 #from typing import List
 from datetime import datetime
@@ -200,7 +201,7 @@ class MixSimulator:
     def optimizeMix(self, carbon_quota: float = None, demand: Demand = None, lost: float = None, 
                     optimizer: Optimizer = None, step : int = 1,
                     time_index: int = 24*7, time_interval: float = 1,
-                    penalisation : float = None, carbon_cost : float = None):
+                    penalisation : float = None, carbon_cost : float = None, plot : str = "default", average_wide : int = None):
 
         self.__time_index = time_index
         
@@ -224,7 +225,7 @@ class MixSimulator:
         
         results = self.__reshape_results(results, time_interval)
 
-        self.plotResults(results, mode = "default" , time_interval = time_interval, result_to_display = 24, average_wide = 1)          
+        self.plotResults(results, mode = plot , time_interval = time_interval, average_wide = average_wide)
         
         return results
 
@@ -241,29 +242,44 @@ class MixSimulator:
         #         pass
         return results
         
-    def plotResults(self, optimum : list = [], current : dict = {} , mode : str = "default", result_to_display = -1, time_interval : int = 1, average_wide : int = 1):
-        #init subplot
+    def moving_average(self, x, w):
+        return np.convolve(x, np.ones(w), 'valid') / w
+        
+    def plotResults(self, optimum : dict = {} , mode : str = "default", time_interval : int = 1, average_wide : int = None):
+        #set the moving average wide
+        if average_wide is None :
+            average_wide = ceil(len(optimum[-1]["coef"])/4)
+    
         if mode == "default" :
             #set Y
             Y={}
             label_y=[]
-            for key, value in optimum[0][-1]["coef"].items() :
-                label_y.append(key)
-                Y.update({key:[]})
-            for index in range(0,len(optimum)) :
-                for key, value in optimum[index][-1]["coef"].items() :
-                    Y[key].append(value)
+            for c in self.__centrals :
+                label_y.append(c.get_id())
+                Y.update({c.get_id():[]})
+            for array in optimum[-1]["coef"] :
+                for enum, value in enumerate(array) :
+                    Y[label_y[enum]].append(value)
 
             fig, axs = plt.subplots(1, 1, figsize=(6, 6))        
-            
+        
             # data integration        
-            X = [i for i in range(len(optimum))]  
+            X = [i for i in range(0,len(optimum[-1]["coef"]))]  
             for n_axs in range(0,1) :
                 for central, value in Y.items():
                     smooth_value = self.moving_average(value,average_wide)
                     axs.plot(X[(average_wide - 1):], smooth_value, '.-' ,alpha=0.5, lw=2, label=central)
             
-            # plots parametrizations    
+              
+            # Add exection_time and loss information  
+            info = "production_cost: "+str(optimum[-1]["loss"])+" - execution_time: "+str(optimum[-1]["elapsed_time"])                    
+            plt.annotate(info,
+                xy=(0.5, 0), xytext=(0, 10),
+                xycoords=('axes fraction', 'figure fraction'),
+                textcoords='offset points',
+                size=10, ha='center', va='bottom')
+                
+            # plots parametrizations  
             axs.grid()
             axs.yaxis.set_tick_params(length=0)
             axs.xaxis.set_tick_params(length=0)
