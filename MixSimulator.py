@@ -7,11 +7,11 @@ import numpy as np
 import pandas as pd
 import pkgutil
 import csv
-#import warnings
+import warnings
 #import time
 #from typing import List
-#from datetime import datetime
-#import matplotlib.pyplot as plt
+from datetime import datetime
+import matplotlib.pyplot as plt
 
 class MixSimulator:
     """
@@ -223,6 +223,9 @@ class MixSimulator:
         results = self.__optimizer.optimize(self.loss_function, constraints=constraints, step = step)
         
         results = self.__reshape_results(results, time_interval)
+
+        self.plotResults(results, mode = "default" , time_interval = time_interval, result_to_display = 24, average_wide = 1)          
+        
         return results
 
     def __reshape_results(self, results, time_interval):
@@ -237,3 +240,45 @@ class MixSimulator:
         #     except:
         #         pass
         return results
+        
+    def plotResults(self, optimum : list = [], current : dict = {} , mode : str = "default", result_to_display = -1, time_interval : int = 1, average_wide : int = 1):
+        #init subplot
+        if mode == "default" :
+            #set Y
+            Y={}
+            label_y=[]
+            for key, value in optimum[0][-1]["coef"].items() :
+                label_y.append(key)
+                Y.update({key:[]})
+            for index in range(0,len(optimum)) :
+                for key, value in optimum[index][-1]["coef"].items() :
+                    Y[key].append(value)
+
+            fig, axs = plt.subplots(1, 1, figsize=(6, 6))        
+            
+            # data integration        
+            X = [i for i in range(len(optimum))]  
+            for n_axs in range(0,1) :
+                for central, value in Y.items():
+                    smooth_value = self.moving_average(value,average_wide)
+                    axs.plot(X[(average_wide - 1):], smooth_value, '.-' ,alpha=0.5, lw=2, label=central)
+            
+            # plots parametrizations    
+            axs.grid()
+            axs.yaxis.set_tick_params(length=0)
+            axs.xaxis.set_tick_params(length=0)
+            axs.set_xlabel('hours')
+            #axs[n_axs].yaxis.set_major_formatter(StrMethodFormatter("{x}"+units[0]))
+            axs.set_ylabel('coef (%)')
+            axs.legend()
+                
+            fig.tight_layout()
+            name = "Coef_per_centrals_"+datetime.now().strftime("%H:%M:%S")+".png"
+            fig.savefig(name)
+            plt.show()
+
+        elif mode == "None" :
+            pass
+        else :
+            warnings.warn("Choose an available option : default, coef and None")
+            #plt.show()
