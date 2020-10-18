@@ -185,14 +185,7 @@ class MixSimulator:
     ## OPTiMiZATION ##
 
     def __opt_params(self, time_index):
-        variable_parametrization = []
-        for _ in range(time_index):
-            for central_index in range(len(self.__centrals)):
-                if not self.__centrals[central_index].is_tuneable():
-                    variable_parametrization += [ng.p.Choice([0.,1.])]
-                else:
-                    variable_parametrization += [ng.p.Scalar(lower=0., upper=1.)]
-        self.__optimizer.set_parametrization(variable_parametrization)
+        self.__optimizer.set_parametrization(self.get_opt_params(time_index))
         
     def get_opt_params(self, time_index):
         variable_parametrization = []
@@ -206,7 +199,7 @@ class MixSimulator:
 
     def optimizeMix(self, carbon_quota: float = None, demand: Demand = None, lost: float = None, 
                     optimizer: Optimizer = None, step : int = 1,
-                    time_index: int = 24*365, time_interval: float = 1,
+                    time_index: int = 24*7, time_interval: float = 1,
                     penalisation : float = None, carbon_cost : float = None):
 
         self.__time_index = time_index
@@ -237,10 +230,10 @@ class MixSimulator:
             usage_coef = self.__arrange_coef_as_array_of_array(tmp['coef'])
             tmp.update({"coef":self.get_weighted_coef(usage_coef, time_interval)})
 
-        for central_index in range(0, len(self.__centrals)):
-            try:
-                print(self.__centrals[central_index].get_stock_evolution())
-            # Not a hydro power plant, so the methode does not exist
-            except:
-                pass
+        # for central_index in range(0, len(self.__centrals)):
+        #     try:
+        #         print(self.__centrals[central_index].get_stock_evolution())
+        #     # Not a hydro power plant, so the methode does not exist
+        #     except:
+        #         pass
         return results
