@@ -86,7 +86,7 @@ class MixSimulator:
     def set_data_to(self, dataset):
         #if dataset == "Toamasina":
         #by defaut we keep it "Toamasina"
-        data = pkgutil.get_data('MixSimulator', '/data/RIToamasina/dataset_RI_Toamasina.csv')
+        data = pkgutil.get_data('mixsimulator', '/data/RIToamasina/dataset_RI_Toamasina.csv')
         data = csv.reader(data.decode('utf-8').splitlines(), delimiter=';')
         self.set_data_csv(raw_data=data)
             
