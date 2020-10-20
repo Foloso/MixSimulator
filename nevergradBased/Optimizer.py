@@ -17,6 +17,7 @@ class Optimizer():
         
          ### available optimizers
         self.__available_optimizers = {}
+        self.__available_optimizers.update({"NGOptRL":ng.optimizers.NGOptRL})
         self.__available_optimizers.update({"ASCMA2PDEthird":ng.optimizers.ASCMA2PDEthird})
         self.__available_optimizers.update({"ASCMADEQRthird":ng.optimizers.ASCMADEQRthird})
         self.__available_optimizers.update({"ASCMADEthird":ng.optimizers.ASCMADEthird})
