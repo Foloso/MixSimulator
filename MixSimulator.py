@@ -48,7 +48,6 @@ class MixSimulator:
         else :
             try :
                 data = pd.DataFrame(pd.read_csv(bind,delimiter=delimiter))
-                print(data)
             except FileNotFoundError as e :
                 print("Error occured on pandas.read_csv : ",e)
                 print("Please check your file")
