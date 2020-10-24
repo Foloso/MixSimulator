@@ -3,19 +3,19 @@ class PowerCentral:
         Class for basic power plant 
         it has all the common parameters of the control units (central)
     """
-    def __init__(self, tuneable:bool=False):
+    def __init__(self, tuneable:bool=False) -> None:
         self._id = "0" 
-        self._changeRate = 0 #(percent)
-        self._initial_value = 0
+        self._changeRate = 0. #(percent)
+        self._initial_value = 0.
         self._lifetime = 0 #in hour
-        self._carbon_prod = 0 #g/MWh
-        self._rawPower = 0 #MW
-        self._availability = 1  #of the source
+        self._carbon_prod = 0. #g/MWh
+        self._rawPower = 0. #MW
+        self._availability = 1.  #of the source
         self._nb_employes = 1
-        self._mean_salary = 0#per month
+        self._mean_salary = 0. #per month
         self._tuneable = tuneable
-        self.__fuel_cost = 0 #$/g
-        self.__fuel_consumption = 0 #g/MWh
+        self.__fuel_cost = 0. #$/g
+        self.__fuel_consumption = 0. #g/MWh
 
     def set_id(self, identity):
         self._id = identity
@@ -83,7 +83,7 @@ class PowerCentral:
     def set_tuneable(self, tuneable: bool) -> None:
         self._tuneable = tuneable
 
-    def __getUsageCoef(self, usage_coef: float) -> float:
+    def __getUsageCoef(self, usage_coef: float) -> None:
         if(self._tuneable):
             usage_coef = min(self._availability, usage_coef)
         else:

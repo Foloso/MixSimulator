@@ -14,7 +14,7 @@ from datetime import datetime
 
 class EvaluationBudget:
 
-    def __init__(self):
+    def __init__(self) -> None :
         tmp = opt.Optimizer()
         self.__available_optimizers = tmp.get_available_optimizers()
         self.__marker = [',', '+', '.','<','>','p','h','H','*','x','v','^','s','1','2','3','4','8']
@@ -37,10 +37,10 @@ class EvaluationBudget:
                 labelY=''
         return [labelY,units]
         
-    def plot_evaluation_2(self, X, Y, label_y : List['str'], label : List = ["Optimizer"], max_budgets = 0, average_wide : int = None, plot = "default"):
+    def plot_evaluation_2(self, X, Y, label_y : List['str'], label : List = ["Optimizer"], max_budgets = 0, average_wide : int = 0, plot = "default"):
         
         #set the moving average wide
-        if average_wide is None :
+        if average_wide == 0 :
             for opt_name, value in Y[label_y[0]].items():
                 average_wide = ceil(len(value)/4)
                 #units=self.set_units(value[0])
@@ -205,7 +205,7 @@ class EvaluationBudget:
                 self.check_opt_list(optimizer_list)
 
 
-    def evaluate(self, mix, sequence, max_budgets, optimizer_list: List['str'], indicator_list: List['str'], num_worker: int = 1, bind: str = None, time_index: int = 24, carbonProdLimit: float = 39500000000, time_interval : float = 1, average_wide : int = None, penalisation : float = 1000000000000, carbon_cost: float = 0) :        
+    def evaluate(self, mix, sequence, max_budgets, optimizer_list: List['str'], indicator_list: List['str'], num_worker: int = 1, bind: str = None, time_index: int = 24, carbonProdLimit: float = 39500000000, time_interval : float = 1, average_wide : int = 0, penalisation : float = 1000000000000, carbon_cost: float = 0) :        
         #setting dataset
         if bind != None:
             mix.set_data_csv(str(bind))
@@ -242,7 +242,7 @@ class EvaluationBudget:
         
     def evaluate_total_time(self, mix, sequence, max_budgets, optimizer_list: List['str'],
                             indicator_list: List['str'], bind = None, carbonProdLimit: float = 500000,
-                            time_index: int = 24*265, time_interval : float = 1, average_wide : int = None, penalisation : float = 1000000000000, plot : str = "default"):
+                            time_index: int = 24*265, time_interval : float = 1, average_wide : int = 0, penalisation : float = 1000000000000, plot : str = "default"):
         #setting dataset
         
         budget = np.arange(0, max_budgets, sequence)
@@ -290,7 +290,7 @@ class EvaluationBudget:
             for opt_name in optimizer_list:
                 per_budget = []
                 for budget_step in range(0,len(budget)):
-                    value = 0
+                    value = 0.
                     for time in range (0, time_index):
                         if indicator == "penalized production cost (loss)":
                             value += Y[time]["production_cost ($)"][opt_name][budget_step] + np.abs((mix.get_penalisation_cost() * Y[time]["unsatisfied_demand (MWh)"][opt_name][budget_step]))

@@ -2,6 +2,7 @@ import nevergrad as ng
 import numpy as np
 import math
 import time
+from typing import Type, List
 
 class Optimizer():
     """
@@ -10,14 +11,14 @@ class Optimizer():
         list of available: self.getOptimizerList()
         
     """ 
-    def __init__(self, opt = [ng.optimizers.OnePlusOne], budget: int = [100], num_worker: int = 1, instrum = ng.p.Array(shape=(2,))):
+    def __init__(self, opt = [ng.optimizers.OnePlusOne], budget: List[int] = [100], num_worker: int = 1, instrum = ng.p.Array(shape=(2,))):
         self.set_budget(budget)
         self.set_parametrization(instrum)
         self.set_num_worker(num_worker)
         
          ### available optimizers
-        self.__available_optimizers = {}
-        self.__available_optimizers.update({"NGOptRL":ng.optimizers.NGOptRL})
+        self.__available_optimizers = {Type[str]:Type[object]}
+        #self.__available_optimizers.update({"NGOptRL":ng.optimizers.NGOptRL})
         self.__available_optimizers.update({"ASCMA2PDEthird":ng.optimizers.ASCMA2PDEthird})
         self.__available_optimizers.update({"ASCMADEQRthird":ng.optimizers.ASCMADEQRthird})
         self.__available_optimizers.update({"ASCMADEthird":ng.optimizers.ASCMADEthird})
@@ -108,7 +109,7 @@ class Optimizer():
     def get_parametrization(self):
         return self.__parametrization
         
-    def set_budget(self,budget: int = [100]):
+    def set_budget(self,budget: List[int] = [100]):
         #setting budget 
         #possible to do? auto calculate a optimal budget depending of the size of data
         self.__budget = budget

@@ -10,7 +10,7 @@ import csv
 import warnings
 from math import ceil
 #import time
-#from typing import List
+from typing import List, Any, Type, Dict
 from datetime import datetime
 import matplotlib.pyplot as plt
 
@@ -18,15 +18,15 @@ class MixSimulator:
     """
         The simulator Base            
     """
-    def __init__(self, carbon_cost: float = 0, penalisation_cost: float = 1000000000000):
-        self.__centrals = []
+    def __init__(self, carbon_cost: float = 0, penalisation_cost: float = 1000000000000) -> None:
+        self.__centrals : List[Any] = []
         self.__reset_centrals()
         self.__demand = Demand(20, 0.2, 0.2)
-        self.__lost = 0
+        self.__lost = 0.
         self.__penalisation_cost = penalisation_cost
         self.__optimizer =  Optimizer()
         self.__carbon_cost = carbon_cost
-        self.__carbon_quota = 800139 # (g/MWh)
+        self.__carbon_quota = 800139. # (g/MWh)
 
     def __reset_centrals(self):
         self.__centrals = []
@@ -57,6 +57,7 @@ class MixSimulator:
                 raise
             
         self.__reset_centrals()
+        centrale = pc.PowerCentral()
         try :
             for i in range (0,data.shape[0]):
                 isHydro = data["hydro"][i]
@@ -200,7 +201,7 @@ class MixSimulator:
     def optimizeMix(self, carbon_quota: float = None, demand: Demand = None, lost: float = None, 
                     optimizer: Optimizer = None, step : int = 1,
                     time_index: int = 24*7, time_interval: float = 1,
-                    penalisation : float = None, carbon_cost : float = None, plot : str = "default", average_wide : int = None):
+                    penalisation : float = None, carbon_cost : float = None, plot : str = "default", average_wide : int = 0):
 
         self.__time_index = time_index
         
@@ -244,15 +245,15 @@ class MixSimulator:
     def moving_average(self, x, w):
         return np.convolve(x, np.ones(w), 'valid') / w
         
-    def plotResults(self, optimum : dict = {} , mode : str = "default", time_interval : int = 1, average_wide : int = None):
+    def plotResults(self, optimum : dict = {} , mode : str = "default", time_interval : float = 1, average_wide : int = 0):
         #set the moving average wide
-        if average_wide is None :
+        if average_wide == 0 :
             average_wide = ceil(len(optimum[-1]["coef"])/4)
     
         if mode == "default" :
             #set Y
-            Y={}
-            label_y=[]
+            Y: Dict[str,List[float]] ={}
+            label_y: List[str]=[]
             for c in self.__centrals :
                 label_y.append(c.get_id())
                 Y.update({c.get_id():[]})

@@ -6,7 +6,7 @@ class HydroCentral(pc):
     """
         Class of power plant with the specifications of a HydroElectric Power Plant
     """
-    def __init__(self, hauteur, moyenne_apport, capacity, available_stock, var_per_day, var_per_season ):
+    def __init__(self, hauteur: float, moyenne_apport: float, capacity: float, available_stock: float, var_per_day: float, var_per_season: float ) -> None:
         super().__init__()
         self.__hauteur = hauteur
         self.__moyenne_apport = moyenne_apport # m3/s
@@ -17,7 +17,7 @@ class HydroCentral(pc):
         self.__var_per_day = var_per_day
         self.__var_per_season = var_per_season
 
-    def isHydro(self):
+    def isHydro(self) -> bool:
         return True
 
     def __get_natural_availability(self, t) -> float:
