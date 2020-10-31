@@ -5,15 +5,14 @@ The primary objective of the simulator is to study the relevance of an energy mi
 
 ### Specifications :
 - Generic simulator, compatible with data from Madagascar and those from abroad (but may require data pre-processing beforehand);
-- Optimization of duty cycle (or usage coefficient) under the chosen constraints ;
-- Deduction of production costs and various performance indicators (CO2 emission, unsatisfied demand);
-- Comparison between the usage coefficients of the current mix and the calculated optimal mix ;
+- Optimization of duty cycle (or usage coefficient) under constraints ;
+- Get the production cost and various performance indicators (CO2 emission, unsatisfied demand);
+- Estimate of the costs of a mix or a power plant over the long term ;
 - Comparison of the performance indicators on different optimizers.
 
 
 ### Perspectives :
-- Add other constraints (storage of hydroelectric plants, variation in production) ;
-- Estimate of the costs of a mix or a power plant over the long term ;
+- Add other constraints (max variation in production for each power plant) ;
 - Pair with a transmission and distribution power grid simulator (MixSimulator can provide input data).
 
 Suggestions are welcome!
@@ -26,13 +25,12 @@ pip install mixsimulator
 MixSimulator is written in Python 3.6 and requires the following Python packages : nevergrad, typing, numpy, pandas and matplotlib.
 
 ## How to run
-As MixSimulator is a python package, it can be called and used as we can see in `test.py`.
+As MixSimulator is a python package, it can be called and used as we can see in `retest.py`.
 
 List of classes and directories :
-- MixSimulator : System basis (Simulation with / without optimization) ;
-- SegmentOptimizer : Initiate appropriate optimization and power plants (Define objective function and constraints; Manage data entries; Calculate value of explanatory variables) ;
-- nevergradBased/Optimizer : Adaptation of the Nevergrad optimizers to the project and auto-parameterization ;
-- centrals/PowerCentral : Gathers all the common specifications of the control units (central) ;
+- MixSimulator : System basis (Adaptation of the Nevergrad optimizers to the project and auto-parameterization) ;
+- nevergradBased/Optimizer :  Instance of the optimizer (Receives the indications on the optimizer to choose and the parameters);
+- centrals/* : Gathers all the common specifications of the control units (central) ;
 - Evaluation : Class for evaluating mix based on performance indicators on several optimizers ;
 - data/ : Groups the available datasets. 
 
@@ -44,6 +42,8 @@ The dataset "data/dataset_RI_Toamasina" is for the test and it comes from the In
 Dataset features needed:
 - `tuneable` (boolean): is the control unit controllable or not?
 - `green` (boolean): is it a renewable energy plant?
+- `hydro` (boolean): is it a hydro power plant?
+- `fuel` (boolean): is it a thermal power plant?
 - `centrals` : identification
 - `fuel_consumption` (g/MWh): fuel consumption (in the case of a fossil fuel power plant)
 - `availability` (%): plant availability
@@ -56,6 +56,12 @@ Dataset features needed:
 - `mean_salary` ($): average salary of plant employees
 - `demand` (MWh): electricity demand
 - `lost` (MWh): electrical loss at another level (ie: transport network)
+
+Hydro specification :
+- `height` (meter): height of the stream ;
+- `flow` : flow of the stream ;
+- `stock_available` : water reservoir ;
+- `capacity` : max water reservoir.
 
 `nb_employees * mean_salary` **can be used as a variable cost of the plant if you want to directly use other informations as variable cost.**
 
