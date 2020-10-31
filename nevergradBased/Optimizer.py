@@ -1,5 +1,5 @@
 import nevergrad as ng
-import numpy as np
+import numpy as np # type: ignore
 import math
 import time
 from typing import Type, List

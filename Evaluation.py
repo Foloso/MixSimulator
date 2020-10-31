@@ -1,8 +1,8 @@
 #import sys
 #from MixSimulator import MixSimulator
-import matplotlib.pyplot as plt
+import matplotlib.pyplot as plt # type: ignore
 #from matplotlib.ticker import StrMethodFormatter
-import numpy as np
+import numpy as np # type: ignore
 from math import ceil
 from math import floor
 #import itertools
