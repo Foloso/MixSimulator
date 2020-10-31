@@ -1,394 +1,285 @@
-import matplotlib.pyplot as plt
-from . import SegmentOptimizer as sOpt
 from .centrals import PowerCentral as pc
 from .centrals import HydroCentral as hc 
-from . import Demand as de
-import numpy as np
-import pandas as pd
+from .Demand import Demand
+import nevergrad as ng
+from .nevergradBased.Optimizer import Optimizer
+import numpy as np # type: ignore
+import pandas as pd # type: ignore
+import pkgutil
+import csv
 import warnings
-import time
-from typing import List
 from math import ceil
+#import time
+from typing import List, Any, Type, Dict
 from datetime import datetime
+import matplotlib.pyplot as plt # type: ignore
 
 class MixSimulator:
     """
         The simulator Base            
     """
-    def __init__(self):
+    def __init__(self, carbon_cost: float = 0, penalisation_cost: float = 1000000000000) -> None:
+        self.__centrals : List[Any] = []
         self.__reset_centrals()
-        self.__demand = 0
-        self.__lost = 0
-        self.__penalisation_cost = 0        
+        self.__demand = Demand(20, 0.2, 0.2)
+        self.__lost = 0.
+        self.__penalisation_cost = penalisation_cost
+        self.__optimizer =  Optimizer()
+        self.__carbon_cost = carbon_cost
+        self.__carbon_quota = 800139. # (g/MWh)
 
     def __reset_centrals(self):
-        self.__centrals = {}
-        self.__init_list = []
-        self.__centrals.update({"green": []})
-        self.__centrals.update({"non_green": []})
+        self.__centrals = []
 
-    def set_data_csv(self, bind: str, delimiter: str=";"):
-        try :
-            data = pd.DataFrame(pd.read_csv(bind,delimiter=delimiter))
-            
-        except FileNotFoundError as e :
-            print("Error occured on pandas.read_csv : ",e)
-            print("Please check your file")
-            raise           
-        except Exception as e:
-            print("Error occured on pandas.read_csv : ",e)
-            raise
+    def set_data_csv(self, bind = None, raw_data = None, delimiter: str=";"):
+        if raw_data is not None :
+            data = pd.DataFrame(raw_data)
+            #set columns & index           
+            header = data.iloc[0]
+            data = data[1:]
+            data.columns = header
+            data = data.reset_index(drop=True)
+            for column in data.columns.tolist():
+                try:
+                    # convert numeric values
+                    data[column] = pd.to_numeric(data[column])
+                except:
+                    pass
+        else :
+            try :
+                data = pd.DataFrame(pd.read_csv(bind,delimiter=delimiter))
+            except FileNotFoundError as e :
+                print("Error occured on pandas.read_csv : ",e)
+                print("Please check your file")
+                raise           
+            except Exception as e:
+                print("Error occured on pandas.read_csv : ",e)
+                raise
             
         self.__reset_centrals()
-        centrale_tmp = []
+        centrale = pc.PowerCentral()
         try :
             for i in range (0,data.shape[0]):
-                centrale = data["hydro"][i]
-                if centrale == True :
+                isHydro = data["hydro"][i]
+                if isHydro == True :
                     centrale = hc.HydroCentral(data["height"][i],data["flow"][i],data["capacity"][i],data["stock_available"][i],0.1,0.8)
                 else :
                     centrale = pc.PowerCentral()
-                centrale.setTuneable(data["tuneable"][i])
+                centrale.set_tuneable(data["tuneable"][i])
                 centrale.set_id(str(data["centrals"][i]))
                 centrale.set_fuel_consumption(data["fuel_consumption"][i])
-                centrale.setAvailability(data["availability"][i])
+                centrale.set_availability(data["availability"][i])
                 centrale.set_fuel_cost(data["fuel_cost"][i])
                 centrale.set_initial_value(data["init_value"][i])
                 centrale.set_lifetime(data["lifetime"][i])
-                centrale.setCarbonProd(data["carbon_production"][i])
-                centrale.setRawPower(data["raw_power"][i])
+                centrale.set_carbon_prod(data["carbon_production"][i])
+                centrale.set_raw_power(data["raw_power"][i])
                 centrale.set_nb_employees(data["nb_employees"][i])
-                centrale.setMeanEmployeesSalary(data["mean_salary"][i])
-                centrale.setGreenEnergy(data["green"][i])
-                centrale_tmp.append(centrale)
-                self.__init_list.append(centrale.get_id())
-            self.__demand=data["Demand"][0]
+                centrale.set_mean_employees_salary(data["mean_salary"][i])
+                self.__centrals.append(centrale)
+            self.__demand.set_mean_demand(data["Demand"][0])
             self.__lost=data["lost"][0]
         except KeyError:
-            print("Columns must be in: tuneable, green, centrals, fuel_consumption, availability, fuel_cost, init_value, lifetime, carbon_cost, raw_power, nb_employees, mean_salary, demand, lost")
+            print("Columns must be in: tuneable, centrals, fuel_consumption, availability, fuel_cost, init_value, lifetime, carbon_cost, raw_power, nb_employees, mean_salary, demand, lost")
             raise
             
-        self.__splitCentrals(centrale_tmp)
-
-    def setCentrals(self, centrals: List[str]):
-        self.__reset_centrals()
-        self.__splitCentrals(centrals)
-
-    def set_demand(self,demand):
+    def set_data_to(self, dataset):
+        #if dataset == "Toamasina":
+        #by defaut we keep it "Toamasina"
+        data = pkgutil.get_data('mixsimulator', '/data/RIToamasina/dataset_RI_Toamasina.csv')
+        data = csv.reader(data.decode('utf-8').splitlines(), delimiter=';')
+        self.set_data_csv(raw_data=data)
+            
+    def set_demand(self, demand: Demand):
         self.__demand = demand
     
-    def get_demand(self):
-        return self.__demand
+    # def get_demand(self, t, time_interval: float = 1):
+    #     return self.__demand.get_demand_approxima(t, time_interval)
 
     def set_penalisation_cost(self, k):
         self.__penalisation_cost = k
 
     def get_penalisation_cost(self):
         return self.__penalisation_cost
-
-    def __splitCentrals(self, centrals: List[str]):
-        for centrale in centrals:
-                if centrale.isGreen():
-                    self.__centrals["green"].append(centrale)
-                else:
-                    self.__centrals["non_green"].append(centrale)
-
-    def optimizeMix(self, carbonProdLimit, demand: float= None, lost: float=None, 
-                    time_interval: float = 1, carbon_cost: float = None, optimize_with = ["OnePlusOne"], budgets = [100], instrum = None, step: int = 1, time_index: int = 24*365, penalisation : float = 1000000000000):
         
-        """Initiate the Mix's parameters and calculate the optimal coef_usage with the given optimizer"""
-        # default parameter
-        results = []
-        self.set_penalisation_cost(penalisation) 
+    def set_carbon_cost(self, carbon_cost):
+        self.__carbon_cost = carbon_cost
 
-        if demand is None:
-            demand = self.__demand
-        if lost is None:
-            lost = self.__lost
+    def get_carbon_cost(self):
+        return self.__carbon_cost
 
-        #Get GREEN and the NON-GREEN PowerPlant
-        green_mix = sOpt.SegmentOptimizer()
-        non_green_mix = sOpt.SegmentOptimizer()
+    ## EVALUATION FONCTION ##
+    def get_production_cost_at_t(self, usage_coef, time_index, time_interval):
+        production_cost = 0
+        for centrale_index in range (0, len(self.__centrals)):
+            central = self.__centrals[centrale_index]
+            production_cost += ( (central.get_fuel_cost() * central.get_fuel_consumption() 
+            * central.get_raw_power() * usage_coef[centrale_index]) + ( central.get_employees_salary()
+            + central.get_amortized_cost(time_index) ) ) * time_interval
+        return production_cost
+
+    def get_production_at_t(self, usage_coef, time_interval):
+        production = 0
+        for centrale_index in range (0, len(self.__centrals)):
+            central = self.__centrals[centrale_index]
+            production += (central.get_raw_power() * usage_coef[centrale_index]) * time_interval
+        return production
+
+    def get_unsatisfied_demand_at_t(self, usage_coef, time_index, time_interval):
+        return ( self.__demand.get_demand_approxima(time_index, time_interval) - self.get_production_at_t(usage_coef, time_interval))
         
-        green_mix.setCentrals(self.__centrals["green"])
-        non_green_mix.setCentrals(self.__centrals["non_green"])
-
-        green_mix.set_time(time_interval)
-        non_green_mix.set_time(time_interval)
-
-        # prioriser d'abord les energies renouvelables
-        green_mix.set_time_index(time_index)
-        GREEN_RESULT = green_mix.getOptimumUsageCoef(carbonProdLimit=carbonProdLimit, 
-                                                     demand= demand, lost=lost, optimize_with = optimize_with, budgets = budgets, instrum = instrum, step=step, penalisation = self.get_penalisation_cost())
-        new_carbonProdLimit = carbonProdLimit - GREEN_RESULT[len(GREEN_RESULT)-1]["carbonProd"]
-        new_demand = (demand+lost) - GREEN_RESULT[len(GREEN_RESULT)-1]["production"]
-
+    def get_carbon_production_at_t(self, usage_coef, time_interval):
+        carbon_prod = 0
+        for centrale_index in range (0, len(self.__centrals)):
+            central = self.__centrals[centrale_index]
+            carbon_prod += (central.get_carbon_production() * usage_coef[centrale_index] * central.get_raw_power()) * time_interval
+        return carbon_prod
         
-        i=0        
-        for green in self.__centrals["green"]:
-            green.back_propagate(GREEN_RESULT[len(GREEN_RESULT)-1]["coef"][i], time_index, time_interval)
-            i=i+1
-            
+    def get_carbon_over_production(self, usage_coef, time_interval):
+        emited_carbon = 0 # (g)
+        total_production = 1
+        for t in range(0, len(usage_coef)):
+            emited_carbon += self.get_carbon_production_at_t(usage_coef[t], time_interval)
+            total_production += self.get_production_at_t(usage_coef[t], time_interval)
+        carbon_production = emited_carbon/total_production
+        return max(0, carbon_production - self.__carbon_quota) # (g/MWh)
 
-        # ensuite s'occuper des centrales "non-green"
-        NON_GREEN_RESULT = non_green_mix.getOptimumUsageCoef(carbonProdLimit=new_carbonProdLimit, 
-                                                             demand=new_demand, lost=0, optimize_with = optimize_with, budgets = budgets, instrum = instrum, step=step, penalisation = self.get_penalisation_cost())        
-
-        for budget_step in range(0, len(GREEN_RESULT)):
-            tmp_result = {}
-            usage_coef = {}
-            index_central = 0
-            for coef in GREEN_RESULT[budget_step]["coef"]:
-                usage_coef.update({self.__centrals["green"][index_central].get_id():coef})
-                index_central += 1
-            
-            index_central = 0
-            for coef in NON_GREEN_RESULT[budget_step]["coef"]:
-                usage_coef.update({self.__centrals["non_green"][index_central].get_id():coef})
-                index_central += 1
-
-            tmp_result.update({"execution_time (s)": NON_GREEN_RESULT[budget_step]["elapsed_time"] + GREEN_RESULT[budget_step]["elapsed_time"]})
-            tmp_result.update({"production_cost ($)": NON_GREEN_RESULT[budget_step]["production_cost"] + GREEN_RESULT[budget_step]["production_cost"]})
-            tmp_result.update({"carbon_impacte (g/MWh)": NON_GREEN_RESULT[budget_step]["carbonProd"] + GREEN_RESULT[budget_step]["carbonProd"]})
-            if carbon_cost is None:
+    def get_weighted_coef(self, usage_coef, time_interval):
+        for central_index in range(0, len(usage_coef[0])):
+            try:
+                self.__centrals[central_index].reset_stock()
+            # Not a hydro power plant, so the methode does not exist
+            except:
                 pass
-            else :
-                tmp_result.update({"carbon_cost ($/MWh)":   (NON_GREEN_RESULT[budget_step]["carbonProd"] + GREEN_RESULT[budget_step]["carbonProd"])* carbon_cost})
-            tmp_result.update({"unsatisfied_demand (MWh)": demand + lost - (NON_GREEN_RESULT[budget_step]["production"] + GREEN_RESULT[budget_step]["production"])})
-            tmp_result.update({"usage_coefficient": usage_coef})
-            results.append(tmp_result)
+        weighted_coef = usage_coef.copy()
+        for t in range(0, len(weighted_coef)):
+            for central_index in range(0, len(weighted_coef[t])):
+                weighted_coef[t][central_index] = weighted_coef[t][central_index] * self.__centrals[central_index].get_availability(t)
+                try:
+                    self.__centrals[central_index].back_propagate(weighted_coef[t][central_index], t, time_interval)
+                # Not a hydro power plant, so the methode does not exist
+                except:
+                    pass
+        return weighted_coef
 
+    def loss_function(self, usage_coef, time_interval : int = 1) -> float :
+        usage_coef = self.__arrange_coef_as_array_of_array(usage_coef)
+        weighted_coef = self.get_weighted_coef(usage_coef, time_interval=time_interval)
+        loss = 0
+        for t in range(0, len(weighted_coef)):
+            loss += self.get_production_cost_at_t(weighted_coef[t], t, time_interval) + ( self.get_penalisation_cost() * np.abs( self.get_unsatisfied_demand_at_t(weighted_coef[t], t, time_interval)) )
+        loss +=  self.get_carbon_cost() * (self.get_carbon_over_production(weighted_coef, time_interval) )
+        return loss
+
+    def __arrange_coef_as_array_of_array(self, raw_usage_coef):
+        ordered_coef = []
+        cur_time_coef = []
+        for coef_index in range(len(raw_usage_coef)):
+            cur_time_coef.append(raw_usage_coef[coef_index])
+            ## indice de la premiere cenrtale a t+1
+            if (coef_index+1)%len(self.__centrals) == 0:
+                ordered_coef.append(cur_time_coef)
+                cur_time_coef = []
+        return ordered_coef
+
+
+    ## OPTiMiZATION ##
+
+    def __opt_params(self, time_index):
+        self.__optimizer.set_parametrization(self.get_opt_params(time_index))
+        
+    def get_opt_params(self, time_index):
+        variable_parametrization = []
+        for _ in range(time_index):
+            for central_index in range(len(self.__centrals)):
+                if not self.__centrals[central_index].is_tuneable():
+                    variable_parametrization += [ng.p.Choice([0.,1.])]
+                else:
+                    variable_parametrization += [ng.p.Scalar(lower=0., upper=1.)]
+        return ng.p.Tuple(*variable_parametrization)
+
+    def optimizeMix(self, carbon_quota: float = None, demand: Demand = None, lost: float = None, 
+                    optimizer: Optimizer = None, step : int = 1,
+                    time_index: int = 24*7, time_interval: float = 1,
+                    penalisation : float = None, carbon_cost : float = None, plot : str = "default", average_wide : int = 0):
+
+        self.__time_index = time_index
+        
+        # init params                
+        if demand is not None : self.__demand = demand
+        if lost is not None : self.__lost = lost
+        if penalisation is not None : self.set_penalisation_cost(penalisation)
+        if carbon_cost is not None : self.set_carbon_cost(carbon_cost)
+        if carbon_quota is not None : self.__carbon_quota = carbon_quota
+        if optimizer is not None : self.__optimizer = optimizer
+        
+        # tune optimizer parametrization
+        self.__opt_params(time_index)
+        
+        #init constraints
+        constraints = {}
+        constraints.update({"time_interval":time_interval})
+        
+        #let's optimize
+        results = self.__optimizer.optimize(self.loss_function, constraints=constraints, step = step)
+        
+        results = self.__reshape_results(results, time_interval)
+
+        self.plotResults(results, mode = plot , time_interval = time_interval, average_wide = average_wide)
+        
         return results
 
-    def simuleMix(self, current_usage_coef, carbonProdLimit: float = 500000, demand: float = None, 
-                  lost: float = None, time_interval: float = 1, carbon_cost: float = None, 
-                  optimize_with = ["OnePlusOne"], budgets = [100], instrum = None, verbose: int = 0,
-                   plot: str = "default", step : int = None, time_index : int = 24*365, average_wide : int = 1, penalisation : float = 1000000000000):
-        
-        """Simulate and compare the current_mix and the theorical_optimum Mix"""
-        # initialization
-        if demand is None :
-            demand = self.__demand
-        if lost is None :
-            lost = self.__lost
-        if step is None :
-            step = budgets
-        self.set_penalisation_cost(penalisation)
+    def __reshape_results(self, results, time_interval):
+        for tmp in results:
+            usage_coef = self.__arrange_coef_as_array_of_array(tmp['coef'])
+            tmp.update({"coef":self.get_weighted_coef(usage_coef, time_interval)})
 
-        ##### actual perf
-        current_perf = {}
-
-        # current Mix initialization
-        current_mix = sOpt.SegmentOptimizer()
-        centrals = []
-        for key in self.__centrals.keys():
-            for central in self.__centrals[key]:
-                centrals.append(central)
-        current_mix.setCentrals(centrals)
-        current_mix.set_time(time_interval)
-        current_perf.update({"production_cost ($)": current_mix.prod_cost_function(current_usage_coef)})
-        current_perf.update({"carbon_impacte (g/MWh)": current_mix.get_carbon_prod_constraint(current_usage_coef)})
-        current_perf.update({"unsatisfied_demand (MWh)": demand - current_mix.get_production_constraint(current_usage_coef)})
-        coef_dict = {}
-        for index in range(0, len(current_usage_coef)):
-            coef_dict.update({self.__init_list[index]:current_usage_coef[index]})
-        current_perf.update({"usage_coefficient": coef_dict})
+        # for central_index in range(0, len(self.__centrals)):
+        #     try:
+        #         print(self.__centrals[central_index].get_stock_evolution())
+        #     # Not a hydro power plant, so the methode does not exist
+        #     except:
+        #         pass
+        return results
         
-        # optimization over  
-        data_per_interval = []
-        current_demand=de.Demand(self.__demand, 1, 1)
-        for t in range(0,time_index):
-            self.set_demand(current_demand.get_demand_approxima(t,time_interval))
-            data = self.optimizeMix(carbonProdLimit= carbonProdLimit,
-                                time_interval = time_interval, optimize_with = optimize_with, budgets = budgets, step = step, time_index = t, penalisation = self.get_penalisation_cost())
-            data_per_interval.append(data)
-
-        # verbosity
-        if verbose == 1 :
-            print("theorical_optimum : ",data_per_interval)
-            print("current_perf : ", current_perf)
-        
-        #plotting
-        # for plot_nb in range(0,time_index):
-        self.plotResults(data_per_interval, current_perf, mode = plot , time_interval = time_interval, result_to_display = 24, average_wide = average_wide)
-        # warnings.warn("Available plot options : \n \t 'default' : show and save the results plots; \n \t 'none' : no plots.")
-        
-        return [data_per_interval , current_perf , time_interval]
-
     def moving_average(self, x, w):
         return np.convolve(x, np.ones(w), 'valid') / w
-
-    def plotResults(self, optimum : List = [], current : dict = {} , mode : str = "default", result_to_display = -1, time_interval : int = 1, average_wide : int = 1) :
-        columns=[]
-        tmp=[]
-        data=[]
-
-        aggregate_result = {}
-            
-        # tmp_result.update({"usage_coefficient": usage_coef})
-        for index in range(0,len(optimum)):
-            try:
-                aggregate_result.update({"execution_time (s)": aggregate_result["execution_time (s)"] + optimum[index][-1]["execution_time (s)"]})
-            except:
-                aggregate_result.update({"execution_time (s)": optimum[index][-1]["execution_time (s)"]})
-            try:
-                aggregate_result.update({"production_cost ($)": aggregate_result["production_cost ($)"] + optimum[index][-1]["production_cost ($)"]})
-            except:
-                aggregate_result.update({"production_cost ($)": optimum[index][-1]["production_cost ($)"]})
-            try:
-                aggregate_result.update({"carbon_impacte (g/MWh)": aggregate_result["carbon_impacte (g/MWh)"] + optimum[index][-1]["carbon_impacte (g/MWh)"]})
-            except:
-                aggregate_result.update({"carbon_impacte (g/MWh)": optimum[index][-1]["carbon_impacte (g/MWh)"]})
-            try:
-                aggregate_result.update({"unsatisfied_demand (MWh)": aggregate_result["unsatisfied_demand (MWh)"] + optimum[index][-1]["unsatisfied_demand (MWh)"]})
-            except:
-                aggregate_result.update({"unsatisfied_demand (MWh)": optimum[index][-1]["unsatisfied_demand (MWh)"]})
-
-        coef_dict = {}
-        for central_type in self.__centrals:
-            for central in self.__centrals[central_type]:
-                central = central.get_id()
-                for index in range(0,len(optimum)):
-                    try:
-                        coef_dict.update({central: coef_dict[central] + optimum[index][-1]["usage_coefficient"][central]})
-                    except:
-                        coef_dict.update({central: optimum[index][-1]["usage_coefficient"][central]})
-                coef_dict.update({central: coef_dict[central]/len(optimum)})
-        aggregate_result.update({"usage_coefficient": coef_dict})
-
-        if mode == "default":
-            #handle data
-            if result_to_display == -1:
-                optimum = aggregate_result
-            else:
-                try:
-                    optimum = optimum[result_to_display][-1]
-                except:
-                    optimum = aggregate_result
-                    
-            for keys, values in optimum.items():
-                if keys == "usage_coefficient":
-                    for k, v in values.items():
-                        columns.append(k)
-                        tmp.append(v)
-            data.append(tmp)
-            tmp=[]        
-            for keys, values in current.items():
-                if keys == "usage_coefficient":
-                    for k, v in values.items():
-                        tmp.append(v)
-            data.append(tmp)
-
-            tmp = []
-            time_data = {}
-            for keys, values in optimum.items():
-                if keys == "execution_time (s)":
-                    time_data.update({keys:values})
-                elif keys != "usage_coefficient":
-                    columns.append(keys)
-                    tmp.append(values)
-            data.append(tmp)
-            tmp=[]        
-            for keys, values in current.items():
-                if keys != "usage_coefficient":
-                    tmp.append(values)
-            data.append(tmp)
-                    
-            rows = ["current","optimum"]        
-                
-            # Get some pastel shades for the colors
-            colors = plt.cm.autumn(np.linspace(0, 0.5, len(rows)))
-            n_rows = len(rows)
-            
-            index = np.arange(len(columns[:-3])) + 0.3
-            bar_width = 0.4
-            
-            # Initialize the vertical-offset for the stacked bar chart.
-            y_offset = np.zeros(len(columns[:-3]))
-            
-            # Plot bars and create text labels for the table
-            cell_text = []
-            correction = np.zeros(len(columns[:-3]))
-            to_plot = data[:-2]
-            
-            for row in range(n_rows):
-                for i in range(len(columns[:-3])):
-                    if y_offset[i] < to_plot[row][i]:
-                        correction[i] = y_offset[i]
-                        color_correction = row-1
-                y_offset = np.zeros(len(columns[:-3]))
-                plt.bar(index, to_plot[row], bar_width, bottom=y_offset, color=colors[row])
-                y_offset = to_plot[row]
-                cell_text.append(['%f' % x for x in y_offset])
-                
-            # Correction to avoid hidden bar
-            y_offset = np.zeros(len(columns[:-3]))
-            plt.bar(index, correction, bar_width, bottom=y_offset, color=colors[color_correction])            
-
-
-            # Reverse colors and text labels to display the last value at the top.
-            colors = colors[::-1]
-            cell_text.reverse()
-            
-            # Add tables 
-            plt.table(cellText=cell_text,
-                                rowLabels=rows,
-                                rowColours=colors,
-                                colLabels=columns[:-3],
-                                loc='bottom')
-            
-            cell_text=data[-2:]
-            cell_text.reverse()
-            plt.table(cellText=cell_text,
-                                rowLabels=rows,
-                                rowColours=colors,
-                                colLabels=columns[-3:],
-                                loc='upper center')
-            
-            # Add exection_time information
-            for time_k, time_v in time_data.items():
-                time_str = time_k+": "+str(time_v)                       
-            plt.annotate(time_str,
-                xy=(0.5, 0), xytext=(0, 10),
-                xycoords=('axes fraction', 'figure fraction'),
-                textcoords='offset points',
-                size=10, ha='center', va='bottom')
-                                
-            # Adjust layout to make room for the table:
-            plt.subplots_adjust(left=0.2, bottom=0.2)
-            values = np.arange(0, 140, 20)
-            value_increment = 100 
-            plt.ylabel("Usage coef. in % ")
-            plt.yticks(values / value_increment, ['%d' % val for val in values])
-            plt.xticks([])
-            plt.title('Optimum and Current values')
-
-            name = "Coef_per_centrals_"+datetime.now().strftime("%H:%M:%S")+".png"
-            plt.savefig(name)
-
-        elif mode == "coef" :
-            #init subplot
-
+        
+    def plotResults(self, optimum : dict = {} , mode : str = "default", time_interval : float = 1, average_wide : int = 0):
+        #set the moving average wide
+        if average_wide == 0 :
+            average_wide = ceil(len(optimum[-1]["coef"])/4)
+    
+        if mode == "default" :
             #set Y
-            Y={}
-            label_y=[]
-            for key, value in optimum[0][-1]["usage_coefficient"].items() :
-                label_y.append(key)
-                Y.update({key:[]})
-            for index in range(0,len(optimum)) :
-                for key, value in optimum[index][-1]["usage_coefficient"].items() :
-                    Y[key].append(value)
+            Y: Dict[str,List[float]] ={}
+            label_y: List[str]=[]
+            for c in self.__centrals :
+                label_y.append(c.get_id())
+                Y.update({c.get_id():[]})
+            for array in optimum[-1]["coef"] :
+                for enum, value in enumerate(array) :
+                    Y[label_y[enum]].append(value)
 
             fig, axs = plt.subplots(1, 1, figsize=(6, 6))        
-            
+        
             # data integration        
-            X = [i for i in range(len(optimum))]  
+            X = [i for i in range(0,len(optimum[-1]["coef"]))]  
             for n_axs in range(0,1) :
                 for central, value in Y.items():
                     smooth_value = self.moving_average(value,average_wide)
                     axs.plot(X[(average_wide - 1):], smooth_value, '.-' ,alpha=0.5, lw=2, label=central)
             
-            # plots parametrizations    
+              
+            # Add exection_time and loss information  
+            info = "production_cost: "+str(optimum[-1]["loss"])+" - execution_time: "+str(optimum[-1]["elapsed_time"])                    
+            plt.annotate(info,
+                xy=(0.5, 0), xytext=(0, 10),
+                xycoords=('axes fraction', 'figure fraction'),
+                textcoords='offset points',
+                size=10, ha='center', va='bottom')
+                
+            # plots parametrizations  
             axs.grid()
             axs.yaxis.set_tick_params(length=0)
             axs.xaxis.set_tick_params(length=0)
@@ -400,7 +291,7 @@ class MixSimulator:
             fig.tight_layout()
             name = "Coef_per_centrals_"+datetime.now().strftime("%H:%M:%S")+".png"
             fig.savefig(name)
-            #plt.show()
+            plt.show()
 
         elif mode == "None" :
             pass

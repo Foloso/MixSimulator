@@ -5,9 +5,12 @@ class Demand:
     """
         Manage the Demands data
     """
-    def __init__(self,demand,var_per_day,var_per_season):
+    def __init__(self,demand,var_per_day,var_per_season) -> None:
         self.__var_per_day = var_per_day
         self.__var_per_season = var_per_season
+        self.__mean_demand = demand
+
+    def set_mean_demand(self, demand: float):
         self.__mean_demand = demand
 
     def get_demand_approxima(self,t,interval):
