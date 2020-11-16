@@ -27,6 +27,13 @@ class MixSimulator:
         self.__optimizer =  Optimizer()
         self.__carbon_cost = carbon_cost
         self.__carbon_quota = 800139. # (g/MWh)
+        
+        # for reuse and get_params()
+        self.time_index = 24*7
+        self.step = 1
+        self.time_interval = 1
+        self.plot = "default"
+        self.average_wide = 0
 
     def __reset_centrals(self):
         self.__centrals = []
@@ -92,6 +99,18 @@ class MixSimulator:
             
     def set_demand(self, demand: Demand):
         self.__demand = demand
+        
+    def set_lost(self, lost: float):
+        self.__lost = lost
+        
+    def set_optimizer(self, optimizer: Optimizer):
+        self.__optimizer = optimizer
+        
+    def get_optimizer(self) -> Optimizer:
+        return self.__optimizer
+        
+    def set_carbon_quota(self, cb_quota: float ):
+        self.__carbon_quota = cb_quota
     
     # def get_demand(self, t, time_interval: float = 1):
     #     return self.__demand.get_demand_approxima(t, time_interval)
@@ -199,29 +218,32 @@ class MixSimulator:
                     time_index: int = 24*7, time_interval: float = 1,
                     penalisation : float = None, carbon_cost : float = None, plot : str = "default", average_wide : int = 0):
 
-        self.__time_index = time_index
-        
         # init params                
-        if demand is not None : self.__demand = demand
-        if lost is not None : self.__lost = lost
+        self.time_index = time_index
+        self.step = step
+        self.time_interval = time_interval
+        self.plot = plot
+        self.average_wide = average_wide
+        if demand is not None : self.set_demand(demand)
+        if lost is not None : self.set_lost(lost)
         if penalisation is not None : self.set_penalisation_cost(penalisation)
         if carbon_cost is not None : self.set_carbon_cost(carbon_cost)
-        if carbon_quota is not None : self.__carbon_quota = carbon_quota
-        if optimizer is not None : self.__optimizer = optimizer
+        if carbon_quota is not None : self.set_carbon_quota(carbon_quota)
+        if optimizer is not None : self.set_optimizer(optimizer)
         
         # tune optimizer parametrization
-        self.__opt_params(time_index)
+        self.__opt_params(self.time_index)
         
         #init constraints
         constraints = {}
-        constraints.update({"time_interval":time_interval})
+        constraints.update({"time_interval":self.time_interval})
         
         #let's optimize
-        results = self.__optimizer.optimize(self.loss_function, constraints=constraints, step = step)
+        results = self.__optimizer.optimize(self.loss_function, constraints=constraints, step = self.step)
         
-        results = self.__reshape_results(results, time_interval)
+        results = self.__reshape_results(results, self.time_interval)
 
-        self.plotResults(results, mode = plot , time_interval = time_interval, average_wide = average_wide)
+        self.plotResults(results, mode = self.plot , time_interval = self.time_interval, average_wide = self.average_wide)
         
         return results
 
@@ -237,7 +259,15 @@ class MixSimulator:
         #     except:
         #         pass
         return results
-        
+    
+    def get_params(self) -> dict:
+        return {"centrals" : self.__centrals, "optimizer" : self.get_optimizer(),
+                "penalisation_cost" : self.get_penalisation_cost(), "carbon_cost" : self.get_carbon_cost(),
+                "demand" : self.__demand, "lost" : self.__lost, "carbon_quota" : self.__carbon_quota,
+                "step" : self.step, "time_interval" : self.time_interval, "time_index" : self.time_index,
+                "plot" : self.plot, "moving average_wide" : self.average_wide}
+    
+    ## PLOT ##    
     def moving_average(self, x, w):
         return np.convolve(x, np.ones(w), 'valid') / w
         

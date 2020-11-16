@@ -125,6 +125,10 @@ class Optimizer():
     def get_num_worker(self):
         return self.__num_worker
         
+    def get_params(self) -> dict:
+        return {"optimizer(s)" : self.__optimizers, "budget(s)" : self.get_budget(),
+                "parametrization" : self.get_parametrization(), "num_worker" : self.get_num_worker()}
+    
     def optimize(self, func_to_optimize, constraints = None, step : int = 1):
         
         #setting budgets
