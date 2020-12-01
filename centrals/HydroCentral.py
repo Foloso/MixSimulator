@@ -40,6 +40,7 @@ class HydroCentral(pc):
         return self.__available_stock[t]
 
     def back_propagate(self, usage_coef, t, interval):
+        super().back_propagate(usage_coef, t, interval)
         diff = usage_coef - self.__get_natural_availability(t)
         diff_power = diff * self._raw_power
         # back to m3/s so diff_power has to be in W not in MW ===> *1000
@@ -56,7 +57,8 @@ class HydroCentral(pc):
             current_availability = self.__capacity
         self.__available_stock.append(current_availability)
 
-    def reset_stock(self):
+    def reset_central(self):
+        super().reset_central()
         self.__available_stock = [self.__init_stock]
 
     def get_stock_evolution(self):

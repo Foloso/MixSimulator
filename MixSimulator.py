@@ -146,20 +146,16 @@ class MixSimulator:
 
     def get_weighted_coef(self, usage_coef, time_interval):
         for central_index in range(0, len(usage_coef[0])):
-            try:
-                self.__centrals[central_index].reset_stock()
-            # Not a hydro power plant, so the methode does not exist
-            except:
-                pass
+            self.__centrals[central_index].reset_central()
         weighted_coef = usage_coef.copy()
         for t in range(0, len(weighted_coef)):
             for central_index in range(0, len(weighted_coef[t])):
-                weighted_coef[t][central_index] = weighted_coef[t][central_index] * self.__centrals[central_index].get_availability(t)
-                try:
-                    self.__centrals[central_index].back_propagate(weighted_coef[t][central_index], t, time_interval)
-                # Not a hydro power plant, so the methode does not exist
-                except:
-                    pass
+                min_av = self.__centrals[central_index].get_min_availability(t)
+                max_av = self.__centrals[central_index].get_max_availability(t)
+                if max_av < min_av:
+                    min_av = 0 # a verifier 
+                weighted_coef[t][central_index] = min_av + weighted_coef[t][central_index]*(max_av-min_av)
+                self.__centrals[central_index].back_propagate(weighted_coef[t][central_index], t, time_interval)
         return weighted_coef
 
     def loss_function(self, usage_coef, time_interval : int = 1) -> float :

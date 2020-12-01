@@ -16,6 +16,16 @@ class PowerCentral:
         self._tuneable = tuneable
         self.__fuel_cost = 0. #$/g
         self.__fuel_consumption = 0. #g/MWh
+        self._init_cur_usage = 0
+        self._cur_usage = 0
+        self._max_var = 1
+
+    def set_init_cur_usage(self, init_usage):
+        self._init_cur_usage = init_usage
+        self._cur_usage = init_usage
+
+    def set_max_var(self, max_var):
+        self._max_var = max_var
 
     def set_id(self, identity):
         self._id = identity
@@ -69,6 +79,24 @@ class PowerCentral:
     def get_availability(self, time_index) -> float: # percent
         return self._availability
 
+    def reset_central(self):
+        self._cur_usage = self._init_cur_usage
+
+    def get_max_availability(self, time_index) -> float:
+        theorical_availability = self.get_availability(time_index)
+        if self._cur_usage + self._max_var <= theorical_availability:
+            theorical_availability =  self._cur_usage + self._max_var
+        return theorical_availability
+
+    def get_min_availability(self, time_index) -> float:
+        theorical_availability = 0
+        if self._cur_usage - self._max_var >= theorical_availability:
+            theorical_availability =  self._cur_usage - self._max_var
+        return theorical_availability
+
+    def back_propagate(self, usage_coef, t, time_interval):
+        self._cur_usage = usage_coef
+        
     def set_availability(self, availability: float):
         self._availability = availability
 
