@@ -87,7 +87,7 @@ class MixSimulator:
             self.__demand.set_mean_demand(data["Demand"][0])
             self.__lost=data["lost"][0]
         except KeyError:
-            print("Columns must be in: tuneable, centrals, fuel_consumption, availability, fuel_cost, init_value, lifetime, carbon_cost, raw_power, nb_employees, mean_salary, demand, lost")
+            print("Columns must be in: tuneable, centrals, fuel_consumption, availability, fuel_cost, init_value, lifetime, carbon_cost, raw_power, nb_employees, mean_salary, demand, lost, height, flow, capacity, stock_available")
             raise
             
     def set_data_to(self, dataset):
@@ -191,7 +191,7 @@ class MixSimulator:
         cur_time_coef = []
         for coef_index in range(len(raw_usage_coef)):
             cur_time_coef.append(raw_usage_coef[coef_index])
-            ## indice de la premiere cenrtale a t+1
+            ## indice de la premiere centrale a t+1
             if (coef_index+1)%len(self.__centrals) == 0:
                 ordered_coef.append(cur_time_coef)
                 cur_time_coef = []
@@ -297,7 +297,7 @@ class MixSimulator:
                     axs.plot(X[(average_wide - 1):], smooth_value, '.-' ,alpha=0.5, lw=2, label=central)
             
               
-            # Add exection_time and loss information  
+            # Add execution_time and loss information  
             info = "production_cost: "+str(optimum[-1]["loss"])+" - execution_time: "+str(optimum[-1]["elapsed_time"])                    
             plt.annotate(info,
                 xy=(0.5, 0), xytext=(0, 10),
