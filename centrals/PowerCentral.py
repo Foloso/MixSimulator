@@ -9,7 +9,7 @@ class PowerCentral:
         self._initial_value = 0.
         self._lifetime = 0 #in hour
         self._carbon_prod = 0. #g/MWh
-        self._rawPower = 0. #MW
+        self._raw_power = 0. #MW
         self._availability = 1.  #of the source
         self._nb_employes = 1
         self._mean_salary = 0. #per month
