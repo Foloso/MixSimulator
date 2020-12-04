@@ -83,6 +83,7 @@ class MixSimulator:
                 centrale.set_raw_power(data["raw_power"][i])
                 centrale.set_nb_employees(data["nb_employees"][i])
                 centrale.set_mean_employees_salary(data["mean_salary"][i])
+                centrale.set_max_var(data["max_var"][i])
                 self.__centrals.append(centrale)
             self.__demand.set_mean_demand(data["Demand"][0])
             self.__lost=data["lost"][0]

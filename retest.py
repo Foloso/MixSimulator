@@ -6,7 +6,7 @@ opt_CMA = opt.Optimizer(opt = ["CMA"], budget = [20], num_worker = 1)
 opt_CMA_30 = opt.Optimizer(opt = ["CMA"], budget = [20], num_worker = 30)
 
 mix = ms.MixSimulator()
-mix.set_data_to("MixSimulator/data/RIToamasina/dataset_RI_Toamasina.csv")
+mix.set_data_to("MixSimulator/data/RIToamasina/dataset_RI_Toamasina.csv",delimiter=",")
 
 print(mix.optimizeMix(99999999999999999999,optimizer = opt_CMA, step = 5, time_index = 168),"num_worker <------------ 1")
 print(mix.optimizeMix(99999999999999999999,optimizer = opt_CMA_30, step = 5, time_index = 168),"num_worker <------------ 30")
