@@ -95,7 +95,7 @@ class EvaluationBudget:
             #For label y more than 2
             max_col = ceil(len(label_y)/2)
             min_col = floor(len(label_y)/2)
-            fig, axs = plt.subplots(2, 1, figsize=(10, 8))        
+            fig, axs = plt.subplots(2, max_col, figsize=(10, 8))        
          
             # data integration
             #texts=[]        

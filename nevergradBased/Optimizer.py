@@ -163,7 +163,6 @@ class Optimizer():
                 
                 #Readjustment
                 if mix is not None :
-                    print("in")
                     usage_coef = mix.arrange_coef_as_array_of_array(recommendation.value)
                     weighted_coef = mix.get_weighted_coef(usage_coef, time_interval=constraints["time_interval"])
                     production = 0
