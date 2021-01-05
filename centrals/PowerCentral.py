@@ -133,11 +133,17 @@ class PowerCentral:
             return ng.p.Choice(self._choices)
             
         if self._choices != None :
-            scalar = ng.p.Scalar(lower=self._lower,upper=self._upper)
+            final_params = []
+            for low, up in zip(self._lower, self._upper):
+                final_params.append(ng.p.Scalar(lower=low ,upper=up))
             discret = ng.p.Choice(self._choices)
-            params = ng.p.Choice([scalar,discret])
+            final_params.append(discret)
+            params = ng.p.Choice(final_params)
             return params
             
         else :
-            return ng.p.Scalar(lower=self._lower,upper=self._upper)
-            
+            final_params = []
+            for low, up in zip(self._lower, self._upper):
+                final_params.append(ng.p.Scalar(lower=low ,upper=up))
+            params = ng.p.Choice(final_params)
+            return params            

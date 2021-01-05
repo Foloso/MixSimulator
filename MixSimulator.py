@@ -39,7 +39,6 @@ class MixSimulator:
         self.__centrals = []
         
     ## DATA ##
-        
     def set_variation_csv(self, bind = None, delimiter: str=";") -> None:
         if self.__centrals == []:
              warnings.warn("Please load a original dataset by using MixSimulator.set_data_csv(...)")
@@ -60,10 +59,13 @@ class MixSimulator:
                     for i in range (0,data.shape[0]):
                         if self.__centrals[central_index].get_id() == data["centrals"][i]:
                             tmp_list=[]
-                            for col in data.columns.to_list()[3:]:
-                                if str(data[col][i]) != 'nan':
-                                    tmp_list.append(data[col][i])
-                            self.__centrals[central_index].set_variation_params(lower = data["lower"][i], upper = data["upper"][i], choices = tmp_list)
+                            upper = str(data["upper"][i]).split(":")
+                            upper = [float(numeric_string) for numeric_string in upper]
+                            lower = str(data["lower"][i]).split(":")
+                            lower = [float(numeric_string) for numeric_string in lower]
+                            discrete = str(data["discrete"][i]).split(":")
+                            discrete = [float(numeric_string) for numeric_string in discrete]
+                            self.__centrals[central_index].set_variation_params(lower = lower, upper = upper, choices = discrete)
         
     def set_data_csv(self, bind = None, raw_data = None, delimiter: str=";"):
         if raw_data is not None :
