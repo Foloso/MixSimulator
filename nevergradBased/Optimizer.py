@@ -132,7 +132,7 @@ class Optimizer():
         return {"optimizer(s)" : self.__optimizers, "budget(s)" : self.get_budget(),
                 "parametrization" : self.get_parametrization(), "num_worker" : self.get_num_worker()}
     
-    def optimize(self, func_to_optimize, constraints = None, step : int = 1):
+    def optimize(self, mix = None , func_to_optimize = None, constraints = None, step : int = 1):
         
         #setting budgets
         budgets = self.get_budget()
@@ -160,6 +160,20 @@ class Optimizer():
                 recommendation = optimizer.provide_recommendation()
                 result_per_budget.update({"loss": func_to_optimize(recommendation.value, constraints["time_interval"])})
                 result_per_budget.update({"coef": recommendation.value})
+                
+                #Readjustment
+                if mix is not None :
+                    print("in")
+                    usage_coef = mix.arrange_coef_as_array_of_array(recommendation.value)
+                    weighted_coef = mix.get_weighted_coef(usage_coef, time_interval=constraints["time_interval"])
+                    production = 0
+                    u_demand = 0
+                    for t in range(0, len(weighted_coef)):
+                        production +=  mix.get_production_cost_at_t(weighted_coef[t], t, constraints["time_interval"])
+                        u_demand = mix.get_unsatisfied_demand_at_t(weighted_coef[t], t, constraints["time_interval"])
+                    result_per_budget.update({"production": production})
+                    result_per_budget.update({"unsatisfied demand": u_demand})
+                    result_per_budget.update({"carbon production": mix.get_carbon_production_at_t(weighted_coef[t], constraints["time_interval"])})
                 result_per_budget.update({"elapsed_time": time.time() - start_time})
                 result.append(result_per_budget)
                 
