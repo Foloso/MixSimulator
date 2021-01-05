@@ -179,7 +179,7 @@ class MixSimulator:
         return weighted_coef
 
     def loss_function(self, usage_coef, time_interval : int = 1) -> float :
-        usage_coef = self.__arrange_coef_as_array_of_array(usage_coef)
+        usage_coef = self.arrange_coef_as_array_of_array(usage_coef)
         weighted_coef = self.get_weighted_coef(usage_coef, time_interval=time_interval)
         loss = 0
         for t in range(0, len(weighted_coef)):
@@ -187,7 +187,7 @@ class MixSimulator:
         loss +=  self.get_carbon_cost() * (self.get_carbon_over_production(weighted_coef, time_interval) )
         return loss
 
-    def __arrange_coef_as_array_of_array(self, raw_usage_coef):
+    def arrange_coef_as_array_of_array(self, raw_usage_coef):
         ordered_coef = []
         cur_time_coef = []
         for coef_index in range(len(raw_usage_coef)):
@@ -240,7 +240,7 @@ class MixSimulator:
         constraints.update({"time_interval":self.time_interval})
         
         #let's optimize
-        results = self.__optimizer.optimize(self.loss_function, constraints=constraints, step = self.step)
+        results = self.__optimizer.optimize(mix = self , func_to_optimize = self.loss_function, constraints=constraints, step = self.step)
         
         results = self.__reshape_results(results, self.time_interval)
 
@@ -250,7 +250,7 @@ class MixSimulator:
 
     def __reshape_results(self, results, time_interval):
         for tmp in results:
-            usage_coef = self.__arrange_coef_as_array_of_array(tmp['coef'])
+            usage_coef = self.arrange_coef_as_array_of_array(tmp['coef'])
             tmp.update({"coef":self.get_weighted_coef(usage_coef, time_interval)})
 
         # for central_index in range(0, len(self.__centrals)):
