@@ -129,21 +129,27 @@ class PowerCentral:
         self._choices = choices
         
     def get_variation_params(self) -> ng.p.Choice:
-        if self._lower == self._upper :
-            return ng.p.Choice(self._choices)
-            
+        final_params = []        
         if self._choices != None :
-            final_params = []
-            for low, up in zip(self._lower, self._upper):
-                final_params.append(ng.p.Scalar(lower=low ,upper=up))
-            discret = ng.p.Choice(self._choices)
-            final_params.append(discret)
-            params = ng.p.Choice(final_params)
-            return params
+            if self._lower == self._upper :
+                return ng.p.Choice(self._choices)
+            else :
+                for low, up in zip(self._lower, self._upper):
+                    if low == up : continue
+                    final_params.append(ng.p.Scalar(lower=low ,upper=up))
+                discret = ng.p.Choice(self._choices)
+                final_params.append(discret)
+                params = ng.p.Choice(final_params)
+                return params
             
         else :
-            final_params = []
-            for low, up in zip(self._lower, self._upper):
-                final_params.append(ng.p.Scalar(lower=low ,upper=up))
-            params = ng.p.Choice(final_params)
-            return params            
+            if self._lower != 0. and self._upper != 1. :
+                for low, up in zip(self._lower, self._upper):
+                    final_params.append(ng.p.Scalar(lower=low ,upper=up))
+                params = ng.p.Choice(final_params)
+                return params 
+            else :
+                final_params.append(ng.p.Scalar(lower=self._lower ,upper=self._upper))
+                params = ng.p.Choice(final_params)
+                return params
+                
