@@ -12,7 +12,8 @@ The primary objective of the simulator is to study the relevance of an energy mi
 
 
 ### Perspectives :
-- Add other constraints (max variation in production for each power plant) ;
+- Add other constraints ;
+- Long-term Optimization ;
 - Pair with a transmission and distribution power grid simulator (MixSimulator can provide input data).
 
 Suggestions are welcome!
@@ -33,6 +34,7 @@ List of classes and directories :
 - centrals/* : Gathers all the common specifications of the control units (central) ;
 - Evaluation : Class for evaluating mix based on performance indicators on several optimizers ;
 - data/ : Groups the available datasets. 
+- documentation/ : Get documents about the project.
 
 Official documentation will accompany the first release version.
 
