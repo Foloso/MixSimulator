@@ -106,6 +106,9 @@ class Optimizer():
                 result.append(opt)
         return result
     
+    def get_optimizers(self):
+        return self.__optimizers
+    
     def set_parametrization(self, instrum):
         self.__parametrization = instrum
         

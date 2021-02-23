@@ -7,6 +7,7 @@ from math import ceil
 from math import floor
 #import itertools
 from typing import List
+import warnings
 from .nevergradBased import Optimizer as opt
 from . import Demand as de
 from datetime import datetime
@@ -37,7 +38,7 @@ class EvaluationBudget:
                 labelY=''
         return [labelY,units]
         
-    def plot_evaluation_2(self, X, Y, label_y : List['str'], label : List = ["Optimizer"], max_budgets = 0, average_wide : int = 0, plot = "default"):
+    def plot_evaluation(self, X, Y, label_y : List['str'], label : List = ["Optimizer"], max_budgets = 0, average_wide : int = 0, plot = "save"):
         
         #set the moving average wide
         if average_wide == 0 :
@@ -89,7 +90,21 @@ class EvaluationBudget:
                     fig.delaxes(axs[n_axs])
                 
             fig.tight_layout()
-            plt.show()
+            
+            if plot == "save": 
+                try:
+                    path = "results_"+datetime.now().strftime("%d_%m_%Y")
+                    name = path+"/Evaluation_"+datetime.now().strftime("%d%m%Y_%H%M%S")+".png"
+                    fig.savefig(name)
+                    plt.show()
+                except FileNotFoundError:
+                    warnings.warn("Can't find the directory "+path)
+                    name = "Evaluation_"+datetime.now().strftime("%d%m%Y_%H%M%S")+".png"
+                    fig.savefig(name)
+                    plt.show()
+                    
+            else :
+                plt.show()
             
         else :
             #For label y more than 2
@@ -166,8 +181,17 @@ class EvaluationBudget:
             fig.tight_layout()
             
             if plot == "save": 
-                name = "Evaluation_"+datetime.now().strftime("%H:%M:%S")+".png"
-                fig.savefig(name)
+                try:
+                    path = "results_"+datetime.now().strftime("%d_%m_%Y")
+                    name = path+"/Evaluation_"+datetime.now().strftime("%d%m%Y_%H%M%S")+".png"
+                    fig.savefig(name)
+                    plt.show()
+                except FileNotFoundError:
+                    warnings.warn("Can't find the directory "+path)
+                    name = "Evaluation_"+datetime.now().strftime("%d%m%Y_%H%M%S")+".png"
+                    fig.savefig(name)
+                    plt.show()
+                    
             else :
                 plt.show()
 
@@ -235,7 +259,7 @@ class EvaluationBudget:
             y_tmp.update({indicator: new_ind_per_opt})
             
         #plotting
-        self.plot_evaluation_2(X=np.array(budget),Y=y_tmp,label_y = indicator_list, label=optimizer_list, max_budgets = max_budgets, average_wide = average_wide)
+        self.plot_evaluation(X=np.array(budget),Y=y_tmp,label_y = indicator_list, label=optimizer_list, max_budgets = max_budgets, average_wide = average_wide)
         
         #return X, Y, opt_list, max_budgets
         return [np.array(budget),y_tmp,optimizer_list,max_budgets]
@@ -302,7 +326,9 @@ class EvaluationBudget:
                 optimizers_dict.update({opt_name:per_budget})
             result.update({indicator: optimizers_dict})
 
-        self.plot_evaluation_2(X=np.array(budget),Y=result,label_y = indicator_list, label=optimizer_list, max_budgets = max_budgets,average_wide = average_wide, plot = plot)
+        #plotting
+        self.plot_evaluation(X=np.array(budget),Y=result,label_y = indicator_list, label=optimizer_list, max_budgets = max_budgets,average_wide = average_wide, plot = plot)
+        
         #return X, Y, opt_list, max_budgets
         return [np.array(budget),result,optimizer_list,max_budgets]
                 
