@@ -26,7 +26,7 @@ pip install mixsimulator
 MixSimulator is written in Python 3.6 and requires the following Python packages : nevergrad, typing, numpy, pandas and matplotlib.
 
 ## How to run
-As MixSimulator is a python package, it can be called and used as we can see in `retest.py`.
+As MixSimulator is a python package, it can be called and used as we can see in `test.py`.
 
 List of classes and directories :
 - MixSimulator : System basis (Adaptation of the Nevergrad optimizers to the project and auto-parameterization) ;
@@ -34,7 +34,7 @@ List of classes and directories :
 - centrals/* : Gathers all the common specifications of the control units (central) ;
 - Evaluation : Class for evaluating mix based on performance indicators on several optimizers ;
 - data/ : Groups the available datasets. 
-- documentation/ : Get documents about the project.
+- documentation/ : documents about the project.
 
 Official documentation will accompany the first release version.
 
