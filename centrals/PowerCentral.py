@@ -145,7 +145,6 @@ class PowerCentral:
         else :
             if self._lower != 0. and self._upper != 1. :
                 for low, up in zip(self._lower, self._upper):
-                    if low == up : continue
                     final_params.append(ng.p.Scalar(lower=low ,upper=up))
                 params = ng.p.Choice(final_params)
                 return params 
