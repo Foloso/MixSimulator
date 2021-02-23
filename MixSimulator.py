@@ -7,6 +7,7 @@ import numpy as np # type: ignore
 import pandas as pd # type: ignore
 import pkgutil
 import csv
+import os
 import warnings
 from math import ceil
 #import time
@@ -299,7 +300,7 @@ class MixSimulator:
             
               
             # Add execution_time and loss information  
-            info = "production_cost: "+str(optimum[-1]["loss"])+" - execution_time: "+str(optimum[-1]["elapsed_time"])                    
+            info = "production_cost: "+ "{:.3f}".format(optimum[-1]["loss"])+" ; execution_time: "+"{:.3f}".format(optimum[-1]["elapsed_time"])                    
             plt.annotate(info,
                 xy=(0.5, 0), xytext=(0, 10),
                 xycoords=('axes fraction', 'figure fraction'),
@@ -316,9 +317,23 @@ class MixSimulator:
             axs.legend()
                 
             fig.tight_layout()
-            name = "Coef_per_centrals_"+datetime.now().strftime("%H:%M:%S")+".png"
-            fig.savefig(name)
-            plt.show()
+            try :
+                path = "results_"+datetime.now().strftime("%d_%m_%Y")
+                os.makedirs(path)
+                name = path+"/"+"opt_"+str(self.get_optimizer().get_optimizers())+"_"+datetime.now().strftime("%H%M%S")+".png"
+                fig.savefig(name)
+                plt.show()
+                
+            except OSError:
+                warnings.warn("Can't create the directory "+path)
+                try : 
+                    name = path+"/"+"opt_"+str(self.get_optimizer().get_optimizers())+"_"+datetime.now().strftime("%H%M%S")+".png"
+                    fig.savefig(name)
+                    plt.show()
+                except FileNotFoundError:
+                    name = "opt_"+str(self.get_optimizer().get_optimizers())+"_"+datetime.now().strftime("%H%M%S")+".png"
+                    fig.savefig(name)
+                    plt.show()
 
         elif mode == "None" :
             pass
