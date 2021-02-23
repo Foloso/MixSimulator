@@ -92,15 +92,18 @@ class MixSimulator:
             print("Columns must be in: tuneable, centrals, fuel_consumption, availability, fuel_cost, init_value, lifetime, carbon_cost, raw_power, nb_employees, mean_salary, demand, lost, height, flow, capacity, stock_available")
             raise
             
-    def set_data_to(self, dataset):
+    def set_data_to(self, dataset, delimiter: str=";"):
         #if dataset == "Toamasina":
         #by defaut we keep it "Toamasina"
         data = pkgutil.get_data('mixsimulator', '/data/RIToamasina/dataset_RI_Toamasina.csv')
-        data = csv.reader(data.decode('utf-8').splitlines(), delimiter=';')
+        data = csv.reader(data.decode('utf-8').splitlines(), delimiter = delimiter)
         self.set_data_csv(raw_data=data)
             
     def set_demand(self, demand: Demand):
         self.__demand = demand
+        
+    def get_demand(self):
+        return self.__demand
         
     def set_lost(self, lost: float):
         self.__lost = lost
@@ -113,9 +116,6 @@ class MixSimulator:
         
     def set_carbon_quota(self, cb_quota: float ):
         self.__carbon_quota = cb_quota
-    
-    # def get_demand(self, t, time_interval: float = 1):
-    #     return self.__demand.get_demand_approxima(t, time_interval)
 
     def set_penalisation_cost(self, k):
         self.__penalisation_cost = k
@@ -278,7 +278,7 @@ class MixSimulator:
         if average_wide == 0 :
             average_wide = ceil(len(optimum[-1]["coef"])/4)
     
-        if mode == "default" :
+        if mode == "default" or mode == "save":
             #set Y
             Y: Dict[str,List[float]] ={}
             label_y: List[str]=[]
@@ -322,21 +322,24 @@ class MixSimulator:
                 os.makedirs(path)
                 name = path+"/"+"opt_"+str(self.get_optimizer().get_optimizers())+"_"+datetime.now().strftime("%H%M%S")+".png"
                 fig.savefig(name)
-                plt.show()
+                if mode == "default" :
+                    plt.show()
                 
             except OSError:
-                warnings.warn("Can't create the directory "+path)
+                warnings.warn("Can't create the directory "+path+" or already exists")
                 try : 
                     name = path+"/"+"opt_"+str(self.get_optimizer().get_optimizers())+"_"+datetime.now().strftime("%H%M%S")+".png"
                     fig.savefig(name)
-                    plt.show()
+                    if mode == "default" :
+                        plt.show()
                 except FileNotFoundError:
                     name = "opt_"+str(self.get_optimizer().get_optimizers())+"_"+datetime.now().strftime("%H%M%S")+".png"
                     fig.savefig(name)
-                    plt.show()
+                    if mode == "default" :
+                        plt.show()
 
         elif mode == "None" :
             pass
         else :
-            warnings.warn("Choose an available option : default, coef and None")
+            warnings.warn("Choose an available option : default, save or None")
             #plt.show()
