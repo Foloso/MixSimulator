@@ -1,2 +1,3 @@
 include data/RIToamasina/dataset_RI_Toamasina.csv
+include data/RIToamasina/dataset_RI_Toamasina_v2.csv
 include LICENSE
