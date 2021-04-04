@@ -152,7 +152,8 @@ class MixSimulator:
         return production
 
     def get_unsatisfied_demand_at_t(self, usage_coef, time_index, time_interval):
-        return ( self.__demand.get_demand_approxima(time_index, time_interval) - self.get_production_at_t(usage_coef, time_interval))
+        #return ( self.__demand.get_demand_approxima(time_index, time_interval) - self.get_production_at_t(usage_coef, time_interval))
+        return ( self.__demand.get_demand_monthly(time_index, time_interval) - self.get_production_at_t(usage_coef, time_interval))
         
     def get_carbon_production_at_t(self, usage_coef, time_interval):
         carbon_prod = 0
