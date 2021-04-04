@@ -9,7 +9,7 @@ opt_CMA_30 = opt.Optimizer(opt = ["CMA"], budget = [20], num_worker = 30)
 mix = ms.MixSimulator()
 mix.set_data_to("MixSimulator/data/RIToamasina/dataset_RI_Toamasina_v2.csv",delimiter=";")
 demand = dm.Demand()
-data_demand = demand.set_data_csv("ConsumptionSimulator/DIR-TOAMASINA_concat.csv", delimiter = ",")
+data_demand = demand.set_data_csv("MixSimulator/data/RIToamasina/DIR-TOAMASINA_concat.csv", delimiter = ",")
 data_demand.to_csv("data_demand.csv")
 mix.set_demand(demand)
 
