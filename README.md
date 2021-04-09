@@ -23,7 +23,7 @@ It can be installed with :
 ```python
 pip install mixsimulator
 ```
-MixSimulator is written in Python 3.6 and requires the following Python packages : nevergrad, typing, numpy, pandas and matplotlib.
+MixSimulator is written in Python 3.6 and requires the following Python packages : nevergrad, prophet, typing, numpy, pandas and matplotlib.
 
 ## How to run
 As MixSimulator is a python package, it can be called and used as we can see in `test.py`.
