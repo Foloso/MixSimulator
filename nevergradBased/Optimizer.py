@@ -16,12 +16,12 @@ class Optimizer():
         self.set_parametrization(instrum)
         self.set_num_worker(num_worker)
         
-         ### available optimizers
+        ### available optimizers
         self.__available_optimizers = {Type[str]:Type[object]}
         nevergrad_optimizers = list(ng.optimizers.registry.keys())
         for ng_opt in nevergrad_optimizers:
             self.__available_optimizers.update({ng_opt:ng.optimizers.registry[ng_opt]})
-        
+  
         convert_opt = []
         for opt_ng in opt:
             if opt_ng in list(self.__available_optimizers.values()):

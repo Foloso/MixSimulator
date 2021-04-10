@@ -38,7 +38,36 @@ class MixSimulator:
 
     def __reset_centrals(self):
         self.__centrals = []
-
+        
+    ## DATA ##
+    def set_variation_csv(self, bind = None, delimiter: str=";") -> None:
+        if self.__centrals == []:
+             warnings.warn("Please load a original dataset by using MixSimulator.set_data_csv(...)")
+             raise 
+        else :
+            try :
+                data = pd.DataFrame(pd.read_csv(bind,delimiter=delimiter))
+            except FileNotFoundError as e :
+                    print("Error occured on pandas.read_csv : ",e)
+                    print("Please check your file")
+                    raise           
+            except Exception as e:
+                    print("Error occured on pandas.read_csv : ",e)
+                    raise
+                    
+            for central_index in range(len(self.__centrals)):
+                if self.__centrals[central_index].is_tuneable():
+                    for i in range (0,data.shape[0]):
+                        if self.__centrals[central_index].get_id() == data["centrals"][i]:
+                            tmp_list=[]
+                            upper = str(data["upper"][i]).split(":")
+                            upper = [float(numeric_string) for numeric_string in upper]
+                            lower = str(data["lower"][i]).split(":")
+                            lower = [float(numeric_string) for numeric_string in lower]
+                            discrete = str(data["discrete"][i]).split(":")
+                            discrete = [float(numeric_string) for numeric_string in discrete]
+                            self.__centrals[central_index].set_variation_params(lower = lower, upper = upper, choices = discrete)
+        
     def set_data_csv(self, bind = None, raw_data = None, delimiter: str=";"):
         if raw_data is not None :
             data = pd.DataFrame(raw_data)
@@ -218,7 +247,9 @@ class MixSimulator:
                 if not self.__centrals[central_index].is_tuneable():
                     variable_parametrization += [ng.p.Choice([0.,1.])]
                 else:
-                    variable_parametrization += [ng.p.Scalar(lower=0., upper=1.)]
+                    #check the params by 
+                    #print(self.__centrals[central_index].get_variation_params())
+                    variable_parametrization += [self.__centrals[central_index].get_variation_params()]
         return ng.p.Tuple(*variable_parametrization)
 
     def optimizeMix(self, carbon_quota: float = None, demand: Demand = None, lost: float = None, 

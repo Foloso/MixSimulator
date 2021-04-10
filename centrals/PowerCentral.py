@@ -1,3 +1,6 @@
+from typing import List
+import nevergrad as ng
+
 class PowerCentral:
     """
         Class for basic power plant 
@@ -19,6 +22,9 @@ class PowerCentral:
         self._init_cur_usage = 0
         self._cur_usage = 0
         self._max_var = 1
+        self._lower = 0.
+        self._upper = 1.
+        self._choices = None
 
     def set_init_cur_usage(self, init_usage):
         self._init_cur_usage = init_usage
@@ -116,3 +122,34 @@ class PowerCentral:
             usage_coef = min(self._availability, usage_coef)
         else:
             usage_coef = self._availability
+            
+    def set_variation_params(self, lower: float, upper : float, choices : List[float] = None) -> None:
+        self._lower = lower
+        self._upper = upper
+        self._choices = choices
+        
+    def get_variation_params(self) -> ng.p.Choice:
+        final_params = []        
+        if self._choices != None :
+            if self._lower == self._upper :
+                return ng.p.Choice(self._choices)
+            else :
+                for low, up in zip(self._lower, self._upper):
+                    if low == up : continue
+                    final_params.append(ng.p.Scalar(lower=low ,upper=up))
+                discret = ng.p.Choice(self._choices)
+                final_params.append(discret)
+                params = ng.p.Choice(final_params)
+                return params
+            
+        else :
+            if self._lower != 0. and self._upper != 1. :
+                for low, up in zip(self._lower, self._upper):
+                    final_params.append(ng.p.Scalar(lower=low ,upper=up))
+                params = ng.p.Choice(final_params)
+                return params 
+            else :
+                final_params.append(ng.p.Scalar(lower=self._lower ,upper=self._upper))
+                params = ng.p.Choice(final_params)
+                return params
+                
