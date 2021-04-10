@@ -12,7 +12,8 @@ The primary objective of the simulator is to study the relevance of an energy mi
 
 
 ### Perspectives :
-- Add other constraints (max variation in production for each power plant) ;
+- Add other constraints ;
+- Long-term Optimization ;
 - Pair with a transmission and distribution power grid simulator (MixSimulator can provide input data).
 
 Suggestions are welcome!
@@ -22,10 +23,10 @@ It can be installed with :
 ```python
 pip install mixsimulator
 ```
-MixSimulator is written in Python 3.6 and requires the following Python packages : nevergrad, typing, numpy, pandas and matplotlib.
+MixSimulator is written in Python 3.6 and requires the following Python packages : nevergrad, prophet, typing, numpy, pandas and matplotlib.
 
 ## How to run
-As MixSimulator is a python package, it can be called and used as we can see in `retest.py`.
+As MixSimulator is a python package, it can be called and used as we can see in `test.py`.
 
 List of classes and directories :
 - MixSimulator : System basis (Adaptation of the Nevergrad optimizers to the project and auto-parameterization) ;
@@ -33,6 +34,7 @@ List of classes and directories :
 - centrals/* : Gathers all the common specifications of the control units (central) ;
 - Evaluation : Class for evaluating mix based on performance indicators on several optimizers ;
 - data/ : Groups the available datasets. 
+- documentation/ : documents about the project.
 
 Official documentation will accompany the first release version.
 
@@ -70,8 +72,3 @@ For questions and feedbacks related to the project, please send an email to r.an
 
 ## Note
 This project is a work in progress so it can not yet used in production (Many changes are on their way). Feedbacks are welcome!
-
-Here is a list of available optimizers:
-```
-['cGA', 'SplitOptimizer', 'RecombiningPortfolioOptimisticNoisyDiscreteOnePlusOne', 'RecES', 'RealSpacePSO', 'RandomSearchPlusMiddlePoint', 'QrDE', 'QORandomSearch', 'OptimisticNoisyOnePlusOne', 'OptimisticDiscreteOnePlusOne', 'ORandomSearch', 'NoisyOnePlusOne', 'NoisyDiscreteOnePlusOne', 'NoisyDE', 'NoisyBandit', 'NelderMead', 'NaiveTBPSA', 'NaiveIsoEMNA', 'LhsDE', 'FCMA', 'ES', 'DoubleFastGADiscreteOnePlusOne', 'DiscreteOnePlusOne', 'CauchyOnePlusOne', 'CM', 'AlmostRotationInvariantDE', 'TwoPointsDE', 'RandomSearch', 'OnePlusOne', 'DE', 'CMA', 'PSO', 'TBPSA','NGOpt','LHSSearch', 'CauchyLHSSearch','CauchyScrHammersleySearch']
-```

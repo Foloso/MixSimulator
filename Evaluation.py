@@ -7,6 +7,7 @@ from math import ceil
 from math import floor
 #import itertools
 from typing import List
+import warnings
 from .nevergradBased import Optimizer as opt
 from . import Demand as de
 from datetime import datetime
@@ -37,7 +38,12 @@ class EvaluationBudget:
                 labelY=''
         return [labelY,units]
         
-    def plot_evaluation_2(self, X, Y, label_y : List['str'], label : List = ["Optimizer"], max_budgets = 0, average_wide : int = 0, plot = "default"):
+    def plot_evaluation(self, X, Y, label_y : List['str'], label : List = ["Optimizer"], max_budgets = 0, average_wide : int = 0, plot = "save"):
+        #reset all possible previous plots
+        try :
+            plt.close("all")  
+        except :
+            pass              
         
         #set the moving average wide
         if average_wide == 0 :
@@ -89,13 +95,27 @@ class EvaluationBudget:
                     fig.delaxes(axs[n_axs])
                 
             fig.tight_layout()
-            plt.show()
+            
+            if plot == "save": 
+                try:
+                    path = "results_"+datetime.now().strftime("%d_%m_%Y")
+                    name = path+"/Evaluation_"+datetime.now().strftime("%d%m%Y_%H%M%S")+".png"
+                    fig.savefig(name)
+                    plt.show()
+                except FileNotFoundError:
+                    warnings.warn("Can't find the directory "+path)
+                    name = "Evaluation_"+datetime.now().strftime("%d%m%Y_%H%M%S")+".png"
+                    fig.savefig(name)
+                    plt.show()
+                    
+            else :
+                plt.show()
             
         else :
             #For label y more than 2
             max_col = ceil(len(label_y)/2)
             min_col = floor(len(label_y)/2)
-            fig, axs = plt.subplots(2, 1, figsize=(10, 8))        
+            fig, axs = plt.subplots(2, max_col, figsize=(10, 8))        
          
             # data integration
             #texts=[]        
@@ -166,8 +186,17 @@ class EvaluationBudget:
             fig.tight_layout()
             
             if plot == "save": 
-                name = "Evaluation_"+datetime.now().strftime("%H:%M:%S")+".png"
-                fig.savefig(name)
+                try:
+                    path = "results_"+datetime.now().strftime("%d_%m_%Y")
+                    name = path+"/Evaluation_"+datetime.now().strftime("%d%m%Y_%H%M%S")+".png"
+                    fig.savefig(name)
+                    plt.show()
+                except FileNotFoundError:
+                    warnings.warn("Can't find the directory "+path)
+                    name = "Evaluation_"+datetime.now().strftime("%d%m%Y_%H%M%S")+".png"
+                    fig.savefig(name)
+                    plt.show()
+                    
             else :
                 plt.show()
 
@@ -222,7 +251,7 @@ class EvaluationBudget:
         for opt_name in optimizer_list:
             opt_index = opt.Optimizer(opt=[opt_name], budget = [max_budgets], num_worker = num_worker)
             data = mix.optimizeMix(carbon_quota = carbonProdLimit,
-                            time_interval = time_interval, optimizer = opt_index, step = sequence, penalisation = penalisation, time_index = time_index, carbon_cost = carbon_cost)
+                            time_interval = time_interval, optimizer = opt_index, step = sequence, penalisation = penalisation, time_index = time_index, carbon_cost = carbon_cost, plot = "save")
             ind_per_opt.update({opt_name:data})
 
         for indicator in indicator_list:
@@ -235,11 +264,12 @@ class EvaluationBudget:
             y_tmp.update({indicator: new_ind_per_opt})
             
         #plotting
-        self.plot_evaluation_2(X=np.array(budget),Y=y_tmp,label_y = indicator_list, label=optimizer_list, max_budgets = max_budgets, average_wide = average_wide)
+        self.plot_evaluation(X=np.array(budget),Y=y_tmp,label_y = indicator_list, label=optimizer_list, max_budgets = max_budgets, average_wide = average_wide)
         
         #return X, Y, opt_list, max_budgets
         return [np.array(budget),y_tmp,optimizer_list,max_budgets]
         
+    # NOT USE : NEED VERIFICATION
     def evaluate_total_time(self, mix, sequence, max_budgets, optimizer_list: List['str'],
                             indicator_list: List['str'], bind = None, carbonProdLimit: float = 500000,
                             time_index: int = 24*265, time_interval : float = 1, average_wide : int = 0, penalisation : float = 1000000000000, plot : str = "default"):
@@ -256,7 +286,7 @@ class EvaluationBudget:
         
        #process
         data_interval = []
-        current_demand=de.Demand(mix.get_demand(),0.2,0.3)
+        current_demand=de.Demand(mix.get_demand(),0.2,0.2)
         for time in range(0,time_index):
             mix.set_demand(current_demand.get_demand_approxima(time,time_interval))
             ind_per_opt = {}
@@ -302,7 +332,9 @@ class EvaluationBudget:
                 optimizers_dict.update({opt_name:per_budget})
             result.update({indicator: optimizers_dict})
 
-        self.plot_evaluation_2(X=np.array(budget),Y=result,label_y = indicator_list, label=optimizer_list, max_budgets = max_budgets,average_wide = average_wide, plot = plot)
+        #plotting
+        self.plot_evaluation(X=np.array(budget),Y=result,label_y = indicator_list, label=optimizer_list, max_budgets = max_budgets,average_wide = average_wide, plot = plot)
+        
         #return X, Y, opt_list, max_budgets
         return [np.array(budget),result,optimizer_list,max_budgets]
                 

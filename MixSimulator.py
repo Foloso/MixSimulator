@@ -7,6 +7,7 @@ import numpy as np # type: ignore
 import pandas as pd # type: ignore
 import pkgutil
 import csv
+import os
 import warnings
 from math import ceil
 #import time
@@ -120,15 +121,23 @@ class MixSimulator:
             print("Columns must be in: tuneable, centrals, fuel_consumption, availability, fuel_cost, init_value, lifetime, carbon_cost, raw_power, nb_employees, mean_salary, demand, lost, height, flow, capacity, stock_available")
             raise
             
-    def set_data_to(self, dataset):
-        #if dataset == "Toamasina":
-        #by defaut we keep it "Toamasina"
-        data = pkgutil.get_data('mixsimulator', '/data/RIToamasina/dataset_RI_Toamasina.csv')
-        data = csv.reader(data.decode('utf-8').splitlines(), delimiter=';')
-        self.set_data_csv(raw_data=data)
+    def set_data_to(self, dataset, delimiter: str=";"):
+        if dataset == "Toamasina":
+            #by defaut we keep it "Toamasina"
+            data = pkgutil.get_data('mixsimulator', '/data/RIToamasina/dataset_RI_Toamasina_v2.csv')
+            data = csv.reader(data.decode('utf-8').splitlines(), delimiter = delimiter)
+            self.set_data_csv(raw_data=data)
+        else :
+            #by defaut we keep it "Toamasina"
+            data = pkgutil.get_data('mixsimulator', '/data/RIToamasina/dataset_RI_Toamasina.csv')
+            data = csv.reader(data.decode('utf-8').splitlines(), delimiter = delimiter)
+            self.set_data_csv(raw_data=data)
             
     def set_demand(self, demand: Demand):
         self.__demand = demand
+        
+    def get_demand(self):
+        return self.__demand
         
     def set_lost(self, lost: float):
         self.__lost = lost
@@ -141,9 +150,6 @@ class MixSimulator:
         
     def set_carbon_quota(self, cb_quota: float ):
         self.__carbon_quota = cb_quota
-    
-    # def get_demand(self, t, time_interval: float = 1):
-    #     return self.__demand.get_demand_approxima(t, time_interval)
 
     def set_penalisation_cost(self, k):
         self.__penalisation_cost = k
@@ -175,7 +181,8 @@ class MixSimulator:
         return production
 
     def get_unsatisfied_demand_at_t(self, usage_coef, time_index, time_interval):
-        return ( self.__demand.get_demand_approxima(time_index, time_interval) - self.get_production_at_t(usage_coef, time_interval))
+        #return ( self.__demand.get_demand_approxima(time_index, time_interval) - self.get_production_at_t(usage_coef, time_interval))
+        return ( self.__demand.get_demand_monthly(time_index, time_interval) - self.get_production_at_t(usage_coef, time_interval))
         
     def get_carbon_production_at_t(self, usage_coef, time_interval):
         carbon_prod = 0
@@ -208,7 +215,7 @@ class MixSimulator:
         return weighted_coef
 
     def loss_function(self, usage_coef, time_interval : int = 1) -> float :
-        usage_coef = self.__arrange_coef_as_array_of_array(usage_coef)
+        usage_coef = self.arrange_coef_as_array_of_array(usage_coef)
         weighted_coef = self.get_weighted_coef(usage_coef, time_interval=time_interval)
         loss = 0
         for t in range(0, len(weighted_coef)):
@@ -216,7 +223,7 @@ class MixSimulator:
         loss +=  self.get_carbon_cost() * (self.get_carbon_over_production(weighted_coef, time_interval) )
         return loss
 
-    def __arrange_coef_as_array_of_array(self, raw_usage_coef):
+    def arrange_coef_as_array_of_array(self, raw_usage_coef):
         ordered_coef = []
         cur_time_coef = []
         for coef_index in range(len(raw_usage_coef)):
@@ -271,7 +278,7 @@ class MixSimulator:
         constraints.update({"time_interval":self.time_interval})
         
         #let's optimize
-        results = self.__optimizer.optimize(self.loss_function, constraints=constraints, step = self.step)
+        results = self.__optimizer.optimize(mix = self , func_to_optimize = self.loss_function, constraints=constraints, step = self.step)
         
         results = self.__reshape_results(results, self.time_interval)
 
@@ -281,7 +288,7 @@ class MixSimulator:
 
     def __reshape_results(self, results, time_interval):
         for tmp in results:
-            usage_coef = self.__arrange_coef_as_array_of_array(tmp['coef'])
+            usage_coef = self.arrange_coef_as_array_of_array(tmp['coef'])
             tmp.update({"coef":self.get_weighted_coef(usage_coef, time_interval)})
 
         # for central_index in range(0, len(self.__centrals)):
@@ -308,7 +315,7 @@ class MixSimulator:
         if average_wide == 0 :
             average_wide = ceil(len(optimum[-1]["coef"])/4)
     
-        if mode == "default" :
+        if mode == "default" or mode == "save":
             #set Y
             Y: Dict[str,List[float]] ={}
             label_y: List[str]=[]
@@ -330,7 +337,7 @@ class MixSimulator:
             
               
             # Add execution_time and loss information  
-            info = "production_cost: "+str(optimum[-1]["loss"])+" - execution_time: "+str(optimum[-1]["elapsed_time"])                    
+            info = "production_cost: "+ "{:.3f}".format(optimum[-1]["loss"])+" ; execution_time: "+"{:.3f}".format(optimum[-1]["elapsed_time"])                    
             plt.annotate(info,
                 xy=(0.5, 0), xytext=(0, 10),
                 xycoords=('axes fraction', 'figure fraction'),
@@ -347,12 +354,29 @@ class MixSimulator:
             axs.legend()
                 
             fig.tight_layout()
-            name = "Coef_per_centrals_"+datetime.now().strftime("%H:%M:%S")+".png"
-            fig.savefig(name)
-            plt.show()
+            try :
+                path = "results_"+datetime.now().strftime("%d_%m_%Y")
+                os.makedirs(path)
+                name = path+"/"+"opt_"+str(self.get_optimizer().get_optimizers())+"_"+datetime.now().strftime("%H%M%S")+".png"
+                fig.savefig(name)
+                if mode == "default" :
+                    plt.show()
+                
+            except OSError:
+                warnings.warn("Can't create the directory "+path+" or already exists")
+                try : 
+                    name = path+"/"+"opt_"+str(self.get_optimizer().get_optimizers())+"_"+datetime.now().strftime("%H%M%S")+".png"
+                    fig.savefig(name)
+                    if mode == "default" :
+                        plt.show()
+                except FileNotFoundError:
+                    name = "opt_"+str(self.get_optimizer().get_optimizers())+"_"+datetime.now().strftime("%H%M%S")+".png"
+                    fig.savefig(name)
+                    if mode == "default" :
+                        plt.show()
 
         elif mode == "None" :
             pass
         else :
-            warnings.warn("Choose an available option : default, coef and None")
+            warnings.warn("Choose an available option : default, save or None")
             #plt.show()
