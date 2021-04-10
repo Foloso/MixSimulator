@@ -1,7 +1,7 @@
+import pandas as pd
+from prophet import Prophet 
 from math import pi
 from math import cos, floor
-from prophet import Prophet 
-import pandas as pd
 
 class Demand:
     """
@@ -14,7 +14,6 @@ class Demand:
         self.__mean_demand = demand
         self.__pt = Prophet(seasonality_mode='multiplicative')
         self.__periods = 12*20
-        
         self.data_demand = None
 
     def set_forcast_periods(self, periods) -> None:
@@ -27,7 +26,7 @@ class Demand:
             - year : int,
             - the monthly demand in kwh (determinated by the parameter "column")
             
-            The method use also a forcast model from prophet to predict future demand.
+            The method also use a forcast model from prophet to predict future demand.
             The periods can be set by set_forcast_periods.
         """        
         data = pd.read_csv(bind, delimiter = delimiter) 
