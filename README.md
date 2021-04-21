@@ -38,8 +38,10 @@ List of classes and directories :
 
 Official documentation will accompany the first release version.
 
-## DataSet
-The dataset "data/dataset_RI_Toamasina" is for the test and it comes from the Inter-connected energy mix of Toamasina Madagascar (2017) and Some information from the dataset is estimated.
+## Datasets
+
+### Power plants dataset
+The dataset "dataset_RI_Toamasina_v2.csv" is for the test and it comes from the Inter-connected energy mix of Toamasina Madagascar (2017) and Some information from the dataset is estimated.
 
 Dataset features needed:
 - `tuneable` (boolean): is the control unit controllable or not?
@@ -66,6 +68,12 @@ Hydro specification :
 - `capacity` : max water reservoir.
 
 `nb_employees * mean_salary` **can be used as a variable cost of the plant if you want to directly use other informations as variable cost.**
+
+### Demand and Variation datas
+There is also "DIR-TOAMASINA_concat.csv" about Consumption data (in kwh, more details in Demand.py) and "dataset_RI_Toamasina_variation_template.csv" about limits in variation of power plants load following (WIP). 
+
+**If you have datasets of any region in the world that can be used to evaluate our model, please contact us.**
+
 
 ## Contact
 For questions and feedbacks related to the project, please send an email to r.andry.rasoanaivo@gmail.com or soloforahamefy@gmail.com or tokyandriaxel@gmail.com
