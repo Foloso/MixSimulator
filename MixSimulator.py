@@ -129,7 +129,7 @@ class MixSimulator:
             self.set_data_csv(raw_data=data)
         else :
             #by defaut we keep it "Toamasina"
-            data = pkgutil.get_data('mixsimulator', '/data/RIToamasina/dataset_RI_Toamasina.csv')
+            data = pkgutil.get_data('mixsimulator', '/data/RIToamasina/dataset_RI_Toamasina_v2.csv')
             data = csv.reader(data.decode('utf-8').splitlines(), delimiter = delimiter)
             self.set_data_csv(raw_data=data)
             

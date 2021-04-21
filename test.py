@@ -12,10 +12,17 @@ mix = ms.MixSimulator()
 
 #Set data to use
 mix.set_data_csv("MixSimulator/data/RIToamasina/dataset_RI_Toamasina_v2.csv",delimiter=";")
+#or for default dataset
+#mix.set_data_to("Toamasina")
+
+#For variation limits dataset, there is not yet default dataset 
 # mix.set_variation_csv("MixSimulator/data/RIToamasina/dataset_RI_Toamasina_variation_template.csv",delimiter=";")
+
 demand = dm.Demand()
 data_demand = demand.set_data_csv("MixSimulator/data/RIToamasina/DIR-TOAMASINA_concat.csv", delimiter = ",")
-# data_demand.to_csv("data_demand.csv")
+#or for default dataset
+#demand.set_data_to("Toamasina",delimiter=",")
+
 mix.set_demand(demand)
 
 #Optimize the mix

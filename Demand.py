@@ -2,6 +2,8 @@ import pandas as pd
 from prophet import Prophet 
 from math import pi
 from math import cos, floor
+import pkgutil
+import csv
 
 class Demand:
     """
@@ -19,7 +21,7 @@ class Demand:
     def set_forcast_periods(self, periods) -> None:
         self.__periods = periods
     
-    def set_data_csv(self, bind = None, init_date: str = "2017-01-01", delimiter: str = ";", column: str = "Total Ventes"):
+    def set_data_csv(self, bind = None, raw_data = None, init_date: str = "2017-01-01", delimiter: str = ";", column: str = "Total Ventes"):
         """
             The method must get a dataset with at least 3 columns
             - month : int, 
@@ -28,8 +30,23 @@ class Demand:
             
             The method also use a forcast model from prophet to predict future demand.
             The periods can be set by set_forcast_periods.
-        """        
-        data = pd.read_csv(bind, delimiter = delimiter) 
+        """
+        if raw_data is not None :
+            data = pd.DataFrame(raw_data)
+            #set columns & index           
+            header = data.iloc[0]
+            data = data[1:]
+            data.columns = header
+            data = data.reset_index(drop=True)
+            for col in data.columns.tolist():
+                try:
+                    # convert numeric values
+                    data[col] = pd.to_numeric(data[col])
+                except:
+                    pass
+        else :
+            data = pd.read_csv(bind, delimiter = delimiter)
+
         data["date"]= data ["month"].astype("str") + "-" + data ["year"].astype("str")
         data["datetime"] = pd.to_datetime(data["date"])
         data_to_use = pd.DataFrame()
@@ -46,6 +63,18 @@ class Demand:
         self.data_demand = data_to_use.append(fcst,ignore_index=True)
         
         return self.data_demand
+	
+    def set_data_to(self, dataset, delimiter: str=";"):
+        if dataset == "Toamasina":
+            #by defaut we keep it "Toamasina"
+            data = pkgutil.get_data('mixsimulator', '/data/RIToamasina/DIR-TOAMASINA_concat.csv')
+            data = csv.reader(data.decode('utf-8').splitlines(), delimiter = delimiter)
+            self.set_data_csv(raw_data=data)
+        else :
+            #by defaut we keep it "Toamasina"
+            data = pkgutil.get_data('mixsimulator', '/data/RIToamasina/DIR-TOAMASINA_concat.csv')
+            data = csv.reader(data.decode('utf-8').splitlines(), delimiter = delimiter)
+            self.set_data_csv(raw_data=data)
        
     def get_demand(self, t):
         self.data_demand.reset_index()
