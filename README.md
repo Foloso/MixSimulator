@@ -39,7 +39,7 @@ List of classes and directories :
 Official documentation will accompany the first release version.
 
 ## DataSet
-The dataset "data/dataset_RI_Toamasina" is for the test and it comes from the Inter-connected energy mix of Toamasina Madagascar (2018) and Some information from the dataset is estimated.
+The dataset "data/dataset_RI_Toamasina" is for the test and it comes from the Inter-connected energy mix of Toamasina Madagascar (2017) and Some information from the dataset is estimated.
 
 Dataset features needed:
 - `tuneable` (boolean): is the control unit controllable or not?
