@@ -121,5 +121,5 @@ print(mix.get_params())
     penalisation : float = 1000000000000,   --> equal to penalisation cost
     carbon_cost: float = 0
 """
-#eva=EvaluationBudget()
-#eva.evaluate(mix,10,1000,optimizer_list = ["OnePlusOne","DE","CMA","PSO","NGOpt"], indicator_list = ["loss","elapsed_time","production","unsatisfied demand","carbon production"],carbonProdLimit = 9999999999999, time_index = 12, penalisation = 100, carbon_cost = 10)
+eva=EvaluationBudget()
+eva.evaluate(mix,10,1000,optimizer_list = ["OnePlusOne","DE","CMA","PSO","NGOpt"], indicator_list = ["loss","elapsed_time","production","unsatisfied demand","carbon production"],carbonProdLimit = 9999999999999, time_index = 12, penalisation = 100, carbon_cost = 10)
