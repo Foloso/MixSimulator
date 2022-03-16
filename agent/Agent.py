@@ -1,22 +1,24 @@
 from typing import List, Dict, Tuple
-from .Moderator import Moderator
 import json
+from Moderator import Moderator
+from Interfaces import Observable
 
-class Agent:
+class Agent(Observable):
     
-    def __init__(self, id, moderator) -> None:
+    def __init__(self, id) -> None:
         self._code_files = "../params_files/exchange_code.json"
         self._id = id
-        self._moderator = moderator
+        self._observers = []
 
-    def _send_signal(self, signal) -> None:
-        ## send signal to moderator
-        pass
+    def _notifiy_moderator(self, signal) -> None:
+        self.notify_observers(signal)
 
-    def _get_id(self) -> str:
+    def get_id(self) -> str:
         return self._id
 
-    def _register_to_moderator(self, moderator: Moderator) -> None:
-        register_signal = json.loads(open("exchange_code.json"))["100"]
-        register_signal["id"] = self._get_id()
-        self._send_signal(register_signal)
+    def register_to_moderator(self, moderators: List[Moderator]) -> None:
+        self._observers += moderators
+        self._observers = list(set(self._observers))
+        register_signal = json.load(open(self._code_files))["100"]
+        register_signal["id"] = self.get_id()
+        self._notifiy_moderator(register_signal)
