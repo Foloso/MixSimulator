@@ -19,7 +19,7 @@ class Demand(Agent):
         self.__demand =  list(self.__model.predict(time_series))
 
     def __notify_demand_value_change(self):
-        signal = json.loads(open("exchange_code.json"))["8080"]
+        signal = json.loads(open(self._code_files))["8080"]
         signal["id"] - self._get_id()
         signal["values"] = self.__demand
         signal["t_from"] = 3

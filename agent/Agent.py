@@ -5,6 +5,7 @@ import json
 class Agent:
     
     def __init__(self, id, moderator) -> None:
+        self._code_files = "../params_files/exchange_code.json"
         self._id = id
         self._moderator = moderator
 

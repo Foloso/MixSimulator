@@ -9,12 +9,12 @@ class Plant(Agent):
         super().__init__(id, moderator)
 
     def _notify_is_up(self) -> None:
-        signal = json.loads(open("exchange_code.json"))["200"]
+        signal = json.loads(open(self._code_files))["200"]
         signal["id"] = self._get_id()
         self._send_signal(signal)
 
     def _notify_is_down(self) -> None:
-        signal = json.loads(open("exchange_code.json"))["400"]
+        signal = json.loads(open(self._code_files))["400"]
         signal["id"] = self._get_id()
         self._send_signal(signal)
 
