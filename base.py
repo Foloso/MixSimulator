@@ -1,5 +1,5 @@
 import .MixSimulator as ms
-import .MasMixSimulator as mms
+import .Mas_platform as mp
 import warnings
 
 class ElectricityMix:
@@ -12,6 +12,6 @@ class ElectricityMix:
         if method == "classic":
             return ms.MixSimulator(carbon_cost,penalisation_cost)
         elif method == "MAS":
-            return mms.MasMixSimulator()
+            return mp.Mas_platform()
         else:
             warnings.warn("Choose an available option : classic or MAS")
