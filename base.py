@@ -10,7 +10,7 @@ class ElectricityMix:
     """
     def __init__(self, method: str = "classic", carbon_cost: float = 0, penalisation_cost: float = 1000000000000):
         if method == "classic":
-            return ms.MixSimulator(carbon_cost,penalisation_cost)
+            return ms.MixSimulator(carbon_cost = carbon_cost,penalisation_cost = penalisation_cost)
         elif method == "MAS":
             return mp.Mas_platform()
         else:
