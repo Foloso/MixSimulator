@@ -10,7 +10,7 @@ class Agent(Observable):
         self._id = id
         self._observers = []
 
-    def _notifiy_moderator(self, signal) -> None:
+    def _notify_moderator(self, signal) -> None:
         self.notify_observers(signal)
 
     def get_id(self) -> str:

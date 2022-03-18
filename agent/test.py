@@ -1,4 +1,4 @@
-from Plant import Plant
+from Powerplant import Powerplant
 from Moderator import Moderator
 
 
@@ -6,7 +6,7 @@ mod = Moderator()
 
 plants = []
 for i in range(5):
-    tmp = Plant("plant_"+str(i))
+    tmp = Powerplant("plant_"+str(i))
     tmp.register_to_moderator([mod])
     plants.append(tmp)
 
