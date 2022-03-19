@@ -2,13 +2,14 @@ import json
 from typing import List
 from Agent import Agent
 from Moderator import Moderator
+import nevergrad as ng
 
 class PowerPlant(Agent):
     """
         Agent simulating all the common functions of a power plant
     """
     def __init__(self, tuneable:bool=False) -> None:
-        self._id = "0" 
+        super().__init__()
         self._changeRate = 0. #(percent)
         self._initial_value = 0.
         self._lifetime = 0 #in hour
@@ -31,12 +32,12 @@ class PowerPlant(Agent):
     def _notify_is_up(self) -> None:
         signal = json.load(open(self._code_files))["200"]
         signal["id"] = self.get_id()
-        self._notify_moderator(signal)
+        self._notify_observers(signal)
 
     def _notify_is_down(self) -> None:
         signal = json.load(open(self._code_files))["400"]
         signal["id"] = self.get_id()
-        self._notify_moderator(signal)
+        self._notify_observers(signal)
 
     def _notify_disponibility(self) -> None:
         pass
@@ -48,12 +49,6 @@ class PowerPlant(Agent):
 
     def set_max_var(self, max_var):
         self._max_var = max_var
-
-    def set_id(self, identity):
-        self._id = identity
-
-    def get_id(self):
-        return self._id
 
     def set_nb_employees(self, nb_employees):
         self._nb_employes = nb_employees

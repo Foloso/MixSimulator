@@ -1,6 +1,6 @@
-from Powerplant import Powerplant
+from PowerPlant import PowerPlant
 
-class Thermalpowerplant(Powerplant):
+class Thermalpowerplant(PowerPlant):
     """
         Agent simulating a fuel, nuclear or solar thermal power plant
     """

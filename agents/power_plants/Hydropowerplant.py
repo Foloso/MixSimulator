@@ -1,6 +1,7 @@
-from Powerplant import Powerplant
+from PowerPlant import PowerPlant
+from math import cos, pi
 
-class Hydropowerplant(Powerplant):
+class Hydropowerplant(PowerPlant):
     """
         Agent simulating a Hydroelectic facility
     """

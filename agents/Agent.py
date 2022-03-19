@@ -6,9 +6,9 @@ from Interfaces import Observable
 
 class Agent(Observable):
   
-    def __init__(self, id) -> None:
+    def __init__(self) -> None:
         super().__init__()
-        self.__code_files = "../params_files/exchange_code.json"
+        self._code_files = "../params_files/exchange_code.json"
         self.__type = "empty"
       
     def register_observer(self, moderators: List[Moderator]) -> None:
