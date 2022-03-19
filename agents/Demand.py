@@ -1,16 +1,16 @@
 import pandas as pd
 import json
 from typing import List, Dict
-from .Agent import Agent
-
-
+from Agent import Agent
 
 def massive_divergence(demande, demande2):
     return True
 
 class Demand(Agent):
-    def __init__(self, id, moderator) -> None:
-        super().__init__(id, moderator)
+    def __init__(self, id, model=None) -> None:
+        super().__init__(id)
+        if model is not None:
+            self.set_model(model)
 
     def set_model(self, model) -> None:
         self.__model = model
@@ -20,10 +20,10 @@ class Demand(Agent):
 
     def __notify_demand_value_change(self):
         signal = json.loads(open(self._code_files))["8080"]
-        signal["id"] - self._get_id()
+        signal["id"] - self.get_id()
         signal["values"] = self.__demand
         signal["t_from"] = 3
-        self._send_signal(signal)
+        self._notify_observers(signal)
 
     def set_demande_change(self, demand: List[float]) -> None:
         errored_demand = self.__demand

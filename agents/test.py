@@ -1,13 +1,13 @@
-from Plant import Plant
+from power_plants.PowerPlant import PowerPlant as Plant
 from Moderator import Moderator
-
 
 mod = Moderator()
 
 plants = []
 for i in range(5):
-    tmp = Plant("plant_"+str(i))
-    tmp.register_to_moderator([mod])
+    tmp = Plant()
+    tmp.set_id("plant_"+str(i))
+    tmp.register_observer([mod])
     plants.append(tmp)
 
 # plants[0].notify_is_up()
