@@ -23,7 +23,7 @@ class Demand(Agent):
         signal["id"] - self.get_id()
         signal["values"] = self.__demand
         signal["t_from"] = 3
-        self._notifiy_moderator(signal)
+        self._notify_observers(signal)
 
     def set_demande_change(self, demand: List[float]) -> None:
         errored_demand = self.__demand
