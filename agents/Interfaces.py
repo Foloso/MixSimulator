@@ -21,7 +21,8 @@ class Observable:
             obs._observe(self, *args, **kwargs)
 
 
-class Observer:
 
+class Observer:
+  
     def _observe(self, observable, *args, **kwargs):
         pass
