@@ -3,7 +3,7 @@ from typing import List
 from Agent import Agent
 from Moderator import Moderator
 
-class PowerPlant(Agent):
+class Powerplant(Agent):
     """
         Agent simulating all the common functions of a power plant
     """

@@ -3,14 +3,17 @@ import json
 from typing import List, Dict
 from Agent import Agent
 
+
 def massive_divergence(demande, demande2):
     return True
 
 class Demand(Agent):
+
     def __init__(self, id, model=None) -> None:
         super().__init__(id)
         if model is not None:
             self.set_model(model)
+
 
     def set_model(self, model) -> None:
         self.__model = model
