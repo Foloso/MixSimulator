@@ -1,3 +1,5 @@
+import pandas as pd
+import sklearn.linear_model as linear_model
 import json
 from typing import List
 from Agent import Agent
@@ -27,6 +29,31 @@ class PowerPlant(Agent):
         self._lower = 0.
         self._upper = 1.
         self._choices = None
+        self.__environement = {"precipitation":None, "temps":None, "solar_exposition":None, "wind_exposition":None}
+
+    ### ENVIRONEMENT MONITORING & MODELISATION
+    def _modelise_environnement(self, data: pd.DataFrame, model_type: str = "LinearRegression"):
+        X_train = data["X_train"]
+        Y_train = data["Y_train"]
+        X_test = data["X_test"]
+        Y_test = data["Y_test"]
+
+        model = eval("linear_model." + model_type +"()")
+        model.fit(X_train, Y_train)
+        return model
+
+
+    def set_environement(self, precipitations=None, temps=None, solar_exposition=None, wind_exposition=None):
+        self.__environement.update({"precipitation":precipitations, "temps":temps, "solar_exposition":solar_exposition, "wind_exposition":wind_exposition})
+        for key in self.__environement.keys():
+            if self.__environement[key] is not None: self.__environement.update({key: self._modelise_environnement(self.__environement[key])})
+
+    def get_environement(self, to_predict):
+        result = {}
+        for key in self.__environement.keys():
+            if self.__environement[key] is not None: result.update({key: self.__environement[key].predict(to_predict)})
+            else: result.update({key: None})
+        return result
 
     ### COMMUNICATION
     def _notify_is_up(self) -> None:
