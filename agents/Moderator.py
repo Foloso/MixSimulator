@@ -1,8 +1,8 @@
-from Interfaces import Observer, Observable
-from .agent.power_plants import PowerPlant
-from .agent import Demand
+from .Interfaces import Observer, Observable
+from .power_plants.PowerPlant import PowerPlant
+from .Demand import Demand
 import nevergrad as ng
-from .nevergradBased.Optimizer import Optimizer
+from ..nevergradBased.Optimizer import Optimizer
 import numpy as np # type: ignore
 import pandas as pd # type: ignore
 import pkgutil
@@ -16,7 +16,7 @@ from datetime import datetime
 import matplotlib.pyplot as plt # type: ignore
 
 class Moderator(Observer):
-    def __init__(self) -> None:
+    def __init__(self,carbon_cost, penalisation_cost) -> None:
         super().__init__()
         self.__observable : List[PowerPlant] = []
         self.__demand = Demand(20, 0.2, 0.2)

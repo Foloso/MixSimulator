@@ -1,4 +1,4 @@
-from PowerPlant import PowerPlant
+from .PowerPlant import PowerPlant
 
 class Thermalpowerplant(PowerPlant):
     """

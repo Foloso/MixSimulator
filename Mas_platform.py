@@ -1,7 +1,7 @@
-from .agent import Moderator
-from .agent.power_plants import Hydropowerplant
-from .agent.power_plants import Thermalpowerplant
-from .agent import Demand
+from .agents.Moderator import Moderator
+from .agents.power_plants.Hydropowerplant import Hydropowerplant
+from .agents.power_plants.Thermalpowerplant import Thermalpowerplant
+from .agents.Demand import Demand
 import nevergrad as ng
 from .nevergradBased.Optimizer import Optimizer
 import numpy as np # type: ignore
@@ -25,11 +25,15 @@ class Mas_platform():
     """
 
     def __init__(self, demand = None, carbon_cost: float = 0, penalisation_cost: float = 1000000000000, bind = None, raw_data = None, variation_data = None, delimiter: str=";", variation_delimiter: str=";",) -> None:
-        self.__moderator = Moderator.Moderator()
+        self.__moderator = Moderator(carbon_cost, penalisation_cost)
         if demand is not None :
             self.__moderator.set_demand(demand)
-        self.set_data_csv(bind = bind, raw_data =raw_data, delimiter = delimiter)
-        self.set_variation_csv(bind = variation_data, delimiter = variation_delimiter)
+        if (bind is not None) and (raw_data is not None) :
+            self.set_data_csv(bind = bind, raw_data = raw_data, delimiter = delimiter)
+        else : #Load default data
+            self.set_data_to("Toamasina")
+        if variation_data is not None :
+            self.set_variation_csv(bind = variation_data, delimiter = variation_delimiter)
 
     def get_moderator(self) -> Moderator:
         return self.__moderator
@@ -96,9 +100,9 @@ class Mas_platform():
             for i in range (0,data.shape[0]):
                 isHydro = data["hydro"][i]
                 if isHydro == True :
-                    powerplant = Hydropowerplant.Hydropowerplant(data["height"][i],data["flow"][i],data["capacity"][i],data["stock_available"][i],0.1,0.8)
+                    powerplant = Hydropowerplant(data["height"][i],data["flow"][i],data["capacity"][i],data["stock_available"][i],0.1,0.8)
                 else :
-                    powerplant = Thermalpowerplant.PowerCentral()
+                    powerplant = Thermalpowerplant()
                 powerplant.set_tuneable(data["tuneable"][i])
                 powerplant.set_id(str(data["centrals"][i]))
                 powerplant.set_fuel_consumption(data["fuel_consumption"][i])

@@ -1,4 +1,4 @@
-from PowerPlant import PowerPlant
+from .PowerPlant import PowerPlant
 from math import cos, pi
 
 class Hydropowerplant(PowerPlant):

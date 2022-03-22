@@ -1,7 +1,7 @@
 import pandas as pd
 import json
 from typing import List, Dict
-from Agent import Agent
+from .Agent import Agent
 from prophet import Prophet 
 from math import pi
 from math import cos, floor
@@ -15,7 +15,7 @@ def massive_divergence(demande, demande2):
 class Demand(Agent):
 
     def __init__(self, id, model=None, demand: float = 20, var_per_day: float = 0.1 , var_per_season: float = 0.1) -> None:
-        super().__init__(id)
+        super().__init__()
         if model is not None:
             self.set_model(model)
         self.set_type("Demand")
