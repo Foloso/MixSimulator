@@ -1,6 +1,6 @@
 from .agent import Moderator
-from .agent import Hydropowerplant
-from .agent import Thermalpowerplant
+from .agent.power_plants import Hydropowerplant
+from .agent.power_plants import Thermalpowerplant
 from .agent import Demand
 import nevergrad as ng
 from .nevergradBased.Optimizer import Optimizer
@@ -24,11 +24,12 @@ class Mas_platform():
             - Data visualization
     """
 
-    def __init__(self, carbon_cost: float = 0, penalisation_cost: float = 1000000000000, bind = None, raw_data = None, variation_data = None, delimiter: str=";", variation_delimiter: str=";",) -> None:
+    def __init__(self, demand = None, carbon_cost: float = 0, penalisation_cost: float = 1000000000000, bind = None, raw_data = None, variation_data = None, delimiter: str=";", variation_delimiter: str=";",) -> None:
+        self.__moderator = Moderator.Moderator()
+        if demand is not None :
+            self.__moderator.set_demand(demand)
         self.set_data_csv(bind = bind, raw_data =raw_data, delimiter = delimiter)
         self.set_variation_csv(bind = variation_data, delimiter = variation_delimiter)
-        self.__moderator = Moderator.Moderator()
-
 
     def get_moderator(self) -> Moderator:
         return self.__moderator
@@ -37,7 +38,7 @@ class Mas_platform():
         self.__moderator = new_moderator
 
     def set_variation_csv(self, bind = None, delimiter: str=";") -> None:
-        if self.__moderator.get_agents() == []:
+        if self.__moderator.get_observable() == []:
              warnings.warn("Please load a original dataset by using MixSimulator.set_data_csv(...)")
              raise 
         else :
@@ -51,10 +52,10 @@ class Mas_platform():
                     print("Error occured on pandas.read_csv : ",e)
                     raise
                     
-            for central_index in range(len(self.__moderator.get_agents())):
-                if self.__moderator.get_agents()[central_index].is_tuneable():
+            for powerplant_index in range(len(self.__moderator.get_agents())):
+                if self.__moderator.get_observable()[powerplant_index].is_tuneable():
                     for i in range (0,data.shape[0]):
-                        if self.__moderator.get_agents()[central_index].get_id() == data["centrals"][i]:
+                        if self.__moderator.get_observable()[powerplant_index].get_id() == data["centrals"][i]:
                             tmp_list=[]
                             upper = str(data["upper"][i]).split(":")
                             upper = [float(numeric_string) for numeric_string in upper]
@@ -62,7 +63,7 @@ class Mas_platform():
                             lower = [float(numeric_string) for numeric_string in lower]
                             discrete = str(data["discrete"][i]).split(":")
                             discrete = [float(numeric_string) for numeric_string in discrete]
-                            self.__moderator.get_agents()[central_index].set_variation_params(lower = lower, upper = upper, choices = discrete)
+                            self.__moderator.get_observable()[powerplant_index].set_variation_params(lower = lower, upper = upper, choices = discrete)
         
     def set_data_csv(self, bind = None, raw_data = None, delimiter: str=";"):
         if raw_data is not None :
@@ -110,9 +111,9 @@ class Mas_platform():
                 powerplant.set_nb_employees(data["nb_employees"][i])
                 powerplant.set_mean_employees_salary(data["mean_salary"][i])
                 powerplant.set_max_var(data["max_var"][i])
-                self.__moderator.add_agent(powerplant)
-            #self.__demand.set_mean_demand(data["Demand"][0])
-            #self.__lost=data["lost"][0]
+                self.__moderator.add_observable(powerplant)
+            self.__moderator.get_demand().set_mean_demand(data["Demand"][0])
+            self.__moderator.set_constant_lost(data["lost"][0])
         except KeyError:
             print("Columns must be in: tuneable, centrals, fuel_consumption, availability, fuel_cost, init_value, lifetime, carbon_cost, raw_power, nb_employees, mean_salary, demand, lost, height, flow, capacity, stock_available")
             raise
