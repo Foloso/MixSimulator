@@ -24,7 +24,7 @@ class Mas_platform():
             - Data visualization
     """
 
-    def __init__(self, demand = None, carbon_cost: float = 0, penalisation_cost: float = 1000000000000, bind = None, raw_data = None, variation_data = None, delimiter: str=";", variation_delimiter: str=";",) -> None:
+    def __init__(self, demand = None, carbon_cost: float = 0, penalisation_cost: float = 1e7, bind = None, raw_data = None, variation_data = None, delimiter: str=";", variation_delimiter: str=";",) -> None:
         self.__moderator = Moderator(carbon_cost, penalisation_cost)
         if demand is not None :
             self.__moderator.set_demand(demand)
