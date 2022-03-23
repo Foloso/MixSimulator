@@ -19,7 +19,9 @@ class Moderator(Observer):
     def __init__(self,carbon_cost, penalisation_cost) -> None:
         super().__init__()
         self.__observable : List[PowerPlant] = []
-        self.__demand = Demand(20, 0.2, 0.2)
+        dm = Demand(20, 0.2, 0.2)
+        dm.set_data_to("Toamasina",delimiter=",")
+        self.__demand = dm
         self.__cst_lost = 0.
         self.__penalisation_cost = penalisation_cost
         self.__optimizer =  Optimizer()

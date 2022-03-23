@@ -76,7 +76,7 @@ class Demand(Agent):
         else :
             data = pd.read_csv(bind, delimiter = delimiter)
 
-        data["date"]= data ["month"].astype("str") + "-" + data ["year"].astype("str")
+        data["date"]= data["month"].astype("str") + "-" + data ["year"].astype("str")
         data["datetime"] = pd.to_datetime(data["date"])
         data_to_use = pd.DataFrame()
         data_to_use[["datetime","demands"]] = data.loc[data["datetime"] >= init_date][["datetime",column]]
@@ -98,12 +98,12 @@ class Demand(Agent):
             #by defaut we keep it "Toamasina"
             data = pkgutil.get_data('mixsimulator', '/data/RIToamasina/DIR-TOAMASINA_concat.csv')
             data = csv.reader(data.decode('utf-8').splitlines(), delimiter = delimiter)
-            self.set_data_csv(raw_data=data)
+            self.forecast_with_prophet(raw_data=data)
         else :
             #by defaut we keep it "Toamasina"
             data = pkgutil.get_data('mixsimulator', '/data/RIToamasina/DIR-TOAMASINA_concat.csv')
             data = csv.reader(data.decode('utf-8').splitlines(), delimiter = delimiter)
-            self.set_data_csv(raw_data=data)
+            self.forecast_with_prophet(raw_data=data)
        
     def get_demand(self, t):
         self.data_demand.reset_index()

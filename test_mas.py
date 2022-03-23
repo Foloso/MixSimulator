@@ -20,5 +20,7 @@ opt_CMA_30 = opt.Optimizer(opt = ["CMA"], budget = [20], num_worker = 30)
     Case two : "MAS" or Multi Agent System method
 """
 
-classic_mix = ElectricityMix(method="classic",carbon_cost=0,penalisation_cost=100) 
-mas_mix = ElectricityMix(method="MAS",carbon_cost=0,penalisation_cost=100)
+classic_mix = ElectricityMix.mix(method="classic",carbon_cost=0,penalisation_cost=100) 
+mas_mix = ElectricityMix.mix(method="MAS",carbon_cost=0,penalisation_cost=100)
+
+print(mas_mix.get_moderator().optimizeMix(99999999999999999999,optimizer = opt_CMA, step = 20, penalisation = 100, carbon_cost = 0, time_index = 168, plot = "None"))
