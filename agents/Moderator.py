@@ -1,6 +1,6 @@
 from .Interfaces import Observer, Observable
-from .power_plants.PowerPlant import PowerPlant
-from .Demand import Demand
+from ..power_plants.mas.PowerPlant import PowerPlant
+from ..demand.mas.Demand import Demand
 import nevergrad as ng
 from ..nevergradBased.Optimizer import Optimizer
 import numpy as np # type: ignore
