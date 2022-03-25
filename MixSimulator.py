@@ -1,6 +1,6 @@
-from .centrals import PowerCentral as pc
-from .centrals import HydroCentral as hc 
-from .Demand import Demand
+from .power_plants.classic import PowerCentral as pc
+from .power_plants.classic import HydroCentral as hc 
+from .demand.classic.Demand import Demand
 import nevergrad as ng
 from .nevergradBased.Optimizer import Optimizer
 import numpy as np # type: ignore

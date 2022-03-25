@@ -2,7 +2,7 @@ import pandas as pd
 import sklearn.linear_model as linear_model
 import json
 from typing import List
-from ..Agent import Agent
+from ...agents.Agent import Agent
 import nevergrad as ng
 
 class PowerPlant(Agent):

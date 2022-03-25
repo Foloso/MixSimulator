@@ -1,7 +1,7 @@
 from .agents.Moderator import Moderator
-from .agents.power_plants.Hydropowerplant import Hydropowerplant
-from .agents.power_plants.Thermalpowerplant import Thermalpowerplant
-from .agents.Demand import Demand
+from .power_plants.mas.Hydropowerplant import Hydropowerplant
+from .power_plants.mas.Thermalpowerplant import Thermalpowerplant
+from .demand.mas.Demand import Demand
 import nevergrad as ng
 from .nevergradBased.Optimizer import Optimizer
 import numpy as np # type: ignore

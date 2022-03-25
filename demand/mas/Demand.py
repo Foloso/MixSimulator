@@ -1,7 +1,7 @@
 import pandas as pd
 import json
 from typing import List
-from .Agent import Agent
+from ...agents.Agent import Agent
 from prophet import Prophet 
 from math import pi
 from math import cos, floor

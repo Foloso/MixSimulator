@@ -9,7 +9,7 @@ from math import floor
 from typing import List
 import warnings
 from .nevergradBased import Optimizer as opt
-from . import Demand as de
+from .demand.classic import Demand as de
 from datetime import datetime
 #from matplotlib import ticker
 
