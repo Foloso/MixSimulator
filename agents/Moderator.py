@@ -19,7 +19,7 @@ class Moderator(Observer):
     def __init__(self,carbon_cost, penalisation_cost) -> None:
         super().__init__()
         self.__observable : List[PowerPlant] = []
-        dm = Demand(20, 0.2, 0.2)
+        dm = Demand(demand= 20, var_per_day= 0.2, var_per_season= 0.2)
         dm.set_data_to("Toamasina",delimiter=",")
         self.__demand = dm
         self.__cst_lost = 0.
@@ -52,6 +52,7 @@ class Moderator(Observer):
     def _observe(self, observable, *args, **kwargs) -> None:
         super()._observe(observable, *args, **kwargs)
         print(observable, "sends signal code ", args[0]["code"])
+
         if args[0]["code"] == 100:
             self.__add_observable(observable)
 

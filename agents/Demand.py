@@ -1,6 +1,6 @@
 import pandas as pd
 import json
-from typing import List, Dict
+from typing import List
 from .Agent import Agent
 from prophet import Prophet 
 from math import pi
@@ -14,11 +14,13 @@ def massive_divergence(demande, demande2):
 
 class Demand(Agent):
 
-    def __init__(self, id, model=None, demand: float = 20, var_per_day: float = 0.1 , var_per_season: float = 0.1) -> None:
+    def __init__(self, model=None, demand: float = 20, var_per_day: float = 0.1 , var_per_season: float = 0.1) -> None:
         super().__init__()
         if model is not None:
             self.set_model(model)
         self.set_type("Demand")
+
+        ### from old demand implementation
         self.__var_per_day = var_per_day
         self.__var_per_season = var_per_season
         self.__mean_demand = demand
@@ -29,7 +31,6 @@ class Demand(Agent):
     ### COMMUNICATION
     def __notify_demand_value_change(self):
         signal = json.loads(open(self._code_files))["8080"]
-        signal["id"] - self.get_id()
         signal["values"] = self.__demand
         signal["t_from"] = 3
         self._notify_observers(signal)
@@ -47,6 +48,8 @@ class Demand(Agent):
     def predict_demand(self, time_series: pd.DataFrame) -> List[float]:
         self.__demand =  list(self.__model.predict(time_series))
 
+
+    ### TMP WITH PROPHET
     def set_forecast_periods(self, periods) -> None:
         self.__periods = periods
     

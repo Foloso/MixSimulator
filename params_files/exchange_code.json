@@ -27,7 +27,6 @@
     "8080" : {
         "type" : "demand_change",
         "t_from" : null,
-        "values" : null,
-        "id" : null 
+        "values" : null
     }
 }
