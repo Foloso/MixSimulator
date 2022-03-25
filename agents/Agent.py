@@ -1,7 +1,6 @@
 from ast import mod
 from typing import List, Dict, Tuple
 import json
-from . import Moderator
 from .Interfaces import Observable
 
 class Agent(Observable):
