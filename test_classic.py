@@ -1,7 +1,7 @@
 import mixsimulator.MixSimulator as ms 
 import mixsimulator.nevergradBased.Optimizer as opt	
 from mixsimulator.Evaluation import EvaluationBudget
-import mixsimulator.Demand as dm
+from .demand.classic.Demand import Demand
 
 """ 
 (1) Configure nevergrad optimizers 
@@ -56,7 +56,7 @@ mix.set_variation_csv("data/RIToamasina/dataset_RI_Toamasina_variation_template.
         https://github.com/Foloso/MixSimulator/tree/master/data/RIToamasina/demand
 
 """
-demand = dm.Demand()
+demand = Demand()
 data_demand = demand.set_data_csv("data/RIToamasina/DIR-TOAMASINA_concat.csv", delimiter = ",")
 """
     The method must get a dataset with at least 3 columns

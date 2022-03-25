@@ -1,5 +1,5 @@
 from MixSimulator import ElectricityMix
-import MixSimulator.nevergradBased.Optimizer as opt	
+import MixSimulator.nevergradBased.Optimizer as opt
 
 """ 
 (1) Configure nevergrad optimizers 
