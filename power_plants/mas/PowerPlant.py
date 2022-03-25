@@ -44,6 +44,7 @@ class PowerPlant(Agent):
         self.__x_tile = int((self.__long + 180.0) / 360.0 * n)
         self.__y_tile = int((1.0 - math.asinh(math.tan(lat_rad)) / math.pi) / 2.0 * n)
         self.__zoom = zoom
+        self._schedule_action({self.get_environement, 60})
 
     def get_location(self) -> Dict:
         return {"lat": self.__lat, "long": self.__long, "x_tile": self.__x_tile, "y_tile": self.__y_tile, "zoom": self.__zoom}
@@ -52,6 +53,7 @@ class PowerPlant(Agent):
         url = self.__api_setting["power_plant_environement"]["simple_weather"]["url"]
         ### TO DO
         # FETCH FROM API
+        print("getting env")
 
     ### COMMUNICATION
     def _notify_is_up(self) -> None:
