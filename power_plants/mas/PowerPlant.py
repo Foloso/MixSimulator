@@ -55,17 +55,17 @@ class PowerPlant(Agent):
         return result
 
     ### COMMUNICATION
-    def _notify_is_up(self) -> None:
+    def __notify_is_up(self) -> None:
         signal = json.load(open(self._code_files))["200"]
         signal["id"] = self.get_id()
-        self._notify_observers(signal)
+        self.notify_observers(signal)
 
-    def _notify_is_down(self) -> None:
+    def __notify_is_down(self) -> None:
         signal = json.load(open(self._code_files))["400"]
         signal["id"] = self.get_id()
-        self._notify_observers(signal)
+        self.notify_observers(signal)
 
-    def _notify_disponibility(self) -> None:
+    def __notify_disponibility(self) -> None:
         pass
 
     ### PARAMETRIZATION

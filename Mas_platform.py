@@ -115,7 +115,8 @@ class Mas_platform():
                 powerplant.set_nb_employees(data["nb_employees"][i])
                 powerplant.set_mean_employees_salary(data["mean_salary"][i])
                 powerplant.set_max_var(data["max_var"][i])
-                self.__moderator.add_observable(powerplant)
+                ### Register in each agent the observer (moderator) and that allows moderator getting each agent
+                powerplant.register_observer([self.__moderator])
             self.__moderator.get_demand().set_mean_demand(data["Demand"][0])
             self.__moderator.set_constant_lost(data["lost"][0])
         except KeyError:
