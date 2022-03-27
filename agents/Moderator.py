@@ -51,7 +51,6 @@ class Moderator(Observer):
     ### COMMUNICATION
     def update(self, observable, signal, *args, **kwargs) -> None:
         print(observable, "sends signal code ", signal["code"])
-
         if signal["code"] == 100:
             self.__add_observable(observable)
 
