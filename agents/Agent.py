@@ -1,5 +1,4 @@
-from ast import mod
-from typing import List, Dict, Tuple
+from typing import List, Dict
 import json
 from .Interfaces import Observable
 from threading import Timer, Lock
@@ -47,7 +46,7 @@ class Agent(Observable):
     def __init__(self) -> None:
         ### Temporary disable id
         super().__init__()
-        self._code_files = "../params_files/exchange_code.json"
+        self._code_files = "params_files/exchange_code.json"
         self.__type = "empty"
         self._scheduled_actions = {}
 
