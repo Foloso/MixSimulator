@@ -11,7 +11,7 @@ class PowerPlant(Agent):
     """
     def __init__(self, tuneable:bool=False) -> None:
         super().__init__()
-        self.__api_setting = json.load(open("../../params_files/settings.json"))
+        self.__api_setting = json.load(open("params_files/settings.json"))
         self.__changeRate = 0. #(percent)
         self.__initial_value = 0.
         self.__lifetime = 0 #in hour
