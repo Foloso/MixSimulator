@@ -54,7 +54,7 @@ class Moderator(Observer):
         print(observable, "sends signal code ", args[0]["code"])
 
         if args[0]["code"] == 100:
-            self.__add_observable(observable)
+            self.add_observable(observable)
 
     ### PARAMETRIZATION
     def set_demand(self, demand_agent) -> None:
