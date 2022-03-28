@@ -2,27 +2,29 @@ from typing import List
 
 class Observable:
     def __init__(self):
-        self._observers = []
-        self._id = None
+        self.__observers = []
+        self.__id = None
 
     def get_id(self) -> str:
-        return self._id
+        return self.__id
 
     def set_id(self, id) -> None:
-        self._id = id
+        self.__id = id
+
+    def get_observers(self) -> List :
+        return self.__observers
 
     def register_observer(self, observers: List) -> None:
         for observer in observers:
-            if observer not in self._observers:
-                self._observers.append(observer)
+            if observer not in self.__observers:
+                self.__observers.append(observer)
 
     def _notify_observers(self, *args, **kwargs) -> None:
-        for obs in self._observers:
-            obs._observe(self, *args, **kwargs)
+        pass
 
 
 
 class Observer:
   
-    def _observe(self, observable, *args, **kwargs):
+    def update(self, observable, *args, **kwargs):
         pass

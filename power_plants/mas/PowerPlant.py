@@ -1,7 +1,7 @@
 import pandas as pd
 import sklearn.linear_model as linear_model
-import json
-from typing import List
+import json, math
+from typing import List, Dict
 from ...agents.Agent import Agent
 import nevergrad as ng
 
@@ -11,11 +11,12 @@ class PowerPlant(Agent):
     """
     def __init__(self, tuneable:bool=False) -> None:
         super().__init__()
+        self.__api_setting = json.load(open("params_files/settings.json"))
         self.__changeRate = 0. #(percent)
         self.__initial_value = 0.
         self.__lifetime = 0 #in hour
         self.__carbon_prod = 0. #g/MWh
-        self.__raw_power = 0. #MW
+        self._raw_power = 0. #MW
         self.__availability = 1.  #of the source
         self.__nb_employes = 1
         self.__mean_salary = 0. #per month
@@ -28,42 +29,42 @@ class PowerPlant(Agent):
         self.__lower = 0.
         self.__upper = 1.
         self.__choices = None
-        self.__environement = {"precipitation":None, "temps":None, "solar_exposition":None, "wind_exposition":None}
+        self.__lat = None
+        self.__long = None
+        self.__x_tile = None
+        self.__y_tile = None
+        self.__zoom = None
 
     ### ENVIRONEMENT MONITORING & MODELISATION
-    def _modelise_environnement(self, data: pd.DataFrame, model_type: str = "LinearRegression"):
-        X_train = data["X_train"]
-        Y_train = data["Y_train"]
-        X_test = data["X_test"]
-        Y_test = data["Y_test"]
+    def set_location(self, location: Dict, zoom: int = 2) -> None:
+        self.__lat = location["lat"]
+        self.__long = location["long"]
+        lat_rad = math.radians(self.__lat)
+        n = 2.0 ** zoom
+        self.__x_tile = int((self.__long + 180.0) / 360.0 * n)
+        self.__y_tile = int((1.0 - math.asinh(math.tan(lat_rad)) / math.pi) / 2.0 * n)
+        self.__zoom = zoom
+        self._schedule_action({self.get_environement, 60})
 
-        model = eval("linear_model." + model_type +"()")
-        model.fit(X_train, Y_train)
-        return model
+    def get_location(self) -> Dict:
+        return {"lat": self.__lat, "long": self.__long, "x_tile": self.__x_tile, "y_tile": self.__y_tile, "zoom": self.__zoom}
 
-
-    def set_environement(self, precipitations=None, temps=None, solar_exposition=None, wind_exposition=None):
-        self.__environement.update({"precipitation":precipitations, "temps":temps, "solar_exposition":solar_exposition, "wind_exposition":wind_exposition})
-        for key in self.__environement.keys():
-            if self.__environement[key] is not None: self.__environement.update({key: self._modelise_environnement(self.__environement[key])})
-
-    def get_environement(self, to_predict):
-        result = {}
-        for key in self.__environement.keys():
-            if self.__environement[key] is not None: result.update({key: self.__environement[key].predict(to_predict)})
-            else: result.update({key: None})
-        return result
+    def get_environement(self):
+        url = self.__api_setting["power_plant_environement"]["simple_weather"]["url"]
+        ### TO DO
+        # FETCH FROM API
+        print("getting env")
 
     ### COMMUNICATION
     def _notify_is_up(self) -> None:
         signal = json.load(open(self._code_files))["200"]
         signal["id"] = self.get_id()
-        self._notify_observers(signal)
+        self.notify_observers(signal)
 
     def _notify_is_down(self) -> None:
         signal = json.load(open(self._code_files))["400"]
         signal["id"] = self.get_id()
-        self._notify_observers(signal)
+        self.notify_observers(signal)
 
     def _notify_disponibility(self) -> None:
         pass
@@ -114,10 +115,10 @@ class PowerPlant(Agent):
         self.__carbon_prod = carbonCost
 
     def set_raw_power(self, rawPower):
-        self.__raw_power = rawPower
+        self._raw_power = rawPower
 
     def get_raw_power(self) -> float: # MW
-        return self.__raw_power
+        return self._raw_power
 
     def get_availability(self, time_index) -> float: # percent
         return self.__availability
