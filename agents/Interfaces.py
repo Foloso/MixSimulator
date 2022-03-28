@@ -19,7 +19,7 @@ class Observable:
             if observer not in self.__observers:
                 self.__observers.append(observer)
 
-    def __notify_observers(self, *args, **kwargs) -> None:
+    def _notify_observers(self, *args, **kwargs) -> None:
         pass
 
 
