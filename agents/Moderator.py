@@ -252,8 +252,8 @@ class Moderator(Observer):
             label_y: List[str]=[]
             sum_prod = []
             for c in self.__observable :
-                label_y.append(c.get_id())
-                Y.update({c.get_id():[]})
+                label_y.append(c.get_name())
+                Y.update({c.get_name():[]})
             if mode != "best":
                 for array in optimum[-1]["coef"] :
                     sum_t = 0.
