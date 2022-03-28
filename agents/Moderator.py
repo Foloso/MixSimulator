@@ -191,6 +191,7 @@ class Moderator(Observer):
 
         # init params                
         self.time_index = time_index
+        # step is the step of opt budget
         self.step = step
         self.time_interval = time_interval
         self.plot = plot
@@ -214,7 +215,7 @@ class Moderator(Observer):
         
         results = self.__reshape_results(results, self.time_interval)
 
-        self.plotResults(results, mode = self.plot , time_interval = self.time_interval, average_wide = self.average_wide)
+        self.plotResults(results, mode = self.plot , time_interval = self.time_interval, time_index =self.time_index, average_wide = self.average_wide)
         
         return results
 
@@ -242,48 +243,73 @@ class Moderator(Observer):
     def moving_average(self, x, w):
         return np.convolve(x, np.ones(w), 'valid') / w
         
-    def plotResults(self, optimum : dict = {} , mode : str = "default", time_interval : float = 1, average_wide : int = 0):
+    def plotResults(self, optimum : dict = {} , mode : str = "default", time_interval : float = 1, time_index : float = 1, average_wide : int = 0):
         #set the moving average wide
         if average_wide == 0 :
             average_wide = ceil(len(optimum[-1]["coef"])/4)
     
-        if mode == "default" or mode == "save":
-            #set Y
+        if mode == "default" or mode == "save" or mode == "best":
+            #set Y of axe 1
             Y: Dict[str,List[float]] ={}
             label_y: List[str]=[]
-            for c in self.__centrals :
+            sum_prod = []
+            for c in self.__observable :
                 label_y.append(c.get_id())
                 Y.update({c.get_id():[]})
-            for array in optimum[-1]["coef"] :
-                for enum, value in enumerate(array) :
-                    Y[label_y[enum]].append(value)
+            if mode != "best":
+                for array in optimum[-1]["coef"] :
+                    sum_t = 0.
+                    for enum, value in enumerate(array) :
+                        Y[label_y[enum]].append(value)
+                        sum_t = sum_t + (value*self.get_observable()[enum].get_raw_power())
+                    sum_prod.append(sum_t)
+            else :
+                ##TODO get best loss
+                pass
 
-            fig, axs = plt.subplots(1, 1, figsize=(6, 6))        
+            
+            #set Y of axe 2
+            Y_: Dict[str,List[float]] ={} 
+            Y_["demand"] = []
+            Y_["production"] = sum_prod
+            for t_i in range(0,time_index):
+                Y_["demand"].append(self.__demand.get_demand_monthly(t_i, time_interval))
+
+            fig, axs = plt.subplots(1, 2, figsize=(12, 6))        
         
             # data integration        
             X = [i for i in range(0,len(optimum[-1]["coef"]))]  
-            for n_axs in range(0,1) :
-                for central, value in Y.items():
-                    smooth_value = self.moving_average(value,average_wide)
-                    axs.plot(X[(average_wide - 1):], smooth_value, '.-' ,alpha=0.5, lw=2, label=central)
+            for n_axs in range(0,2) :
+                if n_axs == 0 :
+                    for central, value in Y.items():
+                        smooth_value = self.moving_average(value,average_wide)
+                        axs[n_axs].plot(X[(average_wide - 1):], smooth_value, '.-' ,alpha=0.5, lw=2, label=central)
+                elif n_axs == 1 :
+                    axs[n_axs].plot(X,Y_["demand"],label="demand")
+                    axs[n_axs].plot(X,Y_["production"],label="production")
             
               
             # Add execution_time and loss information  
-            info = "production_cost: "+ "{:.3f}".format(optimum[-1]["loss"])+" ; execution_time: "+"{:.3f}".format(optimum[-1]["elapsed_time"])                    
+            info = "production_cost: "+ "{:.3f}".format(optimum[-1]["loss"])+" ; execution_time: "+"{:.3f}".format(optimum[-1]["elapsed_time"])  
+            info += "; demand gap: "+"{:.3f}".format(optimum[-1]["unsatisfied demand"])                   
             plt.annotate(info,
                 xy=(0.5, 0), xytext=(0, 10),
                 xycoords=('axes fraction', 'figure fraction'),
                 textcoords='offset points',
                 size=10, ha='center', va='bottom')
                 
-            # plots parametrizations  
-            axs.grid()
-            axs.yaxis.set_tick_params(length=0)
-            axs.xaxis.set_tick_params(length=0)
-            axs.set_xlabel('hours')
-            #axs[n_axs].yaxis.set_major_formatter(StrMethodFormatter("{x}"+units[0]))
-            axs.set_ylabel('coef (%)')
-            axs.legend()
+            # plots parametrizations
+            for n_axs in range(0,2) :  
+                axs[n_axs].grid()
+                axs[n_axs].yaxis.set_tick_params(length=0)
+                axs[n_axs].xaxis.set_tick_params(length=0)
+                axs[n_axs].set_xlabel('hours')
+                #axs[n_axs].yaxis.set_major_formatter(StrMethodFormatter("{x}"+units[0]))
+                if n_axs == 0 :
+                    axs[n_axs].set_ylabel('coef (%)')
+                elif n_axs == 1 :
+                    axs[n_axs].set_ylabel('MWh')
+                axs[n_axs].legend()
                 
             fig.tight_layout()
             try :
