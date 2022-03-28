@@ -1,5 +1,6 @@
 from typing import List, Dict
 import json
+import uuid
 from .Interfaces import Observable
 from threading import Timer, Lock
 
@@ -46,9 +47,14 @@ class Agent(Observable):
     def __init__(self) -> None:
         ### Temporary disable id
         super().__init__()
-        self._code_files = "params_files/exchange_code.json"
+        self._code_files = "params_files/exchange_code.json" ### TEMPORARY CHANGE FILE PATH
         self.__type = "empty"
+        self.__name = ""
         self._scheduled_actions = {}
+        self.set_id(str(uuid.uuid4()))
+
+    def __repr__(self):
+        return self.get_name()+"["+self.get_id()+"] ("+self.__type+")"
 
     def _schedule_action(self, actions: Dict) -> None:
         ## action is a dict {function, interval}
@@ -67,10 +73,20 @@ class Agent(Observable):
         register_signal["id"] = self.get_id()
         self._notify_observers(register_signal)
 
+    def _notify_observers(self, signal:str) -> None:
+        for obs in self.get_observers():
+            obs.update(self, signal)
+
     def set_type(self, ntype):
         self.__type = ntype
 
     def get_type(self):
         return self.__type
+
+    def set_name(self, name):
+        self.__name = name
+
+    def get_name(self):
+        return self.__name
 
 

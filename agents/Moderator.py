@@ -44,17 +44,15 @@ class Moderator(Observer):
     def set_observable(self, observables: List[Observable]) -> None:
         self.__observable = observables
       
-    def add_observable(self, observable: Observable) -> None:
+    def __add_observable(self, observable: Observable) -> None:
         if observable not in self.__observable:
             self.__observable.append(observable)
     
     ### COMMUNICATION
-    def _observe(self, observable, *args, **kwargs) -> None:
-        super()._observe(observable, *args, **kwargs)
-        print(observable, "sends signal code ", args[0]["code"])
-
-        if args[0]["code"] == 100:
-            self.add_observable(observable)
+    def update(self, observable, signal, *args, **kwargs) -> None:
+        print(observable, "sends signal code ", signal["code"])
+        if signal["code"] == 100:
+            self.__add_observable(observable)
 
     ### PARAMETRIZATION
     def set_demand(self, demand_agent) -> None:
