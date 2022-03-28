@@ -11,12 +11,12 @@ class PowerPlant(Agent):
     """
     def __init__(self, tuneable:bool=False) -> None:
         super().__init__()
-        self.__api_setting = json.load(open("../../params_files/settings.json"))
+        self.__api_setting = json.load(open("params_files/settings.json"))
         self.__changeRate = 0. #(percent)
         self.__initial_value = 0.
         self.__lifetime = 0 #in hour
         self.__carbon_prod = 0. #g/MWh
-        self.__raw_power = 0. #MW
+        self._raw_power = 0. #MW
         self.__availability = 1.  #of the source
         self.__nb_employes = 1
         self.__mean_salary = 0. #per month
@@ -115,10 +115,10 @@ class PowerPlant(Agent):
         self.__carbon_prod = carbonCost
 
     def set_raw_power(self, rawPower):
-        self.__raw_power = rawPower
+        self._raw_power = rawPower
 
     def get_raw_power(self) -> float: # MW
-        return self.__raw_power
+        return self._raw_power
 
     def get_availability(self, time_index) -> float: # percent
         return self.__availability
