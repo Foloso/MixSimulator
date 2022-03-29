@@ -73,10 +73,6 @@ class Agent(Observable):
         register_signal["id"] = self.get_id()
         self._notify_observers(register_signal)
 
-    def _notify_observers(self, signal:str) -> None:
-        for obs in self.get_observers():
-            obs.update(self, signal)
-
     def set_type(self, ntype):
         self.__type = ntype
 
