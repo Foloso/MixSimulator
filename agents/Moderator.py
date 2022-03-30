@@ -1,3 +1,4 @@
+from threading import Thread
 from .Interfaces import Observer, Observable
 from ..power_plants.mas.PowerPlant import PowerPlant
 from ..demand.mas.Demand import Demand
@@ -14,6 +15,7 @@ from math import ceil
 from typing import List, Any, Type, Dict
 from datetime import datetime
 import matplotlib.pyplot as plt # type: ignore
+from multiprocessing import Process
 
 class Moderator(Observer):
     def __init__(self,carbon_cost, penalisation_cost) -> None:
@@ -34,6 +36,8 @@ class Moderator(Observer):
         self.time_interval = 1
         self.plot = "default"
         self.average_wide = 0
+        self.__optimizer_thread : Process = None
+
 
     def __reset_powerplant(self):
         self.__observable : List[PowerPlant] = []
@@ -55,6 +59,16 @@ class Moderator(Observer):
 
         if args[0]["code"] == 100:
             self.add_observable(observable)
+
+        ### whenever an agent notifies about something, rerun optimization
+        if self.__optimizer_thread is not None:
+            self.__optimizer_thread.terminate()
+
+        self.__optimizer_thread = Thread(target=self.optimizeMix, args=())
+        self.__optimizer_thread.start()
+        
+
+
 
     ### PARAMETRIZATION
     def set_demand(self, demand_agent) -> None:
