@@ -64,7 +64,9 @@ class Moderator(Observer):
         if self.__optimizer_thread is not None:
             self.__optimizer_thread.terminate()
 
-        self.__optimizer_thread = Thread(target=self.optimizeMix, args=())
+        _kwargs = {"carbon_quota": self.__carbon_quota , "demand": self.get_demand(), "lost": self.__cst_lost, "optimizer": self.__optimizer, "step" : self.step,
+                    "time_index": signal["from_time_t"], "time_interval": self.time_interval, "penalisation" : self.__penalisation_cost, "carbon_cost" : self.get_carbon_cost(), "plot" : "default", "average_wide" : 0}
+        self.__optimizer_thread = Thread(target=self.optimizeMix, kwargs=_kwargs)
         self.__optimizer_thread.start()
         
 

@@ -2,31 +2,35 @@
     "100" : {
         "type" : "register",
         "id" : null,
-        "code": 100
+        "code": 100,
+        "from_time_t": null
     },
     "200" : {
         "status" : "OK",
         "type" : "health",
         "id" : null,
-        "code" : 200
+        "code" : 200,
+        "from_time_t": null
     },
     "400" : {
         "status" : "DOWN",
         "type" : "health",
         "id" : null,
-        "code" : 400
+        "code" : 400,
+        "from_time_t": null
     },
 
     "101" : {
         "type" : "disponibility",
         "value" : null,
         "id" : null,
-        "code" : 101
+        "code" : 101,
+        "from_time_t": null
     },
 
     "8080" : {
         "type" : "demand_change",
-        "t_from" : null,
-        "values" : null
+        "values" : null,
+        "from_time_t": null
     }
 }
