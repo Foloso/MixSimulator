@@ -19,7 +19,7 @@ class Observable:
             if observer not in self.__observers:
                 self.__observers.append(observer)
 
-    def _notify_observers(self, signal:str) -> None:
+    def _notify_observers(self, signal) -> None:
         for obs in self.get_observers():
             obs.update(self, signal)
 

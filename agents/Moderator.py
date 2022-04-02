@@ -19,6 +19,7 @@ class Moderator(Observer):
     def __init__(self,carbon_cost, penalisation_cost) -> None:
         super().__init__()
         self.__observable : List[PowerPlant] = []
+        self.__powerplants_down : List[PowerPlant] = []
         dm = Demand(demand= 20, var_per_day= 0.2, var_per_season= 0.2)
         dm.set_data_to("Toamasina",delimiter=",")
         self.__demand = dm
@@ -47,12 +48,20 @@ class Moderator(Observer):
     def __add_observable(self, observable: Observable) -> None:
         if observable not in self.__observable:
             self.__observable.append(observable)
+
+    def __detach_observable(self, id_: str = None) -> None:
+        for i, observable in enumerate(self.__observable):
+            if observable.get_id() == id_ :
+                self.__powerplants_down.append(self.__observable.pop(i))
     
     ### COMMUNICATION
     def update(self, observable, signal, *args, **kwargs) -> None:
         print(observable, "sends signal code ", signal["code"])
         if signal["code"] == 100:
             self.__add_observable(observable)
+        elif signal["code"] == 400:
+            self.__detach_observable(id_ = signal["id"])
+
 
     ### PARAMETRIZATION
     def set_demand(self, demand_agent) -> None:
@@ -107,9 +116,9 @@ class Moderator(Observer):
                 production += (powerplant.get_raw_power() * usage_coef[powerplant_index]) * time_interval
         return production
 
-    def get_unsatisfied_demand_at_t(self, usage_coef, time_index, time_interval):
+    def get_unsatisfied_demand_at_t(self, usage_coef, time_index, time_interval, init : int = 0):
         #return ( self.__demand.get_demand_approxima(time_index, time_interval) - self.get_production_at_t(usage_coef, time_interval))
-        return ( self.__demand.get_demand_monthly(time_index, time_interval) - self.get_production_at_t(usage_coef, time_interval))
+        return ( self.__demand.get_demand_monthly(time_index, time_interval, init = init) - self.get_production_at_t(usage_coef, time_interval))
         
     def get_carbon_production_at_t(self, usage_coef, time_interval):
         carbon_prod = 0
@@ -128,16 +137,22 @@ class Moderator(Observer):
         carbon_production = emited_carbon/total_production
         return max(0, carbon_production - self.__carbon_quota) # (g/MWh)
 
-    def get_weighted_coef(self, usage_coef, time_interval):
-        for powerplant_index in range(0, len(usage_coef[0])):
-            if self.__observable[powerplant_index].get_type() != "Demand":
-                self.__observable[powerplant_index].reset_powerplant()
+    def get_weighted_coef(self, usage_coef, time_interval, init : int = 0):
+        if init == 0 :
+            for powerplant_index in range(0, len(usage_coef[0])):                                       
+                if self.__observable[powerplant_index].get_type() not in ["Demand"] :  
+                    self.__observable[powerplant_index].reset_powerplant()  
+        else :
+            for powerplant_index in range(0, len(usage_coef[0])):                                        ###########################################
+                if self.__observable[powerplant_index].get_type() not in ["Demand","Hydropowerplant"] :  ## Keep previous history stock for hydro ##
+                    self.__observable[powerplant_index].reset_powerplant()                               ###########################################
+
         weighted_coef = usage_coef.copy()
         for t in range(0, len(weighted_coef)):
             for powerplant_index in range(0, len(weighted_coef[t])):
                 if self.__observable[powerplant_index].get_type() != "Demand":
-                    min_av = self.__observable[powerplant_index].get_min_availability(t)
-                    max_av = self.__observable[powerplant_index].get_max_availability(t)
+                    min_av = self.__observable[powerplant_index].get_min_availability()
+                    max_av = self.__observable[powerplant_index].get_max_availability(t, init = init)
                     if max_av < min_av:
                         min_av = 0 # a verifier 
                     weighted_coef[t][powerplant_index] = min_av + weighted_coef[t][powerplant_index]*(max_av-min_av)
@@ -182,20 +197,34 @@ class Moderator(Observer):
                         variable_parametrization += [self.__observable[powerplant_index].get_variation_params()]
         return ng.p.Tuple(*variable_parametrization)
 
+    def __reshape_results(self, results, time_interval):
+        for tmp in results:
+            usage_coef = self.arrange_coef_as_array_of_array(tmp['coef'])
+            tmp.update({"coef":self.get_weighted_coef(usage_coef, time_interval)})
+
+        # for powerplant_index in range(0, len(self.__observable)):
+        #     try:
+        #         print(self.__observable[powerplant_index].get_stock_evolution())
+        #     # Not a hydro power plant, so the methode does not exist
+        #     except:
+        #         pass
+        return results
+
     def optimizeMix(self, carbon_quota: float = None, demand: Demand = None, lost: float = None, 
                     optimizer: Optimizer = None, step : int = 1,
                     time_index: int = 24*7, time_interval: float = 1,
-                    penalisation : float = None, carbon_cost : float = None, plot : str = "default", average_wide : int = 0):
+                    penalisation : float = None, carbon_cost : float = None, plot : str = "default", average_wide : int = 0, init : int = 0):
 
         # init params                
         self.time_index = time_index
+        self.__init = init
         # step is the step of opt budget
         self.step = step
         self.time_interval = time_interval
         self.plot = plot
         self.average_wide = average_wide
         if demand is not None : self.set_demand(demand)
-        if lost is not None : self.set_lost(lost)
+        if lost is not None : self.set_constant_lost(lost)
         if penalisation is not None : self.set_penalisation_cost(penalisation)
         if carbon_cost is not None : self.set_carbon_cost(carbon_cost)
         if carbon_quota is not None : self.set_carbon_quota(carbon_quota)
@@ -209,7 +238,7 @@ class Moderator(Observer):
         constraints.update({"time_interval":self.time_interval})
         
         #let's optimize
-        results = self.__optimizer.optimize(mix = self , func_to_optimize = self.loss_function, constraints=constraints, step = self.step)
+        results = self.__optimizer.optimize(mix = self , func_to_optimize = self.loss_function, constraints=constraints, step = self.step, init = self.__init)
         
         results = self.__reshape_results(results, self.time_interval)
 
@@ -217,27 +246,68 @@ class Moderator(Observer):
         
         return results
 
-    def __reshape_results(self, results, time_interval):
-        for tmp in results:
-            usage_coef = self.arrange_coef_as_array_of_array(tmp['coef'])
-            tmp.update({"coef":self.get_weighted_coef(usage_coef, time_interval)})
-
-        # for powerplant_index in range(0, len(self.__observable)):
-        #     try:
-        #         print(self.__observable[powerplant_index].get_stock_evolution())
-        #     # Not a hydro power plant, so the methode does not exist
-        #     except:
-        #         pass
-        return results
-    
     def get_params(self) -> dict:
         return {"agents" : self.__observable, "optimizer" : self.get_optimizer(),
                 "penalisation_cost" : self.get_penalisation_cost(), "carbon_cost" : self.get_carbon_cost(),
                 "demand" : self.__demand, "lost" : self.__lost, "carbon_quota" : self.__carbon_quota,
                 "step" : self.step, "time_interval" : self.time_interval, "time_index" : self.time_index,
-                "plot" : self.plot, "moving average_wide" : self.average_wide}
+                "plot" : self.plot, "moving average_wide" : self.average_wide, "initial time_index" : self.__init}
 
-        ## PLOT ##    
+    def set_params(self, carbon_quota: float = None, demand: Demand = None, lost: float = None, 
+                    optimizer: Optimizer = None, step : int = 1,
+                    time_index: int = 24*7, time_interval: float = 1,
+                    penalisation : float = None, carbon_cost : float = None, plot : str = "default", average_wide : int = 0, init : int = 0):
+
+        # init params                
+        self.time_index = time_index
+        self.__init = init
+        # step is the step of opt budget
+        self.step = step
+        self.time_interval = time_interval
+        self.plot = plot
+        self.average_wide = average_wide
+        if demand is not None : self.set_demand(demand)
+        if lost is not None : self.set_constant_lost(lost)
+        if penalisation is not None : self.set_penalisation_cost(penalisation)
+        if carbon_cost is not None : self.set_carbon_cost(carbon_cost)
+        if carbon_quota is not None : self.set_carbon_quota(carbon_quota)
+        if optimizer is not None : self.set_optimizer(optimizer)
+
+
+    def simulate(events):
+
+        ### STEP 1 : initial planning
+        self.__planning = self.optimizeMix(carbon_quota = None, demand = self.__demand, lost = self.__cst_lost, 
+                                            optimizer = self.__optimizer, step = self.step,
+                                            time_index = self.time_index, time_interval = self.time_interval,
+                                            penalisation = self.__penalisation_cost, carbon_cost = self.__carbon_cost,
+                                            plot = self.plot, average_wide = self.average_wide)
+
+        ### STEP 2 : check the events list
+        for key, value in events.items():
+            if key == "400":
+                for element in get_observable():
+                    if element.get_name() == value[0]:
+                        element._notify_is_down()
+                        ### Relaunch optimizeMix() but with new initial time_index
+                        new_next_planning = self.optimizeMix(carbon_quota = None, demand = self.__demand, lost = self.__cst_lost, 
+                                                                optimizer = self.__optimizer, step = self.step,
+                                                                time_index = self.time_index, time_interval = self.time_interval,
+                                                                penalisation = self.__penalisation_cost, carbon_cost = self.__carbon_cost,
+                                                                plot = self.plot, average_wide = self.average_wide, init = value[1])
+
+                        ### UPDATE self.__planning
+                        # in progress ;) 
+
+
+        ### STEP 3 : return the final plan
+        return self.__planning
+
+    
+    
+    ###########
+    ## PLOTS ##
+    ###########    
     def moving_average(self, x, w):
         return np.convolve(x, np.ones(w), 'valid') / w
         

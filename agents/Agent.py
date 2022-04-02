@@ -51,10 +51,10 @@ class Agent(Observable):
         self.__type = "empty"
         self.__name = ""
         self._scheduled_actions = {}
-        self.set_id(str(uuid.uuid4()))
+        self.set_id(uuid.uuid4())
 
     def __repr__(self):
-        return self.get_name()+"["+self.get_id()+"] ("+self.__type+")"
+        return self.get_name()+"["+str(self.get_id())+"] ("+self.__type+")"
 
     def _schedule_action(self, actions: Dict) -> None:
         ## action is a dict {function, interval}
