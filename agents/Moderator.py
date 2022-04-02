@@ -275,7 +275,15 @@ class Moderator(Observer):
 
 
     def simulate(events):
-
+        """
+            Simulating the mas platform over a specific time index
+            'events' parameter must be a dict structured like this : 
+                {
+                    "code signal":[("name of the powerplant",init),...],
+                    ...
+                    ...
+                }
+        """
         ### STEP 1 : initial planning
         self.__planning = self.optimizeMix(carbon_quota = None, demand = self.__demand, lost = self.__cst_lost, 
                                             optimizer = self.__optimizer, step = self.step,
@@ -284,20 +292,21 @@ class Moderator(Observer):
                                             plot = self.plot, average_wide = self.average_wide)
 
         ### STEP 2 : check the events list
-        for key, value in events.items():
+        for key, n_events in events.items():
             if key == "400":
-                for element in get_observable():
-                    if element.get_name() == value[0]:
-                        element._notify_is_down()
-                        ### Relaunch optimizeMix() but with new initial time_index
-                        new_next_planning = self.optimizeMix(carbon_quota = None, demand = self.__demand, lost = self.__cst_lost, 
-                                                                optimizer = self.__optimizer, step = self.step,
-                                                                time_index = self.time_index, time_interval = self.time_interval,
-                                                                penalisation = self.__penalisation_cost, carbon_cost = self.__carbon_cost,
-                                                                plot = self.plot, average_wide = self.average_wide, init = value[1])
+                for value in n_events:
+                    for element in get_observable():
+                        if element.get_name() == value[0]:
+                            element._notify_is_down()
+                            ### Relaunch optimizeMix() but with new initial time_index
+                            new_next_planning = self.optimizeMix(carbon_quota = None, demand = self.__demand, lost = self.__cst_lost, 
+                                                                    optimizer = self.__optimizer, step = self.step,
+                                                                    time_index = self.time_index-value[1], time_interval = self.time_interval,
+                                                                    penalisation = self.__penalisation_cost, carbon_cost = self.__carbon_cost,
+                                                                    plot = self.plot, average_wide = self.average_wide, init = value[1])
 
-                        ### UPDATE self.__planning
-                        # in progress ;) 
+                            ### UPDATE self.__planning
+                            # in progress ;) 
 
 
         ### STEP 3 : return the final plan
