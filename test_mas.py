@@ -1,4 +1,5 @@
 from MixSimulator import ElectricityMix
+from MixSimulator.Evaluation import EvaluationBudget
 import MixSimulator.nevergradBased.Optimizer as opt
 
 """ 
@@ -11,8 +12,8 @@ import MixSimulator.nevergradBased.Optimizer as opt
     num_worker: int = 1, 
     instrum = ng.p.Array(shape=(2,))
 """
-opt_CMA = opt.Optimizer(opt = ["CMA"], budget = [20], num_worker = 1) 
-opt_CMA_30 = opt.Optimizer(opt = ["CMA"], budget = [20], num_worker = 30)
+opt_CMA = opt.Optimizer(opt = ["CMA"], budget = [100], num_worker = 1) 
+opt_CMA_30 = opt.Optimizer(opt = ["CMA"], budget = [100], num_worker = 30)
 
 """ 
 (2) Init MixSimulator instance :
@@ -53,3 +54,25 @@ mas_mix = ElectricityMix.mix(method="MAS",carbon_cost=0,penalisation_cost=100)
 
 """
 print(mas_mix.get_moderator().optimizeMix(1e10,optimizer = opt_CMA, step = 20, penalisation = 100, carbon_cost = 0, time_index = 168, plot = "default"))
+
+
+""" 
+(8) Evaluation of results by budget for each selected optimizer
+    Default parameters :
+    --------------------
+    mix (or moderator),                     --> the mix or moderator to evaluate
+    sequence,                               --> each budget to evaluate
+    max_budgets, 
+    optimizer_list: List['str'],    
+    indicator_list: List['str'],            --> indicators are ["loss","elapsed_time","production","unsatisfied demand","carbon production"]
+    num_worker: int = 1, 
+    bind: str = None,                       --> path to dataset
+    time_index: int = 24, 
+    carbonProdLimit: float = 39500000000,   --> equal to carbon_quota
+    time_interval : float = 1, 
+    average_wide : int = 0, 
+    penalisation : float = 1000000000000,   --> equal to penalisation cost
+    carbon_cost: float = 0
+"""
+eva=EvaluationBudget()
+eva.evaluate(mas_mix.get_moderator(),10,100,optimizer_list = ["OnePlusOne","DE","CMA","PSO","NGOpt"], indicator_list = ["loss","elapsed_time","production","unsatisfied demand","carbon production"],carbonProdLimit = 1e10, time_index = 24, penalisation = 100, carbon_cost = 10)

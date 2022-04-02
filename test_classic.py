@@ -13,8 +13,8 @@ from .demand.classic.Demand import Demand
     num_worker: int = 1, 
     instrum = ng.p.Array(shape=(2,))
 """
-opt_CMA = opt.Optimizer(opt = ["CMA"], budget = [20], num_worker = 1) 
-opt_CMA_30 = opt.Optimizer(opt = ["CMA"], budget = [20], num_worker = 30)
+opt_CMA = opt.Optimizer(opt = ["CMA"], budget = [100], num_worker = 1) 
+opt_CMA_30 = opt.Optimizer(opt = ["CMA"], budget = [100], num_worker = 30)
 
 
 """ 
@@ -122,4 +122,4 @@ print(mix.get_params())
     carbon_cost: float = 0
 """
 eva=EvaluationBudget()
-eva.evaluate(mix,10,1000,optimizer_list = ["OnePlusOne","DE","CMA","PSO","NGOpt"], indicator_list = ["loss","elapsed_time","production","unsatisfied demand","carbon production"],carbonProdLimit = 9999999999999, time_index = 12, penalisation = 100, carbon_cost = 10)
+eva.evaluate(mix,10,100,optimizer_list = ["OnePlusOne","DE","CMA","PSO","NGOpt"], indicator_list = ["loss","elapsed_time","production","unsatisfied demand","carbon production"],carbonProdLimit = 1e10, time_index = 24, penalisation = 100, carbon_cost = 10)
