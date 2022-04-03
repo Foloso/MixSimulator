@@ -51,9 +51,9 @@ class Moderator(Observer):
             if observable not in self.__observable:
                 self.__observable.append(observable)
         else:
-            for observable in self.__powerplants_down:
+            for i, observable in enumerate(self.__powerplants_down):
                 if observable.get_id() == id_:
-                    self.__observable.append(observable)
+                    self.__observable.append(self.__powerplants_down.pop(i))
 
     def __detach_observable(self, id_: str = None) -> None:
         for i, observable in enumerate(self.__observable):
@@ -148,24 +148,24 @@ class Moderator(Observer):
 
     def get_weighted_coef(self, usage_coef, time_interval, init : int = 0):
         if init == 0 :
-            for powerplant_index in range(0, len(usage_coef[0])):                                       
-                if self.__observable[powerplant_index].get_type() not in ["Demand"] :  
-                    self.__observable[powerplant_index].reset_powerplant()  
+            for powerplant in self.__observable:                                       
+                if powerplant.get_type() not in ["Demand"] :  
+                    powerplant.reset_powerplant()  
         else :
-            for powerplant_index in range(0, len(usage_coef[0])):                                        ###########################################
-                if self.__observable[powerplant_index].get_type() not in ["Demand","Hydropowerplant"] :  ## Keep previous history stock for hydro ##
-                    self.__observable[powerplant_index].reset_powerplant()                               ###########################################
+            for powerplant in self.__observable:                                ###########################################
+                if powerplant.get_type() not in ["Demand","Hydropowerplant"] :  ## Keep previous history stock for hydro ##
+                    powerplant.reset_powerplant()                               ###########################################
 
         weighted_coef = usage_coef.copy()
         for t in range(0, len(weighted_coef)):
-            for powerplant_index in range(0, len(weighted_coef[t])):
-                if self.__observable[powerplant_index].get_type() != "Demand":
-                    min_av = self.__observable[powerplant_index].get_min_availability()
-                    max_av = self.__observable[powerplant_index].get_max_availability(t, init = init)
+            for powerplant_index, powerplant in enumerate(self.__observable):
+                if powerplant.get_type() != "Demand":
+                    min_av = powerplant.get_min_availability()
+                    max_av = powerplant.get_max_availability(t, init = init)
                     if max_av < min_av:
                         min_av = 0 # a verifier 
                     weighted_coef[t][powerplant_index] = min_av + weighted_coef[t][powerplant_index]*(max_av-min_av)
-                    self.__observable[powerplant_index].back_propagate(weighted_coef[t][powerplant_index], t, time_interval)
+                    powerplant.back_propagate(weighted_coef[t][powerplant_index], t, time_interval)
         return weighted_coef
 
     def loss_function(self, usage_coef, time_interval : int = 1) -> float :
@@ -228,7 +228,10 @@ class Moderator(Observer):
         self.time_index = time_index
         self.__init = init
         # step is the step of opt budget
-        self.step = step
+        if time_index < step:
+            self.step = time_index
+        else:
+            self.step = step
         self.time_interval = time_interval
         self.plot = plot
         self.average_wide = average_wide
@@ -283,21 +286,31 @@ class Moderator(Observer):
         if optimizer is not None : self.set_optimizer(optimizer)
 
     def __update_planning(self, original, new, init):
-        coef = original[-1]["coef"][:init]
-        coef = coef + new[-1]["coef"]
-        loss = self.loss_function(coef, self.time_interval)
-        usage_coef = self.arrange_coef_as_array_of_array(coef)
-        weighted_coef = self.get_weighted_coef(usage_coef, time_interval=self.time_interval])
+        previous_coef = original[-1]["coef"][:init]
+        next_coef = new[-1]["coef"]
+        #previous_loss = self.loss_function(previous_coef, self.time_interval)
+        #next_loss = self.loss_function(next_coef, self.time_interval)
+
+        usage_coef = self.arrange_coef_as_array_of_array(previous_coef)
+        previous_weighted_coef = self.get_weighted_coef(usage_coef[0], time_interval=self.time_interval)
+        usage_coef = self.arrange_coef_as_array_of_array(next_coef)
+        next_weighted_coef = self.get_weighted_coef(usage_coef[0], time_interval=self.time_interval, init=init)
+        
         production = 0
         u_demand = 0
-        for t in range(0, len(weighted_coef)):
-            production +=  mix.get_production_cost_at_t(weighted_coef[t], t, self.time_interval)
-            u_demand += mix.get_unsatisfied_demand_at_t(weighted_coef[t], t, self.time_interval)
-            carbon_prod = self.get_carbon_production_at_t(weighted_coef[t], self.time_interval)
+        carbon_prod = 0
+        for i, weighted_coef in enumerate([previous_weighted_coef,next_weighted_coef]):
+            for t in range(0, len(weighted_coef)):
+                production +=  self.get_production_cost_at_t(weighted_coef[t], t, self.time_interval)
+                if i == 1:
+                    u_demand += self.get_unsatisfied_demand_at_t(weighted_coef[t], t, self.time_interval, init = init)
+                else :
+                    u_demand += self.get_unsatisfied_demand_at_t(weighted_coef[t], t, self.time_interval)
+            carbon_prod += self.get_carbon_production_at_t(weighted_coef[t], self.time_interval)
 
-        return [{"loss":loss, "coef":coef, "production":production, "unsatisfied demand":u_demand, "carbon production":carbon_prod}]
+        return [{"loss":"in progress", "coef":previous_coef+next_coef, "production":production, "unsatisfied demand":u_demand, "carbon production":carbon_prod}]
 
-    def simulate(events):
+    def simulate(self,events):
         """
             Simulating the mas platform over a specific time index
             'events' parameter must be a dict structured like this : 
@@ -306,6 +319,7 @@ class Moderator(Observer):
                     ...
                     ...
                 }
+            and it's must be linear (cause it's based on timeline)
         """
         ### STEP 1 : initial planning
         self.__planning = self.optimizeMix(carbon_quota = None, demand = self.__demand, lost = self.__cst_lost, 
@@ -318,7 +332,7 @@ class Moderator(Observer):
         for key, n_events in events.items():
             if key == "400":
                 for value in n_events:
-                    for element in get_observable():
+                    for element in self.get_observable():
                         if element.get_name() == value[0]:
                             element._notify_is_down()
                             ### Relaunch optimizeMix() but with new initial time_index
@@ -330,11 +344,13 @@ class Moderator(Observer):
 
                             ### UPDATE self.__planning
                             self.__planning = self.__update_planning(self.__planning, new_next_planning, value[1])
+                            print("Update done! loss = ",self.__planning[-1]["loss"])
 
             elif key == "200":
                 for value in n_events:
-                    for element in get_observable():
+                    for element in self.__powerplants_down:
                         if element.get_name() == value[0]:
+                            pass
                             element._notify_is_up()
                             ### Relaunch optimizeMix() but with new initial time_index
                             new_next_planning = self.optimizeMix(carbon_quota = None, demand = self.__demand, lost = self.__cst_lost, 
@@ -344,9 +360,11 @@ class Moderator(Observer):
                                                                     plot = self.plot, average_wide = self.average_wide, init = value[1])
 
                             ### UPDATE self.__planning
-                            self.__planning = self.__update_planning(self.__planning, new_next_planning, value[1]) 
+                            self.__planning = self.__update_planning(self.__planning, new_next_planning, value[1])
+                            print("Update done! loss = ",self.__planning[-1]["loss"]) 
 
         ### STEP 3 : return the final plan
+        print("Simulation done!")
         return self.__planning
 
     

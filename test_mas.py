@@ -76,3 +76,9 @@ print(mas_mix.get_moderator().optimizeMix(1e10,optimizer = opt_CMA, step = 20, p
 """
 eva=EvaluationBudget()
 eva.evaluate(mas_mix.get_moderator(),10,100,optimizer_list = ["OnePlusOne","DE","CMA","PSO","NGOpt"], indicator_list = ["loss","elapsed_time","production","unsatisfied demand","carbon production"],carbonProdLimit = 1e10, time_index = 24, penalisation = 100, carbon_cost = 10)
+
+"""
+(9) Simulating the mas platform
+"""
+mas_mix.get_moderator().set_params(1e10,optimizer = opt_CMA, step = 20, penalisation = 100, carbon_cost = 0, time_index = 168, plot = "default")
+print(mas_mix.get_moderator().simulate({"400":[("Tm/ENELEC 3",40)],"200":[("Tm/ENELEC 3",135)]}))
