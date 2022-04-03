@@ -12,8 +12,8 @@ import MixSimulator.nevergradBased.Optimizer as opt
     num_worker: int = 1, 
     instrum = ng.p.Array(shape=(2,))
 """
-opt_CMA = opt.Optimizer(opt = ["CMA"], budget = [100], num_worker = 1) 
-opt_CMA_30 = opt.Optimizer(opt = ["CMA"], budget = [100], num_worker = 30)
+opt_CMA = opt.Optimizer(opt = ["CMA"], budget = [20], num_worker = 1) 
+opt_CMA_30 = opt.Optimizer(opt = ["CMA"], budget = [20], num_worker = 30)
 
 """ 
 (2) Init MixSimulator instance :

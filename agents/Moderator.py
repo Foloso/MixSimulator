@@ -28,6 +28,7 @@ class Moderator(Observer):
         self.__optimizer =  Optimizer()
         self.__carbon_cost = carbon_cost
         self.__carbon_quota = 800139. # (g/MWh)
+        self.__planning = ...
         
         # for reuse and get_params()
         self.time_index = 24*7
@@ -45,9 +46,14 @@ class Moderator(Observer):
     def set_observable(self, observables: List[Observable]) -> None:
         self.__observable = observables
       
-    def __add_observable(self, observable: Observable) -> None:
-        if observable not in self.__observable:
-            self.__observable.append(observable)
+    def __add_observable(self, observable: Observable, id_ = None) -> None:
+        if id_ is None:
+            if observable not in self.__observable:
+                self.__observable.append(observable)
+        else:
+            for observable in self.__powerplants_down:
+                if observable.get_id() == id_:
+                    self.__observable.append(observable)
 
     def __detach_observable(self, id_: str = None) -> None:
         for i, observable in enumerate(self.__observable):
@@ -61,6 +67,9 @@ class Moderator(Observer):
             self.__add_observable(observable)
         elif signal["code"] == 400:
             self.__detach_observable(id_ = signal["id"])
+        elif signal["code"] == 200:
+            self.__add_observable(observable, id_ = signal["id"])
+
 
 
     ### PARAMETRIZATION
@@ -273,6 +282,20 @@ class Moderator(Observer):
         if carbon_quota is not None : self.set_carbon_quota(carbon_quota)
         if optimizer is not None : self.set_optimizer(optimizer)
 
+    def __update_planning(self, original, new, init):
+        coef = original[-1]["coef"][:init]
+        coef = coef + new[-1]["coef"]
+        loss = self.loss_function(coef, self.time_interval)
+        usage_coef = self.arrange_coef_as_array_of_array(coef)
+        weighted_coef = self.get_weighted_coef(usage_coef, time_interval=self.time_interval])
+        production = 0
+        u_demand = 0
+        for t in range(0, len(weighted_coef)):
+            production +=  mix.get_production_cost_at_t(weighted_coef[t], t, self.time_interval)
+            u_demand += mix.get_unsatisfied_demand_at_t(weighted_coef[t], t, self.time_interval)
+            carbon_prod = self.get_carbon_production_at_t(weighted_coef[t], self.time_interval)
+
+        return [{"loss":loss, "coef":coef, "production":production, "unsatisfied demand":u_demand, "carbon production":carbon_prod}]
 
     def simulate(events):
         """
@@ -306,8 +329,22 @@ class Moderator(Observer):
                                                                     plot = self.plot, average_wide = self.average_wide, init = value[1])
 
                             ### UPDATE self.__planning
-                            # in progress ;) 
+                            self.__planning = self.__update_planning(self.__planning, new_next_planning, value[1])
 
+            elif key == "200":
+                for value in n_events:
+                    for element in get_observable():
+                        if element.get_name() == value[0]:
+                            element._notify_is_up()
+                            ### Relaunch optimizeMix() but with new initial time_index
+                            new_next_planning = self.optimizeMix(carbon_quota = None, demand = self.__demand, lost = self.__cst_lost, 
+                                                                    optimizer = self.__optimizer, step = self.step,
+                                                                    time_index = self.time_index-value[1], time_interval = self.time_interval,
+                                                                    penalisation = self.__penalisation_cost, carbon_cost = self.__carbon_cost,
+                                                                    plot = self.plot, average_wide = self.average_wide, init = value[1])
+
+                            ### UPDATE self.__planning
+                            self.__planning = self.__update_planning(self.__planning, new_next_planning, value[1]) 
 
         ### STEP 3 : return the final plan
         return self.__planning
