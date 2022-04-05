@@ -1,3 +1,4 @@
+from mimetypes import init
 from .Interfaces import Observer, Observable
 from ..power_plants.mas.PowerPlant import PowerPlant
 from ..demand.mas.Demand import Demand
@@ -14,10 +15,26 @@ from math import ceil
 from typing import List, Any, Type, Dict
 from datetime import datetime
 import matplotlib.pyplot as plt # type: ignore
+from threading import Thread, Event
+
+class StoppableThread(Thread):
+    """Thread class with a stop() method. The thread itself has to check
+    regularly for the stopped() condition."""
+
+    def __init__(self,  *args, **kwargs):
+        super(StoppableThread, self).__init__(*args, **kwargs)
+        self._stop_event = Event()
+
+    def stop(self):
+        self._stop_event.set()
+
+    def stopped(self):
+        return self._stop_event.is_set()
 
 class Moderator(Observer):
     def __init__(self,carbon_cost, penalisation_cost) -> None:
         super().__init__()
+        self.__log_file = open("optimisation.log", "w")
         self.__observable : List[PowerPlant] = []
         self.__powerplants_down : List[PowerPlant] = []
         dm = Demand(demand= 20, var_per_day= 0.2, var_per_season= 0.2)
@@ -36,6 +53,8 @@ class Moderator(Observer):
         self.time_interval = 1
         self.plot = "default"
         self.average_wide = 0
+
+        self.__cur_optimization : StoppableThread = None
 
     def __reset_powerplant(self):
         self.__observable : List[PowerPlant] = []
@@ -63,13 +82,49 @@ class Moderator(Observer):
     ### COMMUNICATION
     def update(self, observable, signal, *args, **kwargs) -> None:
         print(observable, "sends signal code ", signal["code"])
-        if signal["code"] == 100:
-            self.__add_observable(observable)
-        elif signal["code"] == 400:
-            self.__detach_observable(id_ = signal["id"])
-        elif signal["code"] == 200:
-            self.__add_observable(observable, id_ = signal["id"])
+        ## relaunching optimization
 
+        _kwargs = {"carbon_quota": self.__carbon_quota , "demand": self.get_demand(), "lost": self.__cst_lost, "optimizer": self.__optimizer, "step" : self.step,
+        "time_index": self.time_index, "time_interval": self.time_interval, "penalisation" : self.__penalisation_cost, "carbon_cost" : self.get_carbon_cost(), "plot" : "default", "average_wide" : 0}
+        if self.__cur_optimization is None:
+            self.__cur = 0
+            if signal["code"] == 100:
+                self.__add_observable(observable)
+            elif signal["code"] == 400:
+                self.__detach_observable(id_ = signal["id"])
+            elif signal["code"] == 200:
+                self.__add_observable(observable, id_ = signal["id"])  
+            self.__cur_optimization = StoppableThread(target=self.optimizeMix, kwargs=_kwargs)
+            self.__cur_optimization.start()
+            print("optimization is running")
+        elif signal["t_from"] == self.__cur:
+            _kwargs.update({"init": signal["t_from"], "time_index": _kwargs["time_index"]-signal["t_from"]})
+            self.__cur_optimization.stop()
+            if signal["code"] == 100:
+                self.__add_observable(observable)
+            elif signal["code"] == 400:
+                self.__detach_observable(id_ = signal["id"])
+            elif signal["code"] == 200:
+                self.__add_observable(observable, id_ = signal["id"]) 
+            print("optimization has been stopped")
+            self.__cur_optimization = StoppableThread(target=self.optimizeMix, kwargs=_kwargs)
+            self.__cur = signal["t_from"]
+            self.__cur_optimization.start()
+            print("optimization is running")
+        elif signal["t_from"] > self.__cur:
+            _kwargs.update({"init": signal["t_from"], "time_index": _kwargs["time_index"]-signal["t_from"]})
+            print("wainting for current optimization to finish".upper())
+            self.__cur_optimization.join()
+            if signal["code"] == 100:
+                self.__add_observable(observable)
+            elif signal["code"] == 400:
+                self.__detach_observable(id_ = signal["id"])
+            elif signal["code"] == 200:
+                self.__add_observable(observable, id_ = signal["id"]) 
+            self.__cur_optimization = StoppableThread(target=self.optimizeMix, kwargs=_kwargs)
+            self.__cur = signal["t_from"]
+            self.__cur_optimization.start()
+            print("optimization is running")
 
 
     ### PARAMETRIZATION
@@ -254,7 +309,7 @@ class Moderator(Observer):
         
         results = self.__reshape_results(results, self.time_interval)
 
-        self.plotResults(results, mode = self.plot , time_interval = self.time_interval, time_index =self.time_index, average_wide = self.average_wide)
+        # self.plotResults(results, mode = self.plot , time_interval = self.time_interval, time_index =self.time_index, average_wide = self.average_wide)
         
         return results
 

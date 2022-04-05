@@ -67,10 +67,11 @@ class Agent(Observable):
                 self._scheduled_actions.update({action: periodic})
                 self._scheduled_actions[action].start()
       
-    def register_observer(self, moderators: List) -> None:
+    def register_observer(self, moderators: List, t_from=0) -> None:
         super().register_observer(moderators)
         register_signal = json.load(open(self._code_files))["100"]
         register_signal["id"] = self.get_id()
+        register_signal["t_from"] = t_from
         self._notify_observers(register_signal)
 
     def set_type(self, ntype):

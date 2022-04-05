@@ -116,7 +116,7 @@ class Optimizer():
                         u_demand += mix.get_unsatisfied_demand_at_t(weighted_coef[t], t, constraints["time_interval"], init = init)
                     result_per_budget.update({"production": production})
                     result_per_budget.update({"unsatisfied demand": u_demand})
-                    result_per_budget.update({"carbon production": mix.get_carbon_production_at_t(weighted_coef[t], constraints["time_interval"])})
+                    # result_per_budget.update({"carbon production": mix.get_carbon_production_at_t(weighted_coef[t], constraints["time_interval"])})
                 result_per_budget.update({"elapsed_time": time.time() - start_time})
                 result.append(result_per_budget)
                 

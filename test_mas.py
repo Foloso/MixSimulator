@@ -1,6 +1,7 @@
 from MixSimulator import ElectricityMix
 from MixSimulator.Evaluation import EvaluationBudget
 import MixSimulator.nevergradBased.Optimizer as opt
+import time
 
 """ 
 (1) Configure nevergrad optimizers 
@@ -12,8 +13,8 @@ import MixSimulator.nevergradBased.Optimizer as opt
     num_worker: int = 1, 
     instrum = ng.p.Array(shape=(2,))
 """
-opt_CMA = opt.Optimizer(opt = ["CMA"], budget = [20], num_worker = 1) 
-opt_CMA_30 = opt.Optimizer(opt = ["CMA"], budget = [20], num_worker = 30)
+# opt_CMA = opt.Optimizer(opt = ["CMA"], budget = [100], num_worker = 1) 
+opt_CMA_30 = opt.Optimizer(opt = ["CMA"], budget = [2000], num_worker = 30)
 
 """ 
 (2) Init MixSimulator instance :
@@ -53,7 +54,7 @@ mas_mix = ElectricityMix.mix(method="MAS",carbon_cost=0,penalisation_cost=100)
     --> each result is a dict of "loss", "coef", "production", "unsatisfied demand", "carbon production" and "elapsed_time"
 
 """
-print(mas_mix.get_moderator().optimizeMix(1e10,optimizer = opt_CMA, step = 20, penalisation = 100, carbon_cost = 0, time_index = 168, plot = "default"))
+# print(mas_mix.get_moderator().optimizeMix(1e10,optimizer = opt_CMA, step = 20, penalisation = 100, carbon_cost = 0, time_index = 168, plot = "default"))
 
 
 """ 
@@ -74,11 +75,21 @@ print(mas_mix.get_moderator().optimizeMix(1e10,optimizer = opt_CMA, step = 20, p
     penalisation : float = 1000000000000,   --> equal to penalisation cost
     carbon_cost: float = 0
 """
-eva=EvaluationBudget()
-eva.evaluate(mas_mix.get_moderator(),10,100,optimizer_list = ["OnePlusOne","DE","CMA","PSO","NGOpt"], indicator_list = ["loss","elapsed_time","production","unsatisfied demand","carbon production"],carbonProdLimit = 1e10, time_index = 24, penalisation = 100, carbon_cost = 10)
+# eva=EvaluationBudget()
+# eva.evaluate(mas_mix.get_moderator(),10,100,optimizer_list = ["OnePlusOne","DE","CMA","PSO","NGOpt"], indicator_list = ["loss","elapsed_time","production","unsatisfied demand","carbon production"],carbonProdLimit = 1e10, time_index = 24, penalisation = 100, carbon_cost = 10)
 
 """
 (9) Simulating the mas platform
 """
-mas_mix.get_moderator().set_params(1e10,optimizer = opt_CMA, step = 20, penalisation = 100, carbon_cost = 0, time_index = 168, plot = "default")
-print(mas_mix.get_moderator().simulate({"400":[("Tm/ENELEC 3",40)],"200":[("Tm/ENELEC 3",135)]}))
+mas_mix.get_moderator().set_params(1e10,optimizer = opt_CMA_30, step = 20, penalisation = 100, carbon_cost = 0, time_index = 168, plot = "default")
+
+time.sleep(20)
+# print(mas_mix.get_moderator().simulate({"400":[("Tm/ENELEC 3",40)],"200":[("Tm/ENELEC 3",135)]}))
+centrale1 = mas_mix.get_moderator().get_observable()[0]
+centrale2 = mas_mix.get_moderator().get_observable()[1]
+
+centrale1._notify_is_down(50)
+centrale2._notify_is_down(55)
+# centrale1._notify_is_up(55)
+# centrale2._notify_is_up(60)
+

@@ -56,14 +56,16 @@ class PowerPlant(Agent):
         print("getting env")
 
     ### COMMUNICATION
-    def _notify_is_up(self) -> None:
+    def _notify_is_up(self, t_from=0) -> None:
         signal = json.load(open(self._code_files))["200"]
         signal["id"] = self.get_id()
+        signal["t_from"] = t_from
         self._notify_observers(signal)
 
-    def _notify_is_down(self) -> None:
+    def _notify_is_down(self, t_from=0) -> None:
         signal = json.load(open(self._code_files))["400"]
         signal["id"] = self.get_id()
+        signal["t_from"] = t_from
         self._notify_observers(signal)
 
     def _notify_disponibility(self) -> None:
