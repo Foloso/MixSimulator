@@ -1,7 +1,26 @@
+import threading
 from MixSimulator import ElectricityMix
 from MixSimulator.Evaluation import EvaluationBudget
 import MixSimulator.nevergradBased.Optimizer as opt
 import time
+from MixSimulator.agents.Moderator import StoppableThread
+
+"""
+    (0) Check the thread running in background
+"""
+def check_thread_running():
+    list_ = []
+    while True:
+        tmp = threading.enumerate().copy()
+        if tmp != list_:
+            list_ = tmp
+            for thread in list_:
+                if thread.is_alive():
+                    print("THREAD:  " + thread.name)
+        time.sleep(10)
+
+thread_checker = StoppableThread(target=check_thread_running, name="thread_checker")
+thread_checker.start()
 
 """ 
 (1) Configure nevergrad optimizers 
@@ -13,8 +32,8 @@ import time
     num_worker: int = 1, 
     instrum = ng.p.Array(shape=(2,))
 """
-# opt_CMA = opt.Optimizer(opt = ["CMA"], budget = [100], num_worker = 1) 
-opt_CMA_30 = opt.Optimizer(opt = ["CMA"], budget = [2000], num_worker = 30)
+# opt_CMA_30 = opt.Optimizer(opt = ["CMA"], budget = [100], num_worker = 1) 
+opt_CMA_30 = opt.Optimizer(opt = ["OnePlusOne"], budget = [10], num_worker = 30)
 
 """ 
 (2) Init MixSimulator instance :
@@ -81,15 +100,21 @@ mas_mix = ElectricityMix.mix(method="MAS",carbon_cost=0,penalisation_cost=100)
 """
 (9) Simulating the mas platform
 """
-mas_mix.get_moderator().set_params(1e10,optimizer = opt_CMA_30, step = 20, penalisation = 100, carbon_cost = 0, time_index = 168, plot = "default")
+mas_mix.get_moderator().set_params(1e10,optimizer = opt_CMA_30, step = 20, penalisation = 100, carbon_cost = 0, time_index = 24*7, plot = "default")
 
-time.sleep(20)
-# print(mas_mix.get_moderator().simulate({"400":[("Tm/ENELEC 3",40)],"200":[("Tm/ENELEC 3",135)]}))
+time.sleep(3)
+# print(mas_mix.get_moderator().simulate({"400":[("Tm/ENELEC 3",40)],"400":[("Tm/ENELEC 2",135)], "200":[("Tm/ENELEC 2",136)]}))
 centrale1 = mas_mix.get_moderator().get_observable()[0]
 centrale2 = mas_mix.get_moderator().get_observable()[1]
 
-centrale1._notify_is_down(50)
-centrale2._notify_is_down(55)
-# centrale1._notify_is_up(55)
-# centrale2._notify_is_up(60)
+centrale1._notify_is_down(80)
+centrale2._notify_is_down(100)
+centrale1._notify_is_up(100)
+centrale2._notify_is_up(150)
 
+while True:
+    if len(threading.enumerate()) == 2:
+        thread_checker.stop()
+        break
+
+print("SIMULATION DONE")

@@ -15,21 +15,37 @@ from math import ceil
 from typing import List, Any, Type, Dict
 from datetime import datetime
 import matplotlib.pyplot as plt # type: ignore
-from threading import Thread, Event
+import threading
+import ctypes
 
-class StoppableThread(Thread):
+class StoppableThread(threading.Thread):
     """Thread class with a stop() method. The thread itself has to check
     regularly for the stopped() condition."""
 
     def __init__(self,  *args, **kwargs):
-        super(StoppableThread, self).__init__(*args, **kwargs)
-        self._stop_event = Event()
+        super().__init__(*args, **kwargs)
+
+    def run(self):
+        try:
+            super().run()
+        finally:
+            # print('stopped thread: ' + self.name)
+            pass
+
+    def get_id(self):
+        if hasattr(self, '_thread_id'):
+            return self._thread_id
+        for id, thread in threading._active.items():
+            if thread is self:
+                return id
 
     def stop(self):
-        self._stop_event.set()
+        thread_id = self.get_id()
+        resu = ctypes.pythonapi.PyThreadState_SetAsyncExc(ctypes.c_long(thread_id),
+                                                     ctypes.py_object(SystemExit))
+        if resu > 1:
+            ctypes.pythonapi.PyThreadState_SetAsyncExc(thread_id, 0)
 
-    def stopped(self):
-        return self._stop_event.is_set()
 
 class Moderator(Observer):
     def __init__(self,carbon_cost, penalisation_cost) -> None:
@@ -66,65 +82,58 @@ class Moderator(Observer):
         self.__observable = observables
       
     def __add_observable(self, observable: Observable, id_ = None) -> None:
-        if id_ is None:
+        # if id_ is None:
             if observable not in self.__observable:
                 self.__observable.append(observable)
-        else:
-            for i, observable in enumerate(self.__powerplants_down):
-                if observable.get_id() == id_:
-                    self.__observable.append(self.__powerplants_down.pop(i))
+        # else:
+            # for i, observable in enumerate(self.__powerplants_down):
+                # if observable.get_id() == id_:
+                    # self.__observable.append(self.__powerplants_down.pop(i))
+                pass
 
-    def __detach_observable(self, id_: str = None) -> None:
-        for i, observable in enumerate(self.__observable):
-            if observable.get_id() == id_ :
-                self.__powerplants_down.append(self.__observable.pop(i))
+    def __detach_observable(self, observable, id_: str = None) -> None:
+        # for i, observable in enumerate(self.__observable):
+            # if observable.get_id() == id_ :
+                # self.__powerplants_down.append(self.__observable.pop(i))
+        if observable in self.__observable:
+            self.__observable.remove(observable)
     
     ### COMMUNICATION
-    def update(self, observable, signal, *args, **kwargs) -> None:
+    def __update_self(self, observable, signal):
         print(observable, "sends signal code ", signal["code"])
-        ## relaunching optimization
+        if signal["code"] == 100:
+            self.__add_observable(observable)
+        elif signal["code"] == 400:
+            # self.__detach_observable(observable, id_ = signal["id"])
+            self.__detach_observable(observable)
+        elif signal["code"] == 200:
+            # self.__add_observable(observable, id_ = signal["id"])  
+            self.__add_observable(observable)  
 
+    def update(self, observable, signal, *args, **kwargs) -> None:
+        ## relaunching optimization
         _kwargs = {"carbon_quota": self.__carbon_quota , "demand": self.get_demand(), "lost": self.__cst_lost, "optimizer": self.__optimizer, "step" : self.step,
         "time_index": self.time_index, "time_interval": self.time_interval, "penalisation" : self.__penalisation_cost, "carbon_cost" : self.get_carbon_cost(), "plot" : "default", "average_wide" : 0}
         if self.__cur_optimization is None:
             self.__cur = 0
-            if signal["code"] == 100:
-                self.__add_observable(observable)
-            elif signal["code"] == 400:
-                self.__detach_observable(id_ = signal["id"])
-            elif signal["code"] == 200:
-                self.__add_observable(observable, id_ = signal["id"])  
-            self.__cur_optimization = StoppableThread(target=self.optimizeMix, kwargs=_kwargs)
+            self.__update_self(observable, signal)
+            self.__cur_optimization = StoppableThread(target=self.optimizeMix, kwargs=_kwargs, name=str(observable)+str(signal["code"]))
             self.__cur_optimization.start()
-            print("optimization is running")
         elif signal["t_from"] == self.__cur:
             _kwargs.update({"init": signal["t_from"], "time_index": _kwargs["time_index"]-signal["t_from"]})
             self.__cur_optimization.stop()
-            if signal["code"] == 100:
-                self.__add_observable(observable)
-            elif signal["code"] == 400:
-                self.__detach_observable(id_ = signal["id"])
-            elif signal["code"] == 200:
-                self.__add_observable(observable, id_ = signal["id"]) 
-            print("optimization has been stopped")
-            self.__cur_optimization = StoppableThread(target=self.optimizeMix, kwargs=_kwargs)
+            self.__update_self(observable, signal)
+            self.__cur_optimization = StoppableThread(target=self.optimizeMix, kwargs=_kwargs, name=str(observable)+str(signal["code"]))
             self.__cur = signal["t_from"]
             self.__cur_optimization.start()
-            print("optimization is running")
         elif signal["t_from"] > self.__cur:
             _kwargs.update({"init": signal["t_from"], "time_index": _kwargs["time_index"]-signal["t_from"]})
             print("wainting for current optimization to finish".upper())
             self.__cur_optimization.join()
-            if signal["code"] == 100:
-                self.__add_observable(observable)
-            elif signal["code"] == 400:
-                self.__detach_observable(id_ = signal["id"])
-            elif signal["code"] == 200:
-                self.__add_observable(observable, id_ = signal["id"]) 
-            self.__cur_optimization = StoppableThread(target=self.optimizeMix, kwargs=_kwargs)
+            self.__update_self(observable, signal)
+            self.__cur_optimization = StoppableThread(target=self.optimizeMix, kwargs=_kwargs, name=str(observable)+str(signal["code"]))
             self.__cur = signal["t_from"]
             self.__cur_optimization.start()
-            print("optimization is running")
 
 
     ### PARAMETRIZATION
@@ -279,9 +288,8 @@ class Moderator(Observer):
                     time_index: int = 24*7, time_interval: float = 1,
                     penalisation : float = None, carbon_cost : float = None, plot : str = "default", average_wide : int = 0, init : int = 0):
 
-        # init params                
-        self.time_index = time_index
-        self.__init = init
+        # init params    
+        print("OPTIMIZATION IS RUNNING:\n time_index = "+str(time_index)+" hours\n from init="+str(init)+" to "+str(self.time_index))
         # step is the step of opt budget
         if time_index < step:
             self.step = time_index
@@ -298,19 +306,20 @@ class Moderator(Observer):
         if optimizer is not None : self.set_optimizer(optimizer)
         
         # tune optimizer parametrization
-        self.__opt_params(self.time_index)
+        self.__opt_params(time_index)
         
         #init constraints
         constraints = {}
         constraints.update({"time_interval":self.time_interval})
         
         #let's optimize
-        results = self.__optimizer.optimize(mix = self , func_to_optimize = self.loss_function, constraints=constraints, step = self.step, init = self.__init)
+        results = self.__optimizer.optimize(mix = self , func_to_optimize = self.loss_function, constraints=constraints, step = self.step, init = init)
         
         results = self.__reshape_results(results, self.time_interval)
 
         # self.plotResults(results, mode = self.plot , time_interval = self.time_interval, time_index =self.time_index, average_wide = self.average_wide)
         
+        print("optimization is done".upper())
         return results
 
     def get_params(self) -> dict:
