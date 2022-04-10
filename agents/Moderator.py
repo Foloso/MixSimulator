@@ -19,8 +19,10 @@ import threading
 import ctypes
 
 class StoppableThread(threading.Thread):
-    """Thread class with a stop() method. The thread itself has to check
-    regularly for the stopped() condition."""
+    """
+        Thread class with a stop() method. The thread itself has to check
+        regularly for the stopped() condition.
+    """
 
     def __init__(self,  *args, **kwargs):
         super().__init__(*args, **kwargs)
@@ -55,13 +57,15 @@ class Moderator(Observer):
         self.__powerplants_down : List[PowerPlant] = []
         dm = Demand(demand= 20, var_per_day= 0.2, var_per_season= 0.2)
         dm.set_data_to("Toamasina",delimiter=",")
+        self.__params_state = None
         self.__demand = dm
         self.__cst_lost = 0.
         self.__penalisation_cost = penalisation_cost
         self.__optimizer =  Optimizer()
         self.__carbon_cost = carbon_cost
         self.__carbon_quota = 800139. # (g/MWh)
-        self.__planning = ...
+        self.__results = ...
+        self.__latest_results = ...
         
         # for reuse and get_params()
         self.time_index = 24*7
@@ -111,29 +115,35 @@ class Moderator(Observer):
             self.__add_observable(observable)  
 
     def update(self, observable, signal, *args, **kwargs) -> None:
-        ## relaunching optimization
-        _kwargs = {"carbon_quota": self.__carbon_quota , "demand": self.get_demand(), "lost": self.__cst_lost, "optimizer": self.__optimizer, "step" : self.step,
-        "time_index": self.time_index, "time_interval": self.time_interval, "penalisation" : self.__penalisation_cost, "carbon_cost" : self.get_carbon_cost(), "plot" : "default", "average_wide" : 0}
-        if self.__cur_optimization is None:
-            self.__cur = 0
+        if self.__params_state is None:
             self.__update_self(observable, signal)
-            self.__cur_optimization = StoppableThread(target=self.optimizeMix, kwargs=_kwargs, name=str(observable)+str(signal["code"]))
-            self.__cur_optimization.start()
-        elif signal["t_from"] == self.__cur:
-            _kwargs.update({"init": signal["t_from"], "time_index": _kwargs["time_index"]-signal["t_from"]})
-            self.__cur_optimization.stop()
-            self.__update_self(observable, signal)
-            self.__cur_optimization = StoppableThread(target=self.optimizeMix, kwargs=_kwargs, name=str(observable)+str(signal["code"]))
-            self.__cur = signal["t_from"]
-            self.__cur_optimization.start()
-        elif signal["t_from"] > self.__cur:
-            _kwargs.update({"init": signal["t_from"], "time_index": _kwargs["time_index"]-signal["t_from"]})
-            print("wainting for current optimization to finish".upper())
-            self.__cur_optimization.join()
-            self.__update_self(observable, signal)
-            self.__cur_optimization = StoppableThread(target=self.optimizeMix, kwargs=_kwargs, name=str(observable)+str(signal["code"]))
-            self.__cur = signal["t_from"]
-            self.__cur_optimization.start()
+        else:
+            ## relaunching optimization
+            _kwargs = {"carbon_quota": self.__carbon_quota , "demand": self.get_demand(), "lost": self.__cst_lost, 
+                    "optimizer": self.__optimizer, "step" : self.step,
+                    "time_index": self.time_index, "time_interval": self.time_interval, 
+                    "penalisation" : self.__penalisation_cost, "carbon_cost" : self.get_carbon_cost(), 
+                    "plot" : self.plot, "average_wide" : self.average_wide}
+            if self.__cur_optimization is None:
+                self.__cur = 0
+                self.__update_self(observable, signal)
+                self.__cur_optimization = StoppableThread(target=self.optimizeMix, kwargs=_kwargs, name=str(observable)+" "+str(signal["code"]))
+                self.__cur_optimization.start()
+            elif signal["t_from"] == self.__cur:
+                _kwargs.update({"init": signal["t_from"], "time_index": _kwargs["time_index"]-signal["t_from"]})
+                self.__cur_optimization.stop()
+                self.__update_self(observable, signal)
+                self.__cur_optimization = StoppableThread(target=self.optimizeMix, kwargs=_kwargs, name=str(observable)+str(signal["code"]))
+                self.__cur = signal["t_from"]
+                self.__cur_optimization.start()
+            elif signal["t_from"] > self.__cur:
+                _kwargs.update({"init": signal["t_from"], "time_index": _kwargs["time_index"]-signal["t_from"]})
+                print("wainting for current optimization to finish".upper())
+                self.__cur_optimization.join()
+                self.__update_self(observable, signal)
+                self.__cur_optimization = StoppableThread(target=self.optimizeMix, kwargs=_kwargs, name=str(observable)+str(signal["code"]))
+                self.__cur = signal["t_from"]
+                self.__cur_optimization.start()
 
 
     ### PARAMETRIZATION
@@ -169,6 +179,9 @@ class Moderator(Observer):
 
     def get_carbon_cost(self):
         return self.__carbon_cost
+
+    def get_results(self):
+        return self.__results
 
     ### EVALUATION FUNCTIONS
     def get_production_cost_at_t(self, usage_coef, time_index, time_interval):
@@ -232,9 +245,12 @@ class Moderator(Observer):
                     powerplant.back_propagate(weighted_coef[t][powerplant_index], t, time_interval)
         return weighted_coef
 
-    def loss_function(self, usage_coef, time_interval : int = 1) -> float :
-        usage_coef = self.arrange_coef_as_array_of_array(usage_coef)
-        weighted_coef = self.get_weighted_coef(usage_coef, time_interval=time_interval)
+    def loss_function(self, usage_coef, time_interval : int = 1, no_arrange = False) -> float :
+        if no_arrange is False:
+            usage_coef = self.arrange_coef_as_array_of_array(usage_coef)
+            weighted_coef = self.get_weighted_coef(usage_coef, time_interval=time_interval)
+        else :
+            weighted_coef = usage_coef
         loss = 0
         for t in range(0, len(weighted_coef)):
             loss += self.get_production_cost_at_t(weighted_coef[t], t, time_interval) + ( self.get_penalisation_cost() * np.abs( self.get_unsatisfied_demand_at_t(weighted_coef[t], t, time_interval)) )
@@ -266,7 +282,6 @@ class Moderator(Observer):
                         variable_parametrization += [ng.p.Choice([0.,1.])]
                     else:
                         #check the params by 
-                        #print(self.__observable[powerplant_index].get_variation_params())
                         variable_parametrization += [self.__observable[powerplant_index].get_variation_params()]
         return ng.p.Tuple(*variable_parametrization)
 
@@ -291,13 +306,11 @@ class Moderator(Observer):
         # init params    
         print("OPTIMIZATION IS RUNNING:\n time_index = "+str(time_index)+" hours\n from init="+str(init)+" to "+str(self.time_index))
         # step is the step of opt budget
+        self.__params_state = -1
         if time_index < step:
-            self.step = time_index
+            step = time_index
         else:
-            self.step = step
-        self.time_interval = time_interval
-        self.plot = plot
-        self.average_wide = average_wide
+            step = step
         if demand is not None : self.set_demand(demand)
         if lost is not None : self.set_constant_lost(lost)
         if penalisation is not None : self.set_penalisation_cost(penalisation)
@@ -308,19 +321,25 @@ class Moderator(Observer):
         # tune optimizer parametrization
         self.__opt_params(time_index)
         
-        #init constraints
+        # init constraints
         constraints = {}
-        constraints.update({"time_interval":self.time_interval})
+        constraints.update({"time_interval":time_interval})
         
-        #let's optimize
-        results = self.__optimizer.optimize(mix = self , func_to_optimize = self.loss_function, constraints=constraints, step = self.step, init = init)
+        # let's optimize
+        self.__latest_results = self.__optimizer.optimize(mix = self , func_to_optimize = self.loss_function, constraints=constraints, step = step, init = init)
         
-        results = self.__reshape_results(results, self.time_interval)
+        self.__latest_results = self.__reshape_results(self.__latest_results, time_interval)
 
-        # self.plotResults(results, mode = self.plot , time_interval = self.time_interval, time_index =self.time_index, average_wide = self.average_wide)
+        #self.plotResults(self.__latest_results, mode = plot , time_interval = time_interval, time_index = time_index, average_wide = average_wide)
+
+        # update results when init is different of 0
+        if init == 0:
+            self.__results = self.__latest_results
+        else :
+            self.__results = self.__update_results(self.__results, self.__latest_results, init)
         
         print("optimization is done".upper())
-        return results
+        return self.__results
 
     def get_params(self) -> dict:
         return {"agents" : self.__observable, "optimizer" : self.get_optimizer(),
@@ -334,7 +353,8 @@ class Moderator(Observer):
                     time_index: int = 24*7, time_interval: float = 1,
                     penalisation : float = None, carbon_cost : float = None, plot : str = "default", average_wide : int = 0, init : int = 0):
 
-        # init params                
+        # init params
+        self.__params_state = -1                
         self.time_index = time_index
         self.__init = init
         # step is the step of opt budget
@@ -349,21 +369,30 @@ class Moderator(Observer):
         if carbon_quota is not None : self.set_carbon_quota(carbon_quota)
         if optimizer is not None : self.set_optimizer(optimizer)
 
-    def __update_planning(self, original, new, init):
+    def run_optimization(self):
+        """
+            Initial run of the simulation (must be run at first)
+        """
+        _kwargs = {"carbon_quota": self.__carbon_quota , "demand": self.get_demand(), "lost": self.__cst_lost, 
+            "optimizer": self.__optimizer, "step" : self.step, "time_index": self.time_index, 
+            "time_interval": self.time_interval, "penalisation" : self.__penalisation_cost, 
+            "carbon_cost" : self.get_carbon_cost(), "plot" : self.plot, "average_wide" : self.average_wide}
+        self.__cur = 0
+        self.__cur_optimization = StoppableThread(target=self.optimizeMix, kwargs=_kwargs, name="Initial run")
+        self.__cur_optimization.start()
+        
+
+    def __update_results(self, original, new, init):
         previous_coef = original[-1]["coef"][:init]
         next_coef = new[-1]["coef"]
-        #previous_loss = self.loss_function(previous_coef, self.time_interval)
-        #next_loss = self.loss_function(next_coef, self.time_interval)
+         
+        previous_loss = self.loss_function(previous_coef, self.time_interval, no_arrange = True)
+        next_loss = self.loss_function(next_coef, self.time_interval, no_arrange = True)
 
-        usage_coef = self.arrange_coef_as_array_of_array(previous_coef)
-        previous_weighted_coef = self.get_weighted_coef(usage_coef[0], time_interval=self.time_interval)
-        usage_coef = self.arrange_coef_as_array_of_array(next_coef)
-        next_weighted_coef = self.get_weighted_coef(usage_coef[0], time_interval=self.time_interval, init=init)
-        
         production = 0
         u_demand = 0
         carbon_prod = 0
-        for i, weighted_coef in enumerate([previous_weighted_coef,next_weighted_coef]):
+        for i, weighted_coef in enumerate([previous_coef,next_coef]):
             for t in range(0, len(weighted_coef)):
                 production +=  self.get_production_cost_at_t(weighted_coef[t], t, self.time_interval)
                 if i == 1:
@@ -372,7 +401,7 @@ class Moderator(Observer):
                     u_demand += self.get_unsatisfied_demand_at_t(weighted_coef[t], t, self.time_interval)
             carbon_prod += self.get_carbon_production_at_t(weighted_coef[t], self.time_interval)
 
-        return [{"loss":"in progress", "coef":previous_coef+next_coef, "production":production, "unsatisfied demand":u_demand, "carbon production":carbon_prod}]
+        return [{"loss":previous_loss+next_loss, "coef":previous_coef+next_coef, "production":production, "unsatisfied demand":u_demand, "carbon production":carbon_prod}]
 
     def simulate(self,events):
         """

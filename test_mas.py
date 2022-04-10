@@ -32,8 +32,8 @@ thread_checker.start()
     num_worker: int = 1, 
     instrum = ng.p.Array(shape=(2,))
 """
-# opt_CMA_30 = opt.Optimizer(opt = ["CMA"], budget = [100], num_worker = 1) 
-opt_CMA_30 = opt.Optimizer(opt = ["OnePlusOne"], budget = [10], num_worker = 30)
+opt_OPO = opt.Optimizer(opt = ["OnePlusOne"], budget = [20], num_worker = 1) 
+opt_OPO_20 = opt.Optimizer(opt = ["OnePlusOne"], budget = [20], num_worker = 30)
 
 """ 
 (2) Init MixSimulator instance :
@@ -51,7 +51,7 @@ classic_mix = ElectricityMix.mix(method="classic",carbon_cost=0,penalisation_cos
 mas_mix = ElectricityMix.mix(method="MAS",carbon_cost=0,penalisation_cost=100)
 
 """ 
-(7) OPTIMIZATION by calling the moderator of the MAS platform
+(7) ONE SHOT optimization by calling the moderator of the MAS platform
     
     Default parameters :
     ---------------------------
@@ -73,7 +73,7 @@ mas_mix = ElectricityMix.mix(method="MAS",carbon_cost=0,penalisation_cost=100)
     --> each result is a dict of "loss", "coef", "production", "unsatisfied demand", "carbon production" and "elapsed_time"
 
 """
-# print(mas_mix.get_moderator().optimizeMix(1e10,optimizer = opt_CMA, step = 20, penalisation = 100, carbon_cost = 0, time_index = 168, plot = "default"))
+# print(mas_mix.get_moderator().optimizeMix(1e10,optimizer = opt_OPO, step = 20, penalisation = 100, carbon_cost = 0, time_index = 168, plot = "default"))
 
 
 """ 
@@ -98,23 +98,25 @@ mas_mix = ElectricityMix.mix(method="MAS",carbon_cost=0,penalisation_cost=100)
 # eva.evaluate(mas_mix.get_moderator(),10,100,optimizer_list = ["OnePlusOne","DE","CMA","PSO","NGOpt"], indicator_list = ["loss","elapsed_time","production","unsatisfied demand","carbon production"],carbonProdLimit = 1e10, time_index = 24, penalisation = 100, carbon_cost = 10)
 
 """
-(9) Simulating the mas platform
+(9) Simulating the mas platform (Manually)
+        1 - First, set params by using set_params method
+        2 - Run the run_optimization method to initiate the simulation
+        3 - Add events
 """
-mas_mix.get_moderator().set_params(1e10,optimizer = opt_CMA_30, step = 20, penalisation = 100, carbon_cost = 0, time_index = 24*7, plot = "default")
-
-time.sleep(3)
-# print(mas_mix.get_moderator().simulate({"400":[("Tm/ENELEC 3",40)],"400":[("Tm/ENELEC 2",135)], "200":[("Tm/ENELEC 2",136)]}))
+mas_mix.get_moderator().set_params(1e10,optimizer = opt_OPO_20, step = 20, penalisation = 100, carbon_cost = 0, time_index = 24, plot = "default")
+mas_mix.get_moderator().run_optimization()
+#time.sleep(3)
+#print(mas_mix.get_moderator().simulate({"400":[("Tm/ENELEC 3",40)],"400":[("Tm/ENELEC 2",135)], "200":[("Tm/ENELEC 2",136)]}))
 centrale1 = mas_mix.get_moderator().get_observable()[0]
 centrale2 = mas_mix.get_moderator().get_observable()[1]
 
-centrale1._notify_is_down(80)
-centrale2._notify_is_down(100)
-centrale1._notify_is_up(100)
-centrale2._notify_is_up(150)
+centrale1._notify_is_down(6)
+#centrale2._notify_is_down(100)
+centrale1._notify_is_up(21)
+#centrale2._notify_is_up(150)
 
 while True:
     if len(threading.enumerate()) == 2:
         thread_checker.stop()
         break
-
 print("SIMULATION DONE")
