@@ -23,12 +23,18 @@ class Hydropowerplant(PowerPlant):
     def __get_natural_availability(self, t, init : int = 0) -> float:
         debit_t = self.__moyenne_apport * (1 + (cos(2 * pi * ( t + init )/ 24))* self.__var_per_day + (cos(2 * pi * ( t + init ) / (24*365)))* self.__var_per_season)
         power = (self.__hauteur * debit_t * 9.8 * 0.9 * 997)/1000000 # unit is MW
-        return power/self._raw_power
+        if self._raw_power == 0.:
+            return 0.
+        else :
+            return power/self._raw_power
 
     def __get__artificial_availability(self, t, init : int = 0) ->float:
         debit_t_max = self.__get_available_stock(t + init)/(3600)
         power = (self.__hauteur * debit_t_max * 9.8 * 0.9 * 997) /1000000 # unit is MW
-        return power/self._raw_power
+        if self._raw_power == 0.:
+            return 0.
+        else :
+            return power/self._raw_power
 
     def get_availability(self, t, init : int = 0) -> float:
         dummy_availability = self.__get__artificial_availability(t, init = init) + self.__get_natural_availability(t, init = init)

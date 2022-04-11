@@ -85,22 +85,15 @@ class Moderator(Observer):
     def set_observable(self, observables: List[Observable]) -> None:
         self.__observable = observables
       
-    def __add_observable(self, observable: Observable, id_ = None) -> None:
-        # if id_ is None:
-            if observable not in self.__observable:
-                self.__observable.append(observable)
-        # else:
-            # for i, observable in enumerate(self.__powerplants_down):
-                # if observable.get_id() == id_:
-                    # self.__observable.append(self.__powerplants_down.pop(i))
-                pass
+    def __add_observable(self, observable: Observable) -> None:
+        if observable not in self.__observable:
+            self.__observable.append(observable)
 
-    def __detach_observable(self, observable, id_: str = None) -> None:
-        # for i, observable in enumerate(self.__observable):
-            # if observable.get_id() == id_ :
-                # self.__powerplants_down.append(self.__observable.pop(i))
-        if observable in self.__observable:
-            self.__observable.remove(observable)
+    def __shutdown_observable(self, observable, id) -> None:
+        observable.shutdown()
+
+    def __power_on_observable(self, observable: Observable) -> None:
+        observable.power_on()
     
     ### COMMUNICATION
     def __update_self(self, observable, signal):
@@ -108,11 +101,9 @@ class Moderator(Observer):
         if signal["code"] == 100:
             self.__add_observable(observable)
         elif signal["code"] == 400:
-            # self.__detach_observable(observable, id_ = signal["id"])
-            self.__detach_observable(observable)
-        elif signal["code"] == 200:
-            # self.__add_observable(observable, id_ = signal["id"])  
-            self.__add_observable(observable)  
+            self.__shutdown_observable(observable,signal["id"])
+        elif signal["code"] == 200:  
+            self.__power_on_observable(observable)  
 
     def update(self, observable, signal, *args, **kwargs) -> None:
         if self.__params_state is None:
@@ -306,7 +297,6 @@ class Moderator(Observer):
         # init params    
         print("OPTIMIZATION IS RUNNING:\n time_index = "+str(time_index)+" hours\n from init="+str(init)+" to "+str(self.time_index))
         # step is the step of opt budget
-        self.__params_state = -1
         if time_index < step:
             step = time_index
         else:
@@ -330,7 +320,7 @@ class Moderator(Observer):
         
         self.__latest_results = self.__reshape_results(self.__latest_results, time_interval)
 
-        #self.plotResults(self.__latest_results, mode = plot , time_interval = time_interval, time_index = time_index, average_wide = average_wide)
+        self.plotResults(self.__latest_results, mode = "save" , time_interval = time_interval, time_index = time_index, average_wide = average_wide)
 
         # update results when init is different of 0
         if init == 0:
@@ -383,8 +373,10 @@ class Moderator(Observer):
         
 
     def __update_results(self, original, new, init):
+        print("init: ",init)
         previous_coef = original[-1]["coef"][:init]
         next_coef = new[-1]["coef"]
+        print("next_coef:",next_coef)
          
         previous_loss = self.loss_function(previous_coef, self.time_interval, no_arrange = True)
         next_loss = self.loss_function(next_coef, self.time_interval, no_arrange = True)
@@ -403,64 +395,6 @@ class Moderator(Observer):
 
         return [{"loss":previous_loss+next_loss, "coef":previous_coef+next_coef, "production":production, "unsatisfied demand":u_demand, "carbon production":carbon_prod}]
 
-    def simulate(self,events):
-        """
-            Simulating the mas platform over a specific time index
-            'events' parameter must be a dict structured like this : 
-                {
-                    "code signal":[("name of the powerplant",init),...],
-                    ...
-                    ...
-                }
-            and it's must be linear (cause it's based on timeline)
-        """
-        ### STEP 1 : initial planning
-        self.__planning = self.optimizeMix(carbon_quota = None, demand = self.__demand, lost = self.__cst_lost, 
-                                            optimizer = self.__optimizer, step = self.step,
-                                            time_index = self.time_index, time_interval = self.time_interval,
-                                            penalisation = self.__penalisation_cost, carbon_cost = self.__carbon_cost,
-                                            plot = self.plot, average_wide = self.average_wide)
-
-        ### STEP 2 : check the events list
-        for key, n_events in events.items():
-            if key == "400":
-                for value in n_events:
-                    for element in self.get_observable():
-                        if element.get_name() == value[0]:
-                            element._notify_is_down()
-                            ### Relaunch optimizeMix() but with new initial time_index
-                            new_next_planning = self.optimizeMix(carbon_quota = None, demand = self.__demand, lost = self.__cst_lost, 
-                                                                    optimizer = self.__optimizer, step = self.step,
-                                                                    time_index = self.time_index-value[1], time_interval = self.time_interval,
-                                                                    penalisation = self.__penalisation_cost, carbon_cost = self.__carbon_cost,
-                                                                    plot = self.plot, average_wide = self.average_wide, init = value[1])
-
-                            ### UPDATE self.__planning
-                            self.__planning = self.__update_planning(self.__planning, new_next_planning, value[1])
-                            print("Update done! loss = ",self.__planning[-1]["loss"])
-
-            elif key == "200":
-                for value in n_events:
-                    for element in self.__powerplants_down:
-                        if element.get_name() == value[0]:
-                            pass
-                            element._notify_is_up()
-                            ### Relaunch optimizeMix() but with new initial time_index
-                            new_next_planning = self.optimizeMix(carbon_quota = None, demand = self.__demand, lost = self.__cst_lost, 
-                                                                    optimizer = self.__optimizer, step = self.step,
-                                                                    time_index = self.time_index-value[1], time_interval = self.time_interval,
-                                                                    penalisation = self.__penalisation_cost, carbon_cost = self.__carbon_cost,
-                                                                    plot = self.plot, average_wide = self.average_wide, init = value[1])
-
-                            ### UPDATE self.__planning
-                            self.__planning = self.__update_planning(self.__planning, new_next_planning, value[1])
-                            print("Update done! loss = ",self.__planning[-1]["loss"]) 
-
-        ### STEP 3 : return the final plan
-        print("Simulation done!")
-        return self.__planning
-
-    
     
     ###########
     ## PLOTS ##
@@ -511,7 +445,8 @@ class Moderator(Observer):
                         axs[n_axs].plot(X[(average_wide - 1):], smooth_value, '.-' ,alpha=0.5, lw=2, label=central)
                 elif n_axs == 1 :
                     axs[n_axs].plot(X,Y_["demand"],label="demand")
-                    axs[n_axs].plot(X,Y_["production"],label="production")
+                    smooth_value = self.moving_average(Y_["production"],average_wide)
+                    axs[n_axs].plot(X[(average_wide - 1):], smooth_value, '.-' ,alpha=0.5, lw=2, label="production")
             
               
             # Add execution_time and loss information  

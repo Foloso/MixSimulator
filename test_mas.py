@@ -105,15 +105,13 @@ mas_mix = ElectricityMix.mix(method="MAS",carbon_cost=0,penalisation_cost=100)
 """
 mas_mix.get_moderator().set_params(1e10,optimizer = opt_OPO_20, step = 20, penalisation = 100, carbon_cost = 0, time_index = 24, plot = "default")
 mas_mix.get_moderator().run_optimization()
-#time.sleep(3)
-#print(mas_mix.get_moderator().simulate({"400":[("Tm/ENELEC 3",40)],"400":[("Tm/ENELEC 2",135)], "200":[("Tm/ENELEC 2",136)]}))
 centrale1 = mas_mix.get_moderator().get_observable()[0]
 centrale2 = mas_mix.get_moderator().get_observable()[1]
 
 centrale1._notify_is_down(6)
-#centrale2._notify_is_down(100)
-centrale1._notify_is_up(21)
-#centrale2._notify_is_up(150)
+centrale1._notify_is_up(12)
+
+print(mas_mix.get_moderator().get_results())
 
 while True:
     if len(threading.enumerate()) == 2:

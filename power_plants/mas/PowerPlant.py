@@ -17,6 +17,7 @@ class PowerPlant(Agent):
         self.__lifetime = 0 #in hour
         self.__carbon_prod = 0. #g/MWh
         self._raw_power = 0. #MW
+        self._original_raw_power = 0.
         self.__availability = 1.  #of the source
         self.__nb_employes = 1
         self.__mean_salary = 0. #per month
@@ -156,6 +157,15 @@ class PowerPlant(Agent):
 
     def set_tuneable(self, tuneable: bool) -> None:
         self.__tuneable = tuneable
+
+    def shutdown(self) -> None:
+        self._original_raw_power = self._raw_power
+        self._raw_power = 0.
+
+    def power_on(self) -> None:
+        print("orig raw: ",self._original_raw_power)
+        self._raw_power = self._original_raw_power
+        print("raw: ",self._raw_power)
 
     def __getUsageCoef(self, usage_coef: float) -> None:
         if(self.__tuneable):
