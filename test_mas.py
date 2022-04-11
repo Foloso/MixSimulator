@@ -111,7 +111,9 @@ centrale2 = mas_mix.get_moderator().get_observable()[1]
 centrale1._notify_is_down(6)
 centrale1._notify_is_up(12)
 
-print(mas_mix.get_moderator().get_results())
+time.sleep(60)
+print("FINAL RESULT: ", mas_mix.get_moderator().get_results())
+mas_mix.get_moderator().plotResults(mas_mix.get_moderator().get_results())
 
 while True:
     if len(threading.enumerate()) == 2:

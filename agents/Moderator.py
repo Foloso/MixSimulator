@@ -320,7 +320,7 @@ class Moderator(Observer):
         
         self.__latest_results = self.__reshape_results(self.__latest_results, time_interval)
 
-        self.plotResults(self.__latest_results, mode = "save" , time_interval = time_interval, time_index = time_index, average_wide = average_wide)
+        self.plotResults(self.__latest_results, mode = "save" , time_interval = time_interval, average_wide = average_wide)
 
         # update results when init is different of 0
         if init == 0:
@@ -402,7 +402,7 @@ class Moderator(Observer):
     def moving_average(self, x, w):
         return np.convolve(x, np.ones(w), 'valid') / w
         
-    def plotResults(self, optimum : dict = {} , mode : str = "default", time_interval : float = 1, time_index : float = 1, average_wide : int = 0):
+    def plotResults(self, optimum : dict = {} , mode : str = "default", time_interval : float = 1, average_wide : int = 0):
         #set the moving average wide
         if average_wide == 0 :
             average_wide = ceil(len(optimum[-1]["coef"])/4)
@@ -431,7 +431,7 @@ class Moderator(Observer):
             Y_: Dict[str,List[float]] ={} 
             Y_["demand"] = []
             Y_["production"] = sum_prod
-            for t_i in range(0,time_index):
+            for t_i in range(0,len(optimum[-1]["coef"])):
                 Y_["demand"].append(self.__demand.get_demand_monthly(t_i, time_interval))
 
             fig, axs = plt.subplots(1, 2, figsize=(12, 6))        
@@ -449,8 +449,11 @@ class Moderator(Observer):
                     axs[n_axs].plot(X[(average_wide - 1):], smooth_value, '.-' ,alpha=0.5, lw=2, label="production")
             
               
-            # Add execution_time and loss information  
-            info = "production_cost: "+ "{:.3f}".format(optimum[-1]["loss"])+" ; execution_time: "+"{:.3f}".format(optimum[-1]["elapsed_time"])  
+            # Add execution_time and loss information
+            try :  
+                info = "production_cost: "+ "{:.3f}".format(optimum[-1]["loss"])+" ; execution_time: "+"{:.3f}".format(optimum[-1]["elapsed_time"])
+            except :
+                info = "production_cost: "+ "{:.3f}".format(optimum[-1]["loss"])
             info += "; demand gap: "+"{:.3f}".format(optimum[-1]["unsatisfied demand"])                   
             plt.annotate(info,
                 xy=(0.5, 0), xytext=(0, 10),
