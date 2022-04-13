@@ -103,7 +103,7 @@ mas_mix = ElectricityMix.mix(method="MAS",carbon_cost=0,penalisation_cost=100)
         2 - Run the run_optimization method to initiate the simulation
         3 - Add events
 """
-mas_mix.get_moderator().set_params(1e10,optimizer = opt_OPO_20, step = 20, penalisation = 100, carbon_cost = 0, time_index = 24, plot = "default")
+mas_mix.get_moderator().set_params(1e10,optimizer = opt_OPO_20, step = 20, penalisation = 100, carbon_cost = 0, time_index = 24, plot = "save")
 mas_mix.get_moderator().run_optimization()
 centrale1 = mas_mix.get_moderator().get_observable()[0]
 centrale2 = mas_mix.get_moderator().get_observable()[1]
@@ -111,12 +111,12 @@ centrale2 = mas_mix.get_moderator().get_observable()[1]
 centrale1._notify_is_down(6)
 centrale1._notify_is_up(12)
 
-time.sleep(60)
-print("FINAL RESULT: ", mas_mix.get_moderator().get_results())
-mas_mix.get_moderator().plotResults(mas_mix.get_moderator().get_results())
-
 while True:
     if len(threading.enumerate()) == 2:
         thread_checker.stop()
         break
 print("SIMULATION DONE")
+
+print("FINAL RESULT: ", mas_mix.get_moderator().get_results())
+mas_mix.get_moderator().plotResults(mas_mix.get_moderator().get_results())
+

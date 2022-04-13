@@ -373,10 +373,8 @@ class Moderator(Observer):
         
 
     def __update_results(self, original, new, init):
-        print("init: ",init)
         previous_coef = original[-1]["coef"][:init]
         next_coef = new[-1]["coef"]
-        print("next_coef:",next_coef)
          
         previous_loss = self.loss_function(previous_coef, self.time_interval, no_arrange = True)
         next_loss = self.loss_function(next_coef, self.time_interval, no_arrange = True)
@@ -388,9 +386,9 @@ class Moderator(Observer):
             for t in range(0, len(weighted_coef)):
                 production +=  self.get_production_cost_at_t(weighted_coef[t], t, self.time_interval)
                 if i == 1:
-                    u_demand += self.get_unsatisfied_demand_at_t(weighted_coef[t], t, self.time_interval, init = init)
+                    u_demand += np.abs(self.get_unsatisfied_demand_at_t(weighted_coef[t], t, self.time_interval, init = init))
                 else :
-                    u_demand += self.get_unsatisfied_demand_at_t(weighted_coef[t], t, self.time_interval)
+                    u_demand += np.abs(self.get_unsatisfied_demand_at_t(weighted_coef[t], t, self.time_interval))
             carbon_prod += self.get_carbon_production_at_t(weighted_coef[t], self.time_interval)
 
         return [{"loss":previous_loss+next_loss, "coef":previous_coef+next_coef, "production":production, "unsatisfied demand":u_demand, "carbon production":carbon_prod}]
@@ -402,7 +400,7 @@ class Moderator(Observer):
     def moving_average(self, x, w):
         return np.convolve(x, np.ones(w), 'valid') / w
         
-    def plotResults(self, optimum : dict = {} , mode : str = "default", time_interval : float = 1, average_wide : int = 0):
+    def plotResults(self, optimum : List = [], mode : str = "default", time_interval : float = 1, average_wide : int = 0):
         #set the moving average wide
         if average_wide == 0 :
             average_wide = ceil(len(optimum[-1]["coef"])/4)

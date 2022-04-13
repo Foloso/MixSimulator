@@ -163,9 +163,7 @@ class PowerPlant(Agent):
         self._raw_power = 0.
 
     def power_on(self) -> None:
-        print("orig raw: ",self._original_raw_power)
         self._raw_power = self._original_raw_power
-        print("raw: ",self._raw_power)
 
     def __getUsageCoef(self, usage_coef: float) -> None:
         if(self.__tuneable):
