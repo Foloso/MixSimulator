@@ -97,7 +97,7 @@ class Optimizer():
         #let's minimize
         for tmp_budget in range(0, total_budget):
             x = optimizer.ask()
-            loss = func_to_optimize(*x.args, constraints["time_interval"])
+            loss = func_to_optimize(*x.args, constraints["time_interval"],init = init)
             optimizer.tell(x, loss)
             if (tmp_budget+1)%step == 0:
                 result_per_budget = {}

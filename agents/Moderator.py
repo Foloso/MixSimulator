@@ -236,15 +236,15 @@ class Moderator(Observer):
                     powerplant.back_propagate(weighted_coef[t][powerplant_index], t, time_interval)
         return weighted_coef
 
-    def loss_function(self, usage_coef, time_interval : int = 1, no_arrange = False) -> float :
+    def loss_function(self, usage_coef, time_interval : int = 1, no_arrange = False, init : int = 0) -> float :
         if no_arrange is False:
             usage_coef = self.arrange_coef_as_array_of_array(usage_coef)
-            weighted_coef = self.get_weighted_coef(usage_coef, time_interval=time_interval)
+            weighted_coef = self.get_weighted_coef(usage_coef, time_interval=time_interval, init = init)
         else :
             weighted_coef = usage_coef
         loss = 0
         for t in range(0, len(weighted_coef)):
-            loss += self.get_production_cost_at_t(weighted_coef[t], t, time_interval) + ( self.get_penalisation_cost() * np.abs( self.get_unsatisfied_demand_at_t(weighted_coef[t], t, time_interval)) )
+            loss += self.get_production_cost_at_t(weighted_coef[t], t, time_interval) + ( self.get_penalisation_cost() * np.abs( self.get_unsatisfied_demand_at_t(weighted_coef[t], t, time_interval, init = init)) )
         loss +=  self.get_carbon_cost() * (self.get_carbon_over_production(weighted_coef, time_interval) )
         return loss
 
