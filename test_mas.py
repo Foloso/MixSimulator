@@ -33,7 +33,7 @@ def generate_random_scenario(centrals: List, time_index: int) -> Dict:
         scenario.update({central:tmp.copy()})
     
     event_stack = {}
-    for i in range(25*4):
+    for i in range(time_index):
         for central in scenario.keys():
             if i in scenario[central]["down"]:
                 try:

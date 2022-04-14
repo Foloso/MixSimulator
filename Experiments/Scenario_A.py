@@ -11,10 +11,52 @@ import matplotlib.pyplot as plt
 import numpy as np
 import os
 import warnings
+from typing import List, Dict
+import random
 
 """
     (0) Check the thread running in background
 """
+def generate_random_scenario(centrals: List, time_index: int) -> Dict:
+    scenario = {}
+    for central in centrals:
+        tmp = {"down":[], "up":[]}
+        default_proba = random.uniform(0, 0.2)
+        
+        for i in range(time_index):
+            tmp[np.random.choice(["up", "down"], p=[1-default_proba,default_proba])].append(i)
+
+        up = []
+        down = []
+        for i in range(time_index):
+            if i in tmp["down"] and (i-1 not in tmp["down"] or i==0):
+                down.append(i)
+            if i-1 in tmp["down"] and i in tmp["up"]: 
+                up.append(i)
+        tmp["up"] = up
+        tmp["down"] = down
+
+        scenario.update({central:tmp.copy()})
+    
+    event_stack = {}
+    for i in range(time_index):
+        for central in scenario.keys():
+            if i in scenario[central]["down"]:
+                try:
+                    event_stack[i].append(central._notify_is_down)
+                except:
+                    event_stack.update({i:[central._notify_is_down]})
+            elif i in scenario[central]["up"]:
+                try:
+                    event_stack[i].append(central._notify_is_up)
+                except:
+                    event_stack.update({i:[central._notify_is_up]})
+
+
+    # print(numpy.arange(0, 2))
+    print("scenario: ", event_stack)
+    return event_stack
+
 def check_thread_running():
     list_ = []
     while True:
@@ -163,19 +205,25 @@ plot_loss(classic_result,step = 10)
         2 - Run the run_optimization method to initiate the simulation
         3 - Add events
 """
-#mas_mix.get_moderator().set_params(1e10,optimizer = opt_OPO_20, step = 500, penalisation = 100, carbon_cost = 0, time_index = 12, plot = "None")
-#mas_mix.get_moderator().run_optimization()
+mas_mix.get_moderator().set_params(1e10,optimizer = opt_OPO_1, step = 500, penalisation = 100, carbon_cost = 0, time_index = 12, plot = "None")
+mas_mix.get_moderator().run_optimization()
 #centrale1 = mas_mix.get_moderator().get_observable()[0]
 #centrale2 = mas_mix.get_moderator().get_observable()[1]
 
 #centrale1._notify_is_down(8)
 #centrale1._notify_is_up(10)
 
-#while True:
-    #if len(threading.enumerate()) == 2:
-        #thread_checker.stop()
-        #break
-#print("SIMULATION DONE")
+centrals = mas_mix.get_moderator().get_observable()
+scenario = generate_random_scenario(centrals, 12)
+for t in scenario.keys():
+    for event in scenario[t]:
+        event(t)
 
-#print("FINAL RESULT: ", mas_mix.get_moderator().get_results())
-#mas_mix.get_moderator().plotResults(mas_mix.get_moderator().get_results())
+while True:
+    if len(threading.enumerate()) == 2:
+        thread_checker.stop()
+        break
+print("SIMULATION DONE")
+
+print("FINAL RESULT: ", mas_mix.get_moderator().get_results())
+mas_mix.get_moderator().plotResults(mas_mix.get_moderator().get_results())
