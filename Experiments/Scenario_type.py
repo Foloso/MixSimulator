@@ -251,7 +251,7 @@ plot_loss(classic_result,step = step_budget)
         3 - Add events
         4 - Get the result after all threads done
 """
-mas_mix.get_moderator().set_params(1e10,optimizer = opt_OPO_1, step = step_budget, penalisation = 100, carbon_cost = 0, time_index = duration, plot = "None")
+mas_mix.get_moderator().set_params(1e10,optimizer = opt, step = step_budget, penalisation = 100, carbon_cost = 0, time_index = duration, plot = "None")
 mas_mix.get_moderator().run_optimization()
 
 for t in scenario.keys():
