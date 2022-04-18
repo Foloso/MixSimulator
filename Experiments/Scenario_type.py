@@ -1,3 +1,4 @@
+#!/usr/bin/python
 import threading
 from MixSimulator import ElectricityMix
 from MixSimulator.Evaluation import EvaluationBudget
@@ -9,6 +10,8 @@ from math import ceil
 from MixSimulator.agents.Moderator import StoppableThread
 import matplotlib.pyplot as plt
 import numpy as np
+import sys
+import copy
 import os
 import warnings
 from typing import List, Dict
@@ -21,7 +24,7 @@ def generate_random_scenario(centrals: List, time_index: int) -> Dict:
     scenario = {}
     for central in centrals:
         tmp = {"down":[], "up":[]}
-        default_proba = random.uniform(0, 0.06)
+        default_proba = random.uniform(0, 0.07)
         
         for i in range(time_index):
             tmp[np.random.choice(["up", "down"], p=[1-default_proba,default_proba])].append(i)
@@ -55,7 +58,7 @@ def generate_random_scenario(centrals: List, time_index: int) -> Dict:
 
 
     # print(numpy.arange(0, 2))
-    # print("scenario: ", event_stack)
+    #print("scenario: ", event_stack)
     return event_stack
 
 def check_thread_running():
@@ -158,17 +161,34 @@ def plot_loss(optimum, mode : str = "default", average_wide : int = 0, step : in
 
 """ 
 (1) INITIALIZATION  PARAMS: 
-    Configure nevergrad optimizers,
-    time index as duration, 
-    step of evaluation as step_budget, 
-    time_interval as t_i
+        - Configure nevergrad optimizers : argument[1] is opt_name, arg[2] is budget, arg[3] num_worker
+        - time index as duration (arg[4]),
+        - step of evaluation as step_budget (arg[5]), 
+        - time_interval as t_i (arg[6]).
 """
-#opt_OPO = opt.Optimizer(opt = ["OnePlusOne"], budget = [20], num_worker = 1) 
-opt_OPO_1 = opt.Optimizer(opt = ["OnePlusOne"], budget = [100], num_worker = 1)
+opt_name = "OnePlusOne"
+budget = 100
+num_worker = 1
 duration = 12
 step_budget = 50
-t_i = 1
+t_i = 1 #time_interval
 
+for i in range(1,len(sys.argv)):
+    if i == 1:
+        opt_name = sys.argv[i]
+    elif i == 2:
+        budget = sys.argv[i]
+    elif i == 3:
+        num_worker = sys.argv[i]
+    elif i == 4:
+        duration = sys.argv[i]
+    elif i == 5:
+        step_budget = sys.argv[i]
+    elif i == 6:
+        t_i = sys.argv[i]
+
+### optimizer 
+opt = opt.Optimizer(opt = [opt_name], budget = [budget], num_worker = num_worker)
 """ 
 (2) Init MixSimulator instance :
     Case one [Default] : "classic" method (see test_classic.py for more use case)
@@ -188,54 +208,57 @@ centrals = mas_mix.get_moderator().get_observable()
 scenario = generate_random_scenario(centrals, duration)
 
 """ 
-(7) ONE SHOT optimization by calling the classic approach
+(3) ONE SHOT optimization by calling the classic approach
 
 """
 classic_mix.set_data_csv("data/RIToamasina/dataset_RI_Toamasina_v2.csv",delimiter=";")
 demand = Demand()
 data_demand = demand.set_data_csv("data/RIToamasina/DIR-TOAMASINA_concat.csv", delimiter = ",")
 classic_mix.set_demand(demand)
-classic_result = classic_mix.optimizeMix(1e10,optimizer = opt_OPO_1, step = step_budget, penalisation = 100, carbon_cost = 0, time_index = duration, plot = "save")
+classic_result = classic_mix.optimizeMix(1e10,optimizer = opt, step = step_budget, penalisation = 100, carbon_cost = 0, time_index = duration, plot = "save").copy()
 ###
 ### MODIFY RESULTS BASED ON EVENTS
-backup_results = classic_result.copy()
+backup_results =  copy.deepcopy(classic_result)
 for t in scenario.keys():
+    print("at t = ",t)
     for event in scenario[t]:
         for position, central in enumerate(classic_mix.get_centrals()):
             if central.get_id() == event[1].get_name():
                 if event[2] == "down":
+                    print(event[2])
                     for step_, value in enumerate(classic_result):
                         for ti in range(t,duration):
                             classic_result[step_]["coef"][ti][position] = 0.0
-                else :                    
+                elif event[2] == "up":
+                    print(event[2])                    
                     for step_, value in enumerate(classic_result):
                         for ti in range(t,duration):
+                            print("time:",ti)
+                            print(backup_results[step_]["coef"][ti][position])
                             classic_result[step_]["coef"][ti][position] = backup_results[step_]["coef"][ti][position]
 
 for step_,value in enumerate(classic_result):
     classic_result[step_]["loss"] = classic_mix.loss_function(classic_result[step_]["coef"], time_interval=t_i, no_arrange=True)
 ###
-print(classic_result)
+### print(classic_result)
+### PLEASE Check this specific plot in the folder "Loss_result_....."
 plot_loss(classic_result,step = step_budget)
 
 """
-(9) Simulating the mas platform (Manually)
+(4) Simulating the mas platform (Manually)
         1 - First, set params by using set_params method
-        2 - Run the run_optimization method to initiate the simulation
+        2 - Launch the run_optimization method to initiate the simulation
         3 - Add events
+        4 - Get the result after all threads done
 """
 mas_mix.get_moderator().set_params(1e10,optimizer = opt_OPO_1, step = step_budget, penalisation = 100, carbon_cost = 0, time_index = duration, plot = "None")
 mas_mix.get_moderator().run_optimization()
-#centrale1 = mas_mix.get_moderator().get_observable()[0]
-#centrale2 = mas_mix.get_moderator().get_observable()[1]
-
-#centrale1._notify_is_down(8)
-#centrale1._notify_is_up(10)
 
 for t in scenario.keys():
     for event in scenario[t]:
         event[0](t)
 
+### Waiting method
 while True:
     if len(threading.enumerate()) == 2:
         thread_checker.stop()
@@ -245,4 +268,5 @@ print("SIMULATION DONE")
 print("FINAL RESULT: ", mas_mix.get_moderator().get_results())
 mas_mix.get_moderator().plotResults(mas_mix.get_moderator().get_results(),mode="save")
 
+### PLEASE Check this specific plot in the folder "Loss_result_....."
 plot_loss(mas_mix.get_moderator().get_results(),step = step_budget)

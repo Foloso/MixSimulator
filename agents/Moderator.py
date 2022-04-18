@@ -7,6 +7,7 @@ from ..nevergradBased.Optimizer import Optimizer
 import numpy as np # type: ignore
 import pandas as pd # type: ignore
 import pkgutil
+import copy
 import csv
 import os
 import warnings
@@ -324,7 +325,7 @@ class Moderator(Observer):
 
         # update results when init is different of 0
         if init == 0:
-            self.__results = self.__latest_results
+            self.__results = copy.deepcopy(self.__latest_results)
         else :
             self.__results = self.__update_results(self.__results, self.__latest_results, init)
         
@@ -373,25 +374,28 @@ class Moderator(Observer):
         
 
     def __update_results(self, original, new, init):
-        previous_coef = original[-1]["coef"][:init]
-        next_coef = new[-1]["coef"]
-         
-        previous_loss = self.loss_function(previous_coef, self.time_interval, no_arrange = True)
-        next_loss = self.loss_function(next_coef, self.time_interval, no_arrange = True)
+        output = []
+        for step_ in range(0,len(original)):
+            previous_coef = original[step_]["coef"][:init]
+            next_coef = new[step_]["coef"]
+            
+            previous_loss = self.loss_function(previous_coef, self.time_interval, no_arrange = True)
+            next_loss = self.loss_function(next_coef, self.time_interval, no_arrange = True)
 
-        production = 0
-        u_demand = 0
-        carbon_prod = 0
-        for i, weighted_coef in enumerate([previous_coef,next_coef]):
-            for t in range(0, len(weighted_coef)):
-                production +=  self.get_production_cost_at_t(weighted_coef[t], t, self.time_interval)
-                if i == 1:
-                    u_demand += np.abs(self.get_unsatisfied_demand_at_t(weighted_coef[t], t, self.time_interval, init = init))
-                else :
-                    u_demand += np.abs(self.get_unsatisfied_demand_at_t(weighted_coef[t], t, self.time_interval))
-            carbon_prod += self.get_carbon_production_at_t(weighted_coef[t], self.time_interval)
-
-        return [{"loss":previous_loss+next_loss, "coef":previous_coef+next_coef, "production":production, "unsatisfied demand":u_demand, "carbon production":carbon_prod}]
+            production = 0
+            u_demand = 0
+            carbon_prod = 0
+            for i, weighted_coef in enumerate([previous_coef,next_coef]):
+                for t in range(0, len(weighted_coef)):
+                    production +=  self.get_production_cost_at_t(weighted_coef[t], t, self.time_interval)
+                    if i == 1:
+                        u_demand += np.abs(self.get_unsatisfied_demand_at_t(weighted_coef[t], t, self.time_interval, init = init))
+                    else :
+                        u_demand += np.abs(self.get_unsatisfied_demand_at_t(weighted_coef[t], t, self.time_interval))
+                carbon_prod += self.get_carbon_production_at_t(weighted_coef[t], self.time_interval)
+            output.append({"loss":previous_loss+next_loss, "coef":previous_coef+next_coef, "production":production, "unsatisfied demand":u_demand, "carbon production":carbon_prod})
+        
+        return output
 
     
     ###########
