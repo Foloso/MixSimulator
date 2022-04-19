@@ -1,4 +1,4 @@
-#!/usr/bin/python
+#!/usr/bin/python3
 import threading
 from MixSimulator import ElectricityMix
 from MixSimulator.Evaluation import EvaluationBudget
@@ -168,10 +168,10 @@ def plot_loss(optimum, mode : str = "default", average_wide : int = 0, step : in
         - time_interval as t_i (arg[6]).
 """
 opt_name = "OnePlusOne"
-budget = 20
+budget = 50
 num_worker = 1
-duration = 8
-step_budget = 10
+duration = 12
+step_budget = 25
 t_i = 1 #time_interval
 log_filename = "log.pickle"
 
@@ -272,5 +272,4 @@ plot_loss(mas_mix.get_moderator().get_results(),step = step_budget, mode="save")
 log = {}
 log.update({"events": scenario, "opt_params":classic_mix.get_params(), "mas_results": mas_mix.get_moderator().get_results(), "classic_results":classic_result})
 
-# with open(log_filename, 'wb') as handle:
-#     pickle.dump([7,8,9], handle, protocol=pickle.HIGHEST_PROTOCOL)
+print(log,file=open(log_filename,"a"))
