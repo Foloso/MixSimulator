@@ -16,6 +16,7 @@ import os
 import warnings
 from typing import List, Dict
 import random
+import pickle
 
 """
     (0) Functions : Check the thread running in background, plot loss results and generate scenarios
@@ -167,25 +168,28 @@ def plot_loss(optimum, mode : str = "default", average_wide : int = 0, step : in
         - time_interval as t_i (arg[6]).
 """
 opt_name = "OnePlusOne"
-budget = 50
+budget = 20
 num_worker = 1
 duration = 8
-step_budget = 25
+step_budget = 10
 t_i = 1 #time_interval
+log_filename = "log.pickle"
 
 for i in range(1,len(sys.argv)):
     if i == 1:
-        opt_name = sys.argv[i]
+        opt_name = str(sys.argv[i])
     elif i == 2:
-        budget = sys.argv[i]
+        budget = int(sys.argv[i])
     elif i == 3:
-        num_worker = sys.argv[i]
+        num_worker = int(sys.argv[i])
     elif i == 4:
-        duration = sys.argv[i]
+        duration = int(sys.argv[i])
     elif i == 5:
-        step_budget = sys.argv[i]
+        step_budget = int(sys.argv[i])
     elif i == 6:
-        t_i = sys.argv[i]
+        t_i = int(sys.argv[i])
+    elif i == 7:
+        log_filename = str(sys.argv[i])+".pickle"
 
 ### optimizer 
 opt = opt.Optimizer(opt = [opt_name], budget = [budget], num_worker = num_worker)
@@ -220,21 +224,16 @@ classic_result = classic_mix.optimizeMix(1e10,optimizer = opt, step = step_budge
 ### MODIFY RESULTS BASED ON EVENTS
 backup_results =  copy.deepcopy(classic_result)
 for t in scenario.keys():
-    print("at t = ",t)
     for event in scenario[t]:
         for position, central in enumerate(classic_mix.get_centrals()):
             if central.get_id() == event[1].get_name():
                 if event[2] == "down":
-                    print(event[2])
                     for step_, value in enumerate(classic_result):
                         for ti in range(t,duration):
                             classic_result[step_]["coef"][ti][position] = 0.0
                 elif event[2] == "up":
-                    print(event[2])                    
                     for step_, value in enumerate(classic_result):
                         for ti in range(t,duration):
-                            print("time:",ti)
-                            print(backup_results[step_]["coef"][ti][position])
                             classic_result[step_]["coef"][ti][position] = backup_results[step_]["coef"][ti][position]
 
 for step_,value in enumerate(classic_result):
@@ -242,7 +241,7 @@ for step_,value in enumerate(classic_result):
 ###
 ### print(classic_result)
 ### PLEASE Check this specific plot in the folder "Loss_result_....."
-plot_loss(classic_result,step = step_budget)
+plot_loss(classic_result,step = step_budget, mode="save")
 
 """
 (4) Simulating the mas platform (Manually)
@@ -265,8 +264,13 @@ while True:
         break
 print("SIMULATION DONE")
 
-print("FINAL RESULT: ", mas_mix.get_moderator().get_results())
 mas_mix.get_moderator().plotResults(mas_mix.get_moderator().get_results(),mode="save")
 
 ### PLEASE Check this specific plot in the folder "Loss_result_....."
-plot_loss(mas_mix.get_moderator().get_results(),step = step_budget)
+plot_loss(mas_mix.get_moderator().get_results(),step = step_budget, mode="save")
+
+log = {}
+log.update({"events": scenario, "opt_params":classic_mix.get_params(), "mas_results": mas_mix.get_moderator().get_results(), "classic_results":classic_result})
+
+# with open(log_filename, 'wb') as handle:
+#     pickle.dump([7,8,9], handle, protocol=pickle.HIGHEST_PROTOCOL)
