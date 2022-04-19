@@ -1,6 +1,6 @@
-from .centrals import PowerCentral as pc
-from .centrals import HydroCentral as hc 
-from .Demand import Demand
+from .power_plants.classic import PowerCentral as pc
+from .power_plants.classic import HydroCentral as hc 
+from .demand.classic.Demand import Demand
 import nevergrad as ng
 from .nevergradBased.Optimizer import Optimizer
 import numpy as np # type: ignore
@@ -138,6 +138,9 @@ class MixSimulator:
         
     def get_demand(self):
         return self.__demand
+    
+    def get_centrals(self):
+        return self.__centrals
         
     def set_lost(self, lost: float):
         self.__lost = lost
@@ -214,9 +217,12 @@ class MixSimulator:
                 self.__centrals[central_index].back_propagate(weighted_coef[t][central_index], t, time_interval)
         return weighted_coef
 
-    def loss_function(self, usage_coef, time_interval : int = 1) -> float :
-        usage_coef = self.arrange_coef_as_array_of_array(usage_coef)
-        weighted_coef = self.get_weighted_coef(usage_coef, time_interval=time_interval)
+    def loss_function(self, usage_coef, time_interval : int = 1, no_arrange = False, init : int = 0) -> float :
+        if no_arrange is False:
+            usage_coef = self.arrange_coef_as_array_of_array(usage_coef)
+            weighted_coef = self.get_weighted_coef(usage_coef, time_interval=time_interval)
+        else :
+            weighted_coef = usage_coef
         loss = 0
         for t in range(0, len(weighted_coef)):
             loss += self.get_production_cost_at_t(weighted_coef[t], t, time_interval) + ( self.get_penalisation_cost() * np.abs( self.get_unsatisfied_demand_at_t(weighted_coef[t], t, time_interval)) )

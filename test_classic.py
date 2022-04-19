@@ -1,7 +1,7 @@
 import mixsimulator.MixSimulator as ms 
 import mixsimulator.nevergradBased.Optimizer as opt	
 from mixsimulator.Evaluation import EvaluationBudget
-import mixsimulator.Demand as dm
+from .demand.classic.Demand import Demand
 
 """ 
 (1) Configure nevergrad optimizers 
@@ -56,7 +56,7 @@ mix.set_variation_csv("data/RIToamasina/dataset_RI_Toamasina_variation_template.
         https://github.com/Foloso/MixSimulator/tree/master/data/RIToamasina/demand
 
 """
-demand = dm.Demand()
+demand = Demand()
 data_demand = demand.set_data_csv("data/RIToamasina/DIR-TOAMASINA_concat.csv", delimiter = ",")
 """
     The method must get a dataset with at least 3 columns
@@ -98,8 +98,8 @@ mix.set_demand(demand)
     --> each result is a dict of "loss", "coef", "production", "unsatisfied demand", "carbon production" and "elapsed_time"
 
 """
-print(mix.optimizeMix(99999999999999999999,optimizer = opt_CMA, step = 20, penalisation = 100, carbon_cost = 0, time_index = 168, plot = "None"),"num_worker <------------ 1")
-print(mix.optimizeMix(99999999999999999999,optimizer = opt_CMA_30, step = 20, penalisation = 100, carbon_cost = 0, time_index = 168, plot = "None"),"num_worker <------------ 30")
+print(mix.optimizeMix(1e10,optimizer = opt_CMA, step = 20, penalisation = 100, carbon_cost = 0, time_index = 168, plot = "None"),"num_worker <------------ 1")
+print(mix.optimizeMix(1e10,optimizer = opt_CMA_30, step = 20, penalisation = 100, carbon_cost = 0, time_index = 168, plot = "None"),"num_worker <------------ 30")
 ### Get all parameters used by the mix 
 print(mix.get_params())
 
@@ -122,4 +122,4 @@ print(mix.get_params())
     carbon_cost: float = 0
 """
 eva=EvaluationBudget()
-eva.evaluate(mix,10,1000,optimizer_list = ["OnePlusOne","DE","CMA","PSO","NGOpt"], indicator_list = ["loss","elapsed_time","production","unsatisfied demand","carbon production"],carbonProdLimit = 9999999999999, time_index = 12, penalisation = 100, carbon_cost = 10)
+eva.evaluate(mix,10,100,optimizer_list = ["OnePlusOne","DE","CMA","PSO","NGOpt"], indicator_list = ["loss","elapsed_time","production","unsatisfied demand","carbon production"],carbonProdLimit = 1e10, time_index = 24, penalisation = 100, carbon_cost = 10)
