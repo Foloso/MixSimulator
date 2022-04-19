@@ -123,9 +123,9 @@ class Demand(Agent):
         demande = self.__mean_demand * (1 + cos(4 * pi * ( t * interval )/ 24)*self.__var_per_day + cos(2 * pi * ( t * interval ) / (24*365))* self.__var_per_season)
         return demande
         
-    def get_demand_monthly(self, t, interval):
-        m = t/(24*30)
+    def get_demand_monthly(self, t, interval, init : int = 0):
+        m = (t + init)/(24*30)
         m = floor(m)
         # for now we divide it by 30*24 (better approximation TO DO)
-        demande = (self.get_demand(m)/(30*24)) * (1 + cos(4 * pi * ( t * interval )/ 24)*self.__var_per_day)
+        demande = (self.get_demand(m)/(30*24)) * (1 + cos(4 * pi * ( (t + init) * interval )/ 24)*self.__var_per_day)
         return demande

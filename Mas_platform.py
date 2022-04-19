@@ -97,6 +97,8 @@ class Mas_platform():
         #self.__reset_centrals()
         #powerplant = pc.PowerCentral()
         try :
+            self.__moderator.get_demand().set_mean_demand(data["Demand"][0])
+            self.__moderator.set_constant_lost(data["lost"][0])
             for i in range (0,data.shape[0]):
                 isHydro = data["hydro"][i]
                 if isHydro.lower() == "true" :
@@ -117,8 +119,6 @@ class Mas_platform():
                 powerplant.set_max_var(data["max_var"][i])
                 ### Register in each agent the observer (moderator) and that allows moderator getting each agent
                 powerplant.register_observer([self.__moderator])
-            self.__moderator.get_demand().set_mean_demand(data["Demand"][0])
-            self.__moderator.set_constant_lost(data["lost"][0])
         except KeyError:
             print("Columns must be in: tuneable, centrals, fuel_consumption, availability, fuel_cost, init_value, lifetime, carbon_cost, raw_power, nb_employees, mean_salary, demand, lost, height, flow, capacity, stock_available")
             raise

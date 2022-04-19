@@ -17,6 +17,7 @@ class PowerPlant(Agent):
         self.__lifetime = 0 #in hour
         self.__carbon_prod = 0. #g/MWh
         self._raw_power = 0. #MW
+        self._original_raw_power = 0.
         self.__availability = 1.  #of the source
         self.__nb_employes = 1
         self.__mean_salary = 0. #per month
@@ -56,14 +57,16 @@ class PowerPlant(Agent):
         print("getting env")
 
     ### COMMUNICATION
-    def _notify_is_up(self) -> None:
+    def _notify_is_up(self, t_from=0) -> None:
         signal = json.load(open(self._code_files))["200"]
         signal["id"] = self.get_id()
+        signal["t_from"] = t_from
         self._notify_observers(signal)
 
-    def _notify_is_down(self) -> None:
+    def _notify_is_down(self, t_from=0) -> None:
         signal = json.load(open(self._code_files))["400"]
         signal["id"] = self.get_id()
+        signal["t_from"] = t_from
         self._notify_observers(signal)
 
     def _notify_disponibility(self) -> None:
@@ -120,25 +123,25 @@ class PowerPlant(Agent):
     def get_raw_power(self) -> float: # MW
         return self._raw_power
 
-    def get_availability(self, time_index) -> float: # percent
+    def get_availability(self, time_index, init : int = 0) -> float: # percent
         return self.__availability
 
     def reset_powerplant(self):
         self.__cur_usage = self.__init_cur_usage
 
-    def get_max_availability(self, time_index) -> float:
-        theorical_availability = self.get_availability(time_index)
+    def get_max_availability(self, time_index, init : int = 0) -> float:
+        theorical_availability = self.get_availability(time_index, init = init)
         if self.__cur_usage + self.__max_var <= theorical_availability:
             theorical_availability =  self.__cur_usage + self.__max_var
         return theorical_availability
 
-    def get_min_availability(self, time_index) -> float:
+    def get_min_availability(self) -> float:
         theorical_availability = 0
         if self.__cur_usage - self.__max_var >= theorical_availability:
             theorical_availability =  self.__cur_usage - self.__max_var
         return theorical_availability
 
-    def back_propagate(self, usage_coef, t, time_interval):
+    def back_propagate(self, usage_coef, t, time_interval, init : int = 0):
         self.__cur_usage = usage_coef
         
     def set_availability(self, availability: float):
@@ -154,6 +157,13 @@ class PowerPlant(Agent):
 
     def set_tuneable(self, tuneable: bool) -> None:
         self.__tuneable = tuneable
+
+    def shutdown(self) -> None:
+        self._original_raw_power = self._raw_power
+        self._raw_power = 0.
+
+    def power_on(self) -> None:
+        self._raw_power = self._original_raw_power
 
     def __getUsageCoef(self, usage_coef: float) -> None:
         if(self.__tuneable):
