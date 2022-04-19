@@ -1,7 +1,15 @@
-# MixSimulator
+# MixSimulator 
 MixSimulator is an application with an optimization model for calculating and simulating the least cost of an energy mix under certain constraints. The optimizers used are based on the Nevergrad Python 3.6+ library.
 
 The primary objective of the simulator is to study the relevance of an energy mix connected to each Inter-connected Grid through the coefficient of usage of each unit in the production cost.
+
+## Version 0.4
+The current version is a multi-agent system (MAS) approach but keeps the previous classic optimization approach available. Check `test_mas.py` for more details.
+
+#### Note
+This project is a work in progress so it can not yet used in production (Many changes are on their way). Feedbacks are welcome!
+
+## Version 0.3.3
 
 ### Specifications :
 - Generic simulator, compatible with data from Madagascar and those from abroad (but may require data pre-processing beforehand);
@@ -26,7 +34,7 @@ pip install mixsimulator
 MixSimulator is written in Python 3.6 and requires the following Python packages : nevergrad, prophet, typing, numpy, pandas and matplotlib.
 
 ## How to run
-As MixSimulator is a python package, it can be called and used as we can see in `test.py`.
+As MixSimulator is a python package, it can be called and used as we can see in `test_classic.py`.
 
 List of classes and directories :
 - MixSimulator : System basis (Adaptation of the Nevergrad optimizers to the project and auto-parameterization) ;
@@ -73,7 +81,6 @@ Hydro specification :
 There is also "DIR-TOAMASINA_concat.csv" about Consumption data (in kwh, more details in Demand.py) and "dataset_RI_Toamasina_variation_template.csv" about limits in variation of power plants load following (WIP). 
 
 **If you have datasets of any region in the world that can be used to evaluate our model, please contact us.**
-
 
 ## Contact
 For questions and feedbacks related to the project, please send an email to r.andry.rasoanaivo@gmail.com or soloforahamefy@gmail.com or tokyandriaxel@gmail.com
