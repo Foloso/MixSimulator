@@ -117,10 +117,7 @@ class Moderator(Observer):
                     "penalisation" : self.__penalisation_cost, "carbon_cost" : self.get_carbon_cost(), 
                     "plot" : self.plot, "average_wide" : self.average_wide}
             if self.__cur_optimization is None:
-                self.__cur = 0
-                self.__update_self(observable, signal)
-                self.__cur_optimization = StoppableThread(target=self.optimizeMix, kwargs=_kwargs, name=str(observable)+" "+str(signal["code"]))
-                self.__cur_optimization.start()
+                pass
             elif signal["t_from"] == self.__cur:
                 _kwargs.update({"init": signal["t_from"], "time_index": _kwargs["time_index"]-signal["t_from"]})
                 self.__cur_optimization.stop()
@@ -298,10 +295,10 @@ class Moderator(Observer):
         # init params    
         print("OPTIMIZATION IS RUNNING:\n time_index = "+str(time_index)+" hours\n from init="+str(init)+" to "+str(self.time_index))
         # step is the step of opt budget
-        if time_index < step:
-            step = time_index
+        if time_index < time_interval:
+            time_interval = time_index
         else:
-            step = step
+            time_interval = time_interval
         if demand is not None : self.set_demand(demand)
         if lost is not None : self.set_constant_lost(lost)
         if penalisation is not None : self.set_penalisation_cost(penalisation)

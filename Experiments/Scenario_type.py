@@ -96,7 +96,7 @@ def plot_loss(optimum, mode : str = "default", average_wide : int = 0, step : in
             fig, axs = plt.subplots(1, 2, figsize=(10, 10))        
         
             # data integration        
-            X = [i*step for i in range(0,len(optimum))]  
+            X = [(i+1)*step for i in range(0,len(optimum))]  
             #smooth_value = moving_average(Y_["lost"],average_wide)
             for n_axs in range(0,2) :
                 if n_axs == 0:
@@ -167,10 +167,10 @@ def plot_loss(optimum, mode : str = "default", average_wide : int = 0, step : in
         - time_interval as t_i (arg[6]).
 """
 opt_name = "OnePlusOne"
-budget = 100
+budget = 50
 num_worker = 1
-duration = 12
-step_budget = 50
+duration = 8
+step_budget = 25
 t_i = 1 #time_interval
 
 for i in range(1,len(sys.argv)):
