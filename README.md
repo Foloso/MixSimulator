@@ -4,7 +4,7 @@ MixSimulator is an application with an optimization model for calculating and si
 The primary objective of the simulator is to study the relevance of an energy mix connected to each Inter-connected Grid through the coefficient of usage of each unit in the production cost.
 
 ## Version 0.4
-The current version is a multi-agent system (MAS) approach but keeps the previous classic optimization approach available. Check `test_mas.py` for more details.
+The current version is a multi-agent system (MAS) approach but keeps the previous classic optimization approach available. Check `test_mas.py` for more details. (Available events are : powerplant shutdown and powerplant power_on)
 
 #### Note
 This project is a work in progress so it can not yet used in production (Many changes are on their way). Feedbacks are welcome!
