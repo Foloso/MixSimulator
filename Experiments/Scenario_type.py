@@ -1,13 +1,13 @@
 #!/usr/bin/python3
 import threading
-from MixSimulator import ElectricityMix
-from MixSimulator.Evaluation import EvaluationBudget
-from MixSimulator.demand.classic.Demand import Demand
-import MixSimulator.nevergradBased.Optimizer as opt
+from mixsimulator import ElectricityMix
+from mixsimulator.Evaluation import EvaluationBudget
+from mixsimulator.demand.classic.Demand import Demand
+import mixsimulator.nevergradBased.Optimizer as opt
 import time
 from datetime import datetime
 from math import ceil
-from MixSimulator.agents.Moderator import StoppableThread
+from mixsimulator.agents.Moderator import StoppableThread
 import matplotlib.pyplot as plt
 import numpy as np
 import sys

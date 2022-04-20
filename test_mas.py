@@ -1,9 +1,9 @@
 import threading
-from MixSimulator import ElectricityMix
-from MixSimulator.Evaluation import EvaluationBudget
-import MixSimulator.nevergradBased.Optimizer as opt
+from mixsimulator import ElectricityMix
+from mixsimulator.Evaluation import EvaluationBudget
+import mixsimulator.nevergradBased.Optimizer as opt
 import time
-from MixSimulator.agents.Moderator import StoppableThread
+from mixsimulator.agents.Moderator import StoppableThread
 from typing import List, Dict
 import random
 import numpy
