@@ -171,9 +171,9 @@ opt_name = "OnePlusOne"
 budget = 50
 num_worker = 1
 duration = 12
-step_budget = 25
+step_budget = round(budget/10)
 t_i = 1 #time_interval
-log_filename = "log.pickle"
+log_filename = "log.txt"
 
 for i in range(1,len(sys.argv)):
     if i == 1:
@@ -215,10 +215,12 @@ scenario = generate_random_scenario(centrals, duration)
 (3) ONE SHOT optimization by calling the classic approach
 
 """
-classic_mix.set_data_csv("data/RIToamasina/dataset_RI_Toamasina_v2.csv",delimiter=";")
+classic_mix.set_data_to("Toamasina")
 demand = Demand()
-data_demand = demand.set_data_csv("data/RIToamasina/DIR-TOAMASINA_concat.csv", delimiter = ",")
+demand.set_data_to("Toamasina",delimiter=",")
 classic_mix.set_demand(demand)
+
+start_time = time.time()
 classic_result = classic_mix.optimizeMix(1e10,optimizer = opt, step = step_budget, penalisation = 100, carbon_cost = 0, time_index = duration, plot = "save").copy()
 ###
 ### MODIFY RESULTS BASED ON EVENTS
@@ -238,6 +240,8 @@ for t in scenario.keys():
 
 for step_,value in enumerate(classic_result):
     classic_result[step_]["loss"] = classic_mix.loss_function(classic_result[step_]["coef"], time_interval=t_i, no_arrange=True)
+classic_runtime = time.time() - start_time
+
 ###
 ### print(classic_result)
 ### PLEASE Check this specific plot in the folder "Loss_result_....."
@@ -250,6 +254,7 @@ plot_loss(classic_result,step = step_budget, mode="save")
         3 - Add events
         4 - Get the result after all threads done
 """
+start_runtime = time.time()
 mas_mix.get_moderator().set_params(1e10,optimizer = opt, step = step_budget, penalisation = 100, carbon_cost = 0, time_index = duration, plot = "None")
 mas_mix.get_moderator().run_optimization()
 
@@ -263,6 +268,7 @@ while True:
         thread_checker.stop()
         break
 print("SIMULATION DONE")
+mas_runtime = time.time() - start_time
 
 mas_mix.get_moderator().plotResults(mas_mix.get_moderator().get_results(),mode="save")
 
@@ -270,6 +276,8 @@ mas_mix.get_moderator().plotResults(mas_mix.get_moderator().get_results(),mode="
 plot_loss(mas_mix.get_moderator().get_results(),step = step_budget, mode="save")
 
 log = {}
-log.update({"events": scenario, "opt_params":classic_mix.get_params(), "mas_results": mas_mix.get_moderator().get_results(), "classic_results":classic_result})
+log.update({"events": scenario, "opt_params":classic_mix.get_params(), 
+            "mas_results": mas_mix.get_moderator().get_results(), "classic_results":classic_result,
+            "classic_runtime":classic_runtime, "mas_runtime":mas_runtime})
 
 print(log,file=open(log_filename,"a"))

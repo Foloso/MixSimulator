@@ -1,5 +1,6 @@
 import pandas as pd
 import sklearn.linear_model as linear_model
+import pkgutil
 import json, math
 from typing import List, Dict
 from ...agents.Agent import Agent
@@ -11,7 +12,8 @@ class PowerPlant(Agent):
     """
     def __init__(self, tuneable:bool=False) -> None:
         super().__init__()
-        self.__api_setting = json.load(open("params_files/settings.json"))
+        data_json = pkgutil.get_data('mixsimulator', 'params_files/settings.json')
+        self.__api_setting = json.loads(data_json.decode("utf-8"))
         self.__changeRate = 0. #(percent)
         self.__initial_value = 0.
         self.__lifetime = 0 #in hour
@@ -58,13 +60,15 @@ class PowerPlant(Agent):
 
     ### COMMUNICATION
     def _notify_is_up(self, t_from=0) -> None:
-        signal = json.load(open(self._code_files))["200"]
+        data_json = pkgutil.get_data('mixsimulator', self._code_files)
+        signal = json.loads(data_json.decode("utf-8"))["200"]
         signal["id"] = self.get_id()
         signal["t_from"] = t_from
         self._notify_observers(signal)
 
     def _notify_is_down(self, t_from=0) -> None:
-        signal = json.load(open(self._code_files))["400"]
+        data_json = pkgutil.get_data('mixsimulator', self._code_files)
+        signal = json.loads(data_json.decode("utf-8"))["400"]
         signal["id"] = self.get_id()
         signal["t_from"] = t_from
         self._notify_observers(signal)

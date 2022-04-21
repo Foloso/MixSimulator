@@ -1,4 +1,5 @@
 from typing import List, Dict
+import pkgutil
 import json
 import uuid
 from .Interfaces import Observable
@@ -45,9 +46,8 @@ class Periodic(object):
 class Agent(Observable):
   
     def __init__(self) -> None:
-        ### Temporary disable id
         super().__init__()
-        self._code_files = "params_files/exchange_code.json" ### TEMPORARY CHANGE FILE PATH
+        self._code_files = "params_files/exchange_code.json" 
         self.__type = "empty"
         self.__name = ""
         self._scheduled_actions = {}
@@ -69,7 +69,8 @@ class Agent(Observable):
       
     def register_observer(self, moderators: List, t_from=0) -> None:
         super().register_observer(moderators)
-        register_signal = json.load(open(self._code_files))["100"]
+        data_json = pkgutil.get_data('mixsimulator', self._code_files)
+        register_signal = json.loads(data_json.decode("utf-8"))["100"]
         register_signal["id"] = self.get_id()
         register_signal["t_from"] = t_from
         self._notify_observers(register_signal)
