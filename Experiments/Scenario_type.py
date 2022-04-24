@@ -19,7 +19,7 @@ import random
 import pickle
 
 """
-    (0) Functions : Check the thread running in background, plot loss results and generate scenarios
+    (0) Functions : Check the thread running in background, plot cost results and generate scenarios
 """
 def generate_random_scenario(centrals: List, time_index: int) -> Dict:
     scenario = {}
@@ -88,27 +88,27 @@ def plot_loss(optimum, mode : str = "default", average_wide : int = 0, step : in
         if mode == "default" or mode == "save" or mode == "best":
             #set Y
             Y_: Dict[str,List[float]] ={} 
-            Y_["lost"] = []
+            Y_["cost"] = []
             Y_["demand_gap"] = []
             for t_i in range(0,len(optimum)):
-                Y_["lost"].append(optimum[t_i]["loss"])
+                Y_["cost"].append(optimum[t_i]["loss"])
                 Y_["demand_gap"].append(optimum[t_i]["unsatisfied demand"])
 
             fig, axs = plt.subplots(1, 2, figsize=(10, 10))        
         
             # data integration        
             X = [(i+1)*step for i in range(0,len(optimum))]  
-            #smooth_value = moving_average(Y_["lost"],average_wide)
+            #smooth_value = moving_average(Y_["cost"],average_wide)
             for n_axs in range(0,2) :
                 if n_axs == 0:
-                    #axs[n_axs].plot(X[(average_wide - 1):], smooth_value, '.-' ,alpha=0.5, lw=2, label="lost")
-                    axs[n_axs].plot(X,Y_["lost"],'.-' ,alpha=0.5, lw=2, label="lost")
+                    #axs[n_axs].plot(X[(average_wide - 1):], smooth_value, '.-' ,alpha=0.5, lw=2, label="cost")
+                    axs[n_axs].plot(X,Y_["cost"],'.-' ,alpha=0.5, lw=2, label="cost")
                 else:
                     axs[n_axs].plot(X,Y_["demand_gap"],'-*' ,alpha=0.5, lw=2, label="demand gap")
               
-            # Add execution_time and loss information
+            # Add execution_time and cost information
             try :  
-                info = "Final loss: "+ "{:.3f}".format(optimum[-1]["loss"])+" ; run_time: "+"{:.3f}".format(optimum[-1]["elapsed_time"])
+                info = "Final cost: "+ "{:.3f}".format(optimum[-1]["loss"])+" ; run_time: "+"{:.3f}".format(optimum[-1]["elapsed_time"])
             except :
                 info = "production_cost: "+ "{:.3f}".format(optimum[-1]["loss"])
             info += ";Final demand gap: "+"{:.3f}".format(optimum[-1]["unsatisfied demand"])                   
@@ -126,14 +126,14 @@ def plot_loss(optimum, mode : str = "default", average_wide : int = 0, step : in
                 axs[n_axs].set_xlabel('budgets')
                 #axs[n_axs].yaxis.set_major_formatter(StrMethodFormatter("{x}"+units[0]))
                 if n_axs == 0 :
-                    axs[n_axs].set_ylabel('Loss')
+                    axs[n_axs].set_ylabel('cost')
                 elif n_axs == 1 :
                     axs[n_axs].set_ylabel('Demand gap')
                 axs[n_axs].legend()
                 
             fig.tight_layout()
             try :
-                path = "Loss_results_"+datetime.now().strftime("%d_%m_%Y")
+                path = "cost_results_"+datetime.now().strftime("%d_%m_%Y")
                 os.makedirs(path)
                 name = path+"/"+"opt_"+str(datetime.now().strftime("%H%M%S"))+".png"
                 fig.savefig(name)
@@ -168,9 +168,9 @@ def plot_loss(optimum, mode : str = "default", average_wide : int = 0, step : in
         - time_interval as t_i (arg[6]).
 """
 opt_name = "OnePlusOne"
-budget = 50
+budget = 100
 num_worker = 1
-duration = 12
+duration = 24
 step_budget = round(budget/10)
 t_i = 1 #time_interval
 log_filename = "log.txt"
@@ -239,12 +239,12 @@ for t in scenario.keys():
                             classic_result[step_]["coef"][ti][position] = backup_results[step_]["coef"][ti][position]
 
 for step_,value in enumerate(classic_result):
-    classic_result[step_]["loss"] = classic_mix.loss_function(classic_result[step_]["coef"], time_interval=t_i, no_arrange=True)
+    classic_result[step_]["cost"] = classic_mix.loss_function(classic_result[step_]["coef"], time_interval=t_i, no_arrange=True)
 classic_runtime = time.time() - start_time
 
 ###
 ### print(classic_result)
-### PLEASE Check this specific plot in the folder "Loss_result_....."
+### PLEASE Check this specific plot in the folder "cost_result_....."
 plot_loss(classic_result,step = step_budget, mode="save")
 
 """
@@ -272,11 +272,12 @@ mas_runtime = time.time() - start_time
 
 mas_mix.get_moderator().plotResults(mas_mix.get_moderator().get_results(),mode="save")
 
-### PLEASE Check this specific plot in the folder "Loss_result_....."
+### PLEASE Check this specific plot in the folder "cost_result_....."
 plot_loss(mas_mix.get_moderator().get_results(),step = step_budget, mode="save")
 
 log = {}
-log.update({"events": scenario, "opt_params":classic_mix.get_params(), 
+log.update({"Perf":((classic_result[-1]["loss"]-mas_mix.get_moderator().get_results()[-1]["loss"])/classic_result[-1]["loss"]) * 100,
+            "events": scenario, "opt_params":classic_mix.get_params(), 
             "mas_results": mas_mix.get_moderator().get_results(), "classic_results":classic_result,
             "classic_runtime":classic_runtime, "mas_runtime":mas_runtime})
 
