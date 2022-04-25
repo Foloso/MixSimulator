@@ -3,7 +3,7 @@ import threading
 from mixsimulator import ElectricityMix
 from mixsimulator.Evaluation import EvaluationBudget
 from mixsimulator.demand.classic.Demand import Demand
-import mixsimulator.nevergradBased.Optimizer as opt
+import mixsimulator.nevergradBased.Optimizer as opt_
 import time
 from datetime import datetime
 from math import ceil
@@ -72,10 +72,6 @@ def check_thread_running():
                 if thread.is_alive():
                     print("THREAD:  " + thread.name)
         time.sleep(10)
-
-thread_checker = StoppableThread(target=check_thread_running, name="thread_checker")
-thread_checker.start()
-
   
 def moving_average(x, w):
     return np.convolve(x, np.ones(w), 'valid') / w
@@ -174,6 +170,7 @@ duration = 24
 step_budget = round(budget/10)
 t_i = 1 #time_interval
 log_filename = "log.txt"
+numb_run = 1
 
 for i in range(1,len(sys.argv)):
     if i == 1:
@@ -189,96 +186,103 @@ for i in range(1,len(sys.argv)):
     elif i == 6:
         t_i = int(sys.argv[i])
     elif i == 7:
+        numb_run = int(sys.argv[i])
+    elif i == 8:
         log_filename = str(sys.argv[i])+".pickle"
 
-### optimizer 
-opt = opt.Optimizer(opt = [opt_name], budget = [budget], num_worker = num_worker)
-""" 
-(2) Init MixSimulator instance :
-    Case one [Default] : "classic" method (see test_classic.py for more use case)
-    Case two : "MAS" or Multi Agent System method
+for run_ in range(numb_run):
+    ### optimizer vim 
+    thread_checker = StoppableThread(target=check_thread_running, name="thread_checker")
+    thread_checker.start()
+    opt = opt_.Optimizer(opt = [opt_name], budget = [budget], num_worker = num_worker)
+    """ 
+    (2) Init MixSimulator instance :
+        Case one [Default] : "classic" method (see test_classic.py for more use case)
+        Case two : "MAS" or Multi Agent System method
 
-    Default parameters :
-    ------------------------
-    method : string = "classic",    --> method explain above
-    carbon_cost : float = 0         --> cost of the CO2 production 
-    penalisation_cost: float = 1e7  --> penalisation cost when production is more or less than the demand #NEED VERIFICATION
-"""
+        Default parameters :
+        ------------------------
+        method : string = "classic",    --> method explain above
+        carbon_cost : float = 0         --> cost of the CO2 production 
+        penalisation_cost: float = 1e7  --> penalisation cost when production is more or less than the demand #NEED VERIFICATION
+    """
 
-classic_mix = ElectricityMix.mix(method="classic",carbon_cost=0,penalisation_cost=100) 
-mas_mix = ElectricityMix.mix(method="MAS",carbon_cost=0,penalisation_cost=100)
+    classic_mix = ElectricityMix.mix(method="classic",carbon_cost=0,penalisation_cost=100) 
+    mas_mix = ElectricityMix.mix(method="MAS",carbon_cost=0,penalisation_cost=100)
 
-centrals = mas_mix.get_moderator().get_observable()
-scenario = generate_random_scenario(centrals, duration)
+    centrals = mas_mix.get_moderator().get_observable()
+    scenario = generate_random_scenario(centrals, duration)
 
-""" 
-(3) ONE SHOT optimization by calling the classic approach
+    """ 
+    (3) ONE SHOT optimization by calling the classic approach
 
-"""
-classic_mix.set_data_to("Toamasina")
-demand = Demand()
-demand.set_data_to("Toamasina",delimiter=",")
-classic_mix.set_demand(demand)
+    """
+    classic_mix.set_data_to("Toamasina")
+    demand = Demand()
+    demand.set_data_to("Toamasina",delimiter=",")
+    classic_mix.set_demand(demand)
 
-start_time = time.time()
-classic_result = classic_mix.optimizeMix(1e10,optimizer = opt, step = step_budget, penalisation = 100, carbon_cost = 0, time_index = duration, plot = "save").copy()
-###
-### MODIFY RESULTS BASED ON EVENTS
-backup_results =  copy.deepcopy(classic_result)
-for t in scenario.keys():
-    for event in scenario[t]:
-        for position, central in enumerate(classic_mix.get_centrals()):
-            if central.get_id() == event[1].get_name():
-                if event[2] == "down":
-                    for step_, value in enumerate(classic_result):
-                        for ti in range(t,duration):
-                            classic_result[step_]["coef"][ti][position] = 0.0
-                elif event[2] == "up":
-                    for step_, value in enumerate(classic_result):
-                        for ti in range(t,duration):
-                            classic_result[step_]["coef"][ti][position] = backup_results[step_]["coef"][ti][position]
+    start_time = time.time()
+    classic_result = classic_mix.optimizeMix(1e10,optimizer = opt, step = step_budget, penalisation = 100, carbon_cost = 0, time_index = duration, plot = "save").copy()
+    ###
+    ### MODIFY RESULTS BASED ON EVENTS
+    backup_results =  copy.deepcopy(classic_result)
+    for t in scenario.keys():
+        for event in scenario[t]:
+            for position, central in enumerate(classic_mix.get_centrals()):
+                if central.get_id() == event[1].get_name():
+                    if event[2] == "down":
+                        for step_, value in enumerate(classic_result):
+                            for ti in range(t,duration):
+                                classic_result[step_]["coef"][ti][position] = 0.0
+                    elif event[2] == "up":
+                        for step_, value in enumerate(classic_result):
+                            for ti in range(t,duration):
+                                classic_result[step_]["coef"][ti][position] = backup_results[step_]["coef"][ti][position]
 
-for step_,value in enumerate(classic_result):
-    classic_result[step_]["cost"] = classic_mix.loss_function(classic_result[step_]["coef"], time_interval=t_i, no_arrange=True)
-classic_runtime = time.time() - start_time
+    for step_,value in enumerate(classic_result):
+        classic_result[step_]["cost"] = classic_mix.loss_function(classic_result[step_]["coef"], time_interval=t_i, no_arrange=True)
+    classic_runtime = time.time() - start_time
 
-###
-### print(classic_result)
-### PLEASE Check this specific plot in the folder "cost_result_....."
-plot_loss(classic_result,step = step_budget, mode="save")
+    ###
+    ### print(classic_result)
+    ### PLEASE Check this specific plot in the folder "cost_result_....."
+    plot_loss(classic_result,step = step_budget, mode="save")
 
-"""
-(4) Simulating the mas platform (Manually)
-        1 - First, set params by using set_params method
-        2 - Launch the run_optimization method to initiate the simulation
-        3 - Add events
-        4 - Get the result after all threads done
-"""
-start_runtime = time.time()
-mas_mix.get_moderator().set_params(1e10,optimizer = opt, step = step_budget, penalisation = 100, carbon_cost = 0, time_index = duration, plot = "None")
-mas_mix.get_moderator().run_optimization()
+    """
+    (4) Simulating the mas platform (Manually)
+            1 - First, set params by using set_params method
+            2 - Launch the run_optimization method to initiate the simulation
+            3 - Add events
+            4 - Get the result after all threads done
+    """
+    start_runtime = time.time()
+    mas_mix.get_moderator().set_params(1e10,optimizer = opt, step = step_budget, penalisation = 100, carbon_cost = 0, time_index = duration, plot = "None")
+    mas_mix.get_moderator().run_optimization()
 
-for t in scenario.keys():
-    for event in scenario[t]:
-        event[0](t)
+    for t in scenario.keys():
+        for event in scenario[t]:
+            event[0](t)
 
-### Waiting method
-while True:
-    if len(threading.enumerate()) == 2:
-        thread_checker.stop()
-        break
-print("SIMULATION DONE")
-mas_runtime = time.time() - start_time
+    ### Waiting method
+    while True:
+        if len(threading.enumerate()) == 2:
+            thread_checker.stop()
+            break
+    print("SIMULATION DONE")
+    mas_runtime = time.time() - start_time
 
-mas_mix.get_moderator().plotResults(mas_mix.get_moderator().get_results(),mode="save")
+    mas_mix.get_moderator().plotResults(mas_mix.get_moderator().get_results(),mode="save")
 
-### PLEASE Check this specific plot in the folder "cost_result_....."
-plot_loss(mas_mix.get_moderator().get_results(),step = step_budget, mode="save")
+    ### PLEASE Check this specific plot in the folder "cost_result_....."
+    plot_loss(mas_mix.get_moderator().get_results(),step = step_budget, mode="save")
 
-log = {}
-log.update({"Perf":((classic_result[-1]["loss"]-mas_mix.get_moderator().get_results()[-1]["loss"])/classic_result[-1]["loss"]) * 100,
-            "events": scenario, "opt_params":classic_mix.get_params(), 
-            "mas_results": mas_mix.get_moderator().get_results(), "classic_results":classic_result,
-            "classic_runtime":classic_runtime, "mas_runtime":mas_runtime})
+    log = {"run_nb": run_}
+    log.update({"Perf":((classic_result[-1]["loss"]-mas_mix.get_moderator().get_results()[-1]["loss"])/classic_result[-1]["loss"]) * 100,
+                "events": scenario, "opt_params":classic_mix.get_params(), 
+                "mas_results": mas_mix.get_moderator().get_results(), "classic_results":classic_result,
+                "classic_runtime":classic_runtime, "mas_runtime":mas_runtime})
 
-print(log,file=open(log_filename,"a"))
+    file_ = open(log_filename,"a")
+    print(log, file=file_)
+    file_.close
