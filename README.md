@@ -4,20 +4,19 @@ MixSimulator is an application with an optimization model for calculating and si
 The primary objective of the simulator is to study the relevance of an energy mix connected to each Inter-connected Grid through the coefficient of usage of each unit in the production cost.
 
 ## Version 0.4
-The current version is a multi-agent system (MAS) approach but keeps the previous classic optimization approach available. Check `test_mas.py` for more details. (Available events are : powerplant shutdown and powerplant power_on)
+The current version is a multi-agent system (MAS) approach but keeps the previous classic optimization approach available. Check `test_mas.py` for more details. (Available events are : powerplant shutdown and powerplant power_on).
+
+An experiment on evaluating both method is available in `Experiments/Scenario_type.py` or [![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/drive/1IzjJlNg3fCp14GICB2GGYYwmSIEK9yQf?usp=sharing)
 
 #### Note
 This project is a work in progress so it can not yet used in production (Many changes are on their way). Feedbacks are welcome!
-
-## Version 0.3.3
 
 ### Specifications :
 - Generic simulator, compatible with data from Madagascar and those from abroad (but may require data pre-processing beforehand);
 - Optimization of duty cycle (or usage coefficient) under constraints ;
 - Get the production cost and various performance indicators (CO2 emission, unsatisfied demand);
 - Estimate of the costs of a mix or a power plant over the long term ;
-- Comparison of the performance indicators on different optimizers.
-
+- Comparison of the performance indicators on different optimizers. (see `EvaluationBudget` method)
 
 ### Perspectives :
 - Add other constraints ;
@@ -34,15 +33,7 @@ pip install mixsimulator
 MixSimulator is written in Python 3.6 and requires the following Python packages : nevergrad, prophet, typing, numpy, pandas and matplotlib.
 
 ## How to run
-As MixSimulator is a python package, it can be called and used as we can see in `test_classic.py`.
-
-List of classes and directories :
-- MixSimulator : System basis (Adaptation of the Nevergrad optimizers to the project and auto-parameterization) ;
-- nevergradBased/Optimizer :  Instance of the optimizer (Receives the indications on the optimizer to choose and the parameters);
-- centrals/* : Gathers all the common specifications of the control units (central) ;
-- Evaluation : Class for evaluating mix based on performance indicators on several optimizers ;
-- data/ : Groups the available datasets. 
-- documentation/ : documents about the project.
+As MixSimulator is a python package, it can be called and used as we can see in `test_classic.py` and `test_mas.py`.
 
 Official documentation will accompany the first release version.
 
@@ -78,12 +69,9 @@ Hydro specification :
 `nb_employees * mean_salary` **can be used as a variable cost of the plant if you want to directly use other informations as variable cost.**
 
 ### Demand and Variation datas
-There is also "DIR-TOAMASINA_concat.csv" about Consumption data (in kwh, more details in Demand.py) and "dataset_RI_Toamasina_variation_template.csv" about limits in variation of power plants load following (WIP). 
+There is also "DIR-TOAMASINA_concat.csv" about Consumption data (in kwh, more details in `demand/`) and "dataset_RI_Toamasina_variation_template.csv" about limits in variation of power plants load following (WIP). 
 
 **If you have datasets of any region in the world that can be used to evaluate our model, please contact us.**
 
 ## Contact
 For questions and feedbacks related to the project, please send an email to r.andry.rasoanaivo@gmail.com or soloforahamefy@gmail.com or tokyandriaxel@gmail.com
-
-## Note
-This project is a work in progress so it can not yet used in production (Many changes are on their way). Feedbacks are welcome!
