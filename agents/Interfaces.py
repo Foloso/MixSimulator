@@ -1,5 +1,6 @@
 from typing import List
 
+
 class Observable:
     def __init__(self):
         self.__observers = []
@@ -11,7 +12,7 @@ class Observable:
     def set_id(self, id) -> None:
         self.__id = id
 
-    def get_observers(self) -> List :
+    def get_observers(self) -> List:
         return self.__observers
 
     def register_observer(self, observers: List) -> None:
@@ -24,8 +25,6 @@ class Observable:
             obs.update(self, signal)
 
 
-
 class Observer:
-  
     def update(self, observable, *args, **kwargs):
         pass

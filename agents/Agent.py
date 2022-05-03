@@ -10,6 +10,7 @@ class Periodic(object):
     """
     A periodic task running in threading.Timers
     """
+
     def __init__(self):
         self._lock = Lock()
         self._timer = None
@@ -42,19 +43,17 @@ class Periodic(object):
         self._lock.release()
 
 
-
 class Agent(Observable):
-  
     def __init__(self) -> None:
         super().__init__()
-        self._code_files = "params_files/exchange_code.json" 
+        self._code_files = "params_files/exchange_code.json"
         self.__type = "empty"
         self.__name = ""
         self._scheduled_actions = {}
         self.set_id(uuid.uuid4())
 
     def __repr__(self):
-        return self.get_name()+"["+str(self.get_id())+"] ("+self.__type+")"
+        return self.get_name() + "[" + str(self.get_id()) + "] (" + self.__type + ")"
 
     def _schedule_action(self, actions: Dict) -> None:
         ## action is a dict {function, interval}
@@ -66,10 +65,10 @@ class Agent(Observable):
                 periodic.set_interval(actions[action])
                 self._scheduled_actions.update({action: periodic})
                 self._scheduled_actions[action].start()
-      
+
     def register_observer(self, moderators: List, t_from=0) -> None:
         super().register_observer(moderators)
-        data_json = pkgutil.get_data('mixsimulator', self._code_files)
+        data_json = pkgutil.get_data("mixsimulator", self._code_files)
         register_signal = json.loads(data_json.decode("utf-8"))["100"]
         register_signal["id"] = self.get_id()
         register_signal["t_from"] = t_from
@@ -86,5 +85,3 @@ class Agent(Observable):
 
     def get_name(self):
         return self.__name
-
-

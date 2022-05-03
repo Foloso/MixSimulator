@@ -1,5 +1,5 @@
-import mixsimulator.MixSimulator as ms 
-import mixsimulator.nevergradBased.Optimizer as opt	
+import mixsimulator.MixSimulator as ms
+import mixsimulator.nevergradBased.Optimizer as opt
 from mixsimulator.Evaluation import EvaluationBudget
 from .demand.classic.Demand import Demand
 
@@ -13,8 +13,8 @@ from .demand.classic.Demand import Demand
     num_worker: int = 1, 
     instrum = ng.p.Array(shape=(2,))
 """
-opt_CMA = opt.Optimizer(opt = ["CMA"], budget = [20], num_worker = 1) 
-opt_CMA_30 = opt.Optimizer(opt = ["CMA"], budget = [20], num_worker = 30)
+opt_CMA = opt.Optimizer(opt=["CMA"], budget=[20], num_worker=1)
+opt_CMA_30 = opt.Optimizer(opt=["CMA"], budget=[20], num_worker=30)
 
 
 """ 
@@ -29,10 +29,10 @@ mix = ms.MixSimulator()
         https://github.com/Foloso/MixSimulator/tree/master/data/RIToamasina
 
 """
-mix.set_data_csv("data/RIToamasina/dataset_RI_Toamasina_v2.csv",delimiter=";")
+mix.set_data_csv("data/RIToamasina/dataset_RI_Toamasina_v2.csv", delimiter=";")
 
 ### or use it for default dataset (RI_Toamasina version 2)
-#mix.set_data_to("Toamasina")
+# mix.set_data_to("Toamasina")
 
 """
 (4) For variation limits dataset, there is not yet default dataset 
@@ -46,7 +46,7 @@ mix.set_data_csv("data/RIToamasina/dataset_RI_Toamasina_v2.csv",delimiter=";")
         discrete	Les valeurs discrètes des variations fixes des centrales
 
 """
-mix.set_variation_csv("data/RIToamasina/dataset_RI_Toamasina_variation_template.csv",delimiter=";")
+mix.set_variation_csv("data/RIToamasina/dataset_RI_Toamasina_variation_template.csv", delimiter=";")
 
 
 """
@@ -57,7 +57,7 @@ mix.set_variation_csv("data/RIToamasina/dataset_RI_Toamasina_variation_template.
 
 """
 demand = Demand()
-data_demand = demand.set_data_csv("data/RIToamasina/DIR-TOAMASINA_concat.csv", delimiter = ",")
+data_demand = demand.set_data_csv("data/RIToamasina/DIR-TOAMASINA_concat.csv", delimiter=",")
 """
     The method must get a dataset with at least 3 columns
     - month : int, 
@@ -67,8 +67,8 @@ data_demand = demand.set_data_csv("data/RIToamasina/DIR-TOAMASINA_concat.csv", d
     The method also use a forcast model from prophet to predict future demand.
     The periods can be set by set_forcast_periods.
 """
-#or for default dataset
-#demand.set_data_to("Toamasina",delimiter=",")
+# or for default dataset
+# demand.set_data_to("Toamasina",delimiter=",")
 
 """ 
 (6) Then set the demand 
@@ -98,9 +98,15 @@ mix.set_demand(demand)
     --> each result is a dict of "loss", "coef", "production", "unsatisfied demand", "carbon production" and "elapsed_time"
 
 """
-print(mix.optimizeMix(1e10,optimizer = opt_CMA, step = 20, penalisation = 100, carbon_cost = 0, time_index = 168, plot = "None"),"num_worker <------------ 1")
-print(mix.optimizeMix(1e10,optimizer = opt_CMA_30, step = 20, penalisation = 100, carbon_cost = 0, time_index = 168, plot = "None"),"num_worker <------------ 30")
-### Get all parameters used by the mix 
+print(
+    mix.optimizeMix(1e10, optimizer=opt_CMA, step=20, penalisation=100, carbon_cost=0, time_index=168, plot="None"),
+    "num_worker <------------ 1",
+)
+print(
+    mix.optimizeMix(1e10, optimizer=opt_CMA_30, step=20, penalisation=100, carbon_cost=0, time_index=168, plot="None"),
+    "num_worker <------------ 30",
+)
+### Get all parameters used by the mix
 print(mix.get_params())
 
 """ 
@@ -121,5 +127,15 @@ print(mix.get_params())
     penalisation : float = 1000000000000,   --> equal to penalisation cost
     carbon_cost: float = 0
 """
-eva=EvaluationBudget()
-eva.evaluate(mix,10,100,optimizer_list = ["OnePlusOne","DE","CMA","PSO","NGOpt"], indicator_list = ["loss","elapsed_time","production","unsatisfied demand","carbon production"],carbonProdLimit = 1e10, time_index = 24, penalisation = 100, carbon_cost = 10)
+eva = EvaluationBudget()
+eva.evaluate(
+    mix,
+    10,
+    100,
+    optimizer_list=["OnePlusOne", "DE", "CMA", "PSO", "NGOpt"],
+    indicator_list=["loss", "elapsed_time", "production", "unsatisfied demand", "carbon production"],
+    carbonProdLimit=1e10,
+    time_index=24,
+    penalisation=100,
+    carbon_cost=10,
+)

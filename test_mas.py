@@ -11,27 +11,29 @@ import numpy
 """
     (0) Check the thread running in background
 """
+
+
 def generate_random_scenario(centrals: List, time_index: int) -> Dict:
     scenario = {}
     for central in centrals:
-        tmp = {"down":[], "up":[]}
+        tmp = {"down": [], "up": []}
         default_proba = random.uniform(0, 0.2)
-        
+
         for i in range(time_index):
-            tmp[numpy.random.choice(["up", "down"], p=[1-default_proba,default_proba])].append(i)
+            tmp[numpy.random.choice(["up", "down"], p=[1 - default_proba, default_proba])].append(i)
 
         up = []
         down = []
         for i in range(time_index):
-            if i in tmp["down"] and (i-1 not in tmp["down"] or i==0):
+            if i in tmp["down"] and (i - 1 not in tmp["down"] or i == 0):
                 down.append(i)
-            if i-1 in tmp["down"] and i in tmp["up"]: 
+            if i - 1 in tmp["down"] and i in tmp["up"]:
                 up.append(i)
         tmp["up"] = up
         tmp["down"] = down
 
-        scenario.update({central:tmp.copy()})
-    
+        scenario.update({central: tmp.copy()})
+
     event_stack = {}
     for i in range(time_index):
         for central in scenario.keys():
@@ -39,17 +41,17 @@ def generate_random_scenario(centrals: List, time_index: int) -> Dict:
                 try:
                     event_stack[i].append(central._notify_is_down)
                 except:
-                    event_stack.update({i:[central._notify_is_down]})
+                    event_stack.update({i: [central._notify_is_down]})
             elif i in scenario[central]["up"]:
                 try:
                     event_stack[i].append(central._notify_is_up)
                 except:
-                    event_stack.update({i:[central._notify_is_up]})
-
+                    event_stack.update({i: [central._notify_is_up]})
 
     # print(numpy.arange(0, 2))
     print("scenario: ", event_stack)
     return event_stack
+
 
 def check_thread_running():
     list_ = []
@@ -62,6 +64,7 @@ def check_thread_running():
                     print("THREAD:  " + thread.name)
         time.sleep(10)
 
+
 thread_checker = StoppableThread(target=check_thread_running, name="thread_checker")
 thread_checker.start()
 
@@ -71,12 +74,12 @@ thread_checker.start()
     Default Parameters :
     ----------
     opt = [ng.optimizers.OnePlusOne], 
-    budget: List[int] = [100], 
+    budget: List[int] = [20], 
     num_worker: int = 1, 
     instrum = ng.p.Array(shape=(2,))
 """
-# opt_OPO = opt.Optimizer(opt = ["OnePlusOne"], budget = [20], num_worker = 1) 
-opt_OPO_20 = opt.Optimizer(opt = ["OnePlusOne"], budget = [20], num_worker = 30)
+opt_OPO = opt.Optimizer(opt = ["OnePlusOne"], budget = [20], num_worker = 1)
+opt_OPO_20 = opt.Optimizer(opt=["OnePlusOne"], budget=[20], num_worker=20)
 
 """ 
 (2) Init MixSimulator instance :
@@ -90,8 +93,8 @@ opt_OPO_20 = opt.Optimizer(opt = ["OnePlusOne"], budget = [20], num_worker = 30)
     penalisation_cost: float = 1e7  --> penalisation cost when production is more or less than the demand #NEED VERIFICATION
 """
 
-# classic_mix = ElectricityMix.mix(method="classic",carbon_cost=0,penalisation_cost=100) 
-mas_mix = ElectricityMix.mix(method="MAS",carbon_cost=0,penalisation_cost=100)
+classic_mix = ElectricityMix.mix(method="classic",carbon_cost=0,penalisation_cost=100)
+mas_mix = ElectricityMix.mix(method="MAS", carbon_cost=0, penalisation_cost=100)
 
 """ 
 (7) ONE SHOT optimization by calling the moderator of the MAS platform
@@ -116,7 +119,7 @@ mas_mix = ElectricityMix.mix(method="MAS",carbon_cost=0,penalisation_cost=100)
     --> each result is a dict of "loss", "coef", "production", "unsatisfied demand", "carbon production" and "elapsed_time"
 
 """
-# print(mas_mix.get_moderator().optimizeMix(1e10,optimizer = opt_OPO, step = 20, penalisation = 100, carbon_cost = 0, time_index = 168, plot = "default"))
+print(mas_mix.get_moderator().optimizeMix(1e10,optimizer = opt_OPO, step = 20, penalisation = 100, carbon_cost = 0, time_index = 168, plot = "default"))
 
 
 """ 
@@ -137,8 +140,8 @@ mas_mix = ElectricityMix.mix(method="MAS",carbon_cost=0,penalisation_cost=100)
     penalisation : float = 1000000000000,   --> equal to penalisation cost
     carbon_cost: float = 0
 """
-# eva=EvaluationBudget()
-# eva.evaluate(mas_mix.get_moderator(),10,100,optimizer_list = ["OnePlusOne","DE","CMA","PSO","NGOpt"], indicator_list = ["loss","elapsed_time","production","unsatisfied demand","carbon production"],carbonProdLimit = 1e10, time_index = 24, penalisation = 100, carbon_cost = 10)
+eva=EvaluationBudget()
+eva.evaluate(mas_mix.get_moderator(),10,100,optimizer_list = ["OnePlusOne","DE","CMA","PSO","NGOpt"], indicator_list = ["loss","elapsed_time","production","unsatisfied demand","carbon production"],carbonProdLimit = 1e10, time_index = 24, penalisation = 100, carbon_cost = 10)
 
 """
 (9) Simulating the mas platform (Manually)
@@ -146,7 +149,9 @@ mas_mix = ElectricityMix.mix(method="MAS",carbon_cost=0,penalisation_cost=100)
         2 - Run the run_optimization method to initiate the simulation
         3 - Add events
 """
-mas_mix.get_moderator().set_params(1e10,optimizer = opt_OPO_20, step = 20, penalisation = 100, carbon_cost = 0, time_index = 4, plot = "save")
+mas_mix.get_moderator().set_params(
+    1e10, optimizer=opt_OPO_20, step=20, penalisation=100, carbon_cost=0, time_index=4, plot="save"
+)
 mas_mix.get_moderator().run_optimization()
 
 # centrale1 = mas_mix.get_moderator().get_observable()[0]
@@ -168,4 +173,3 @@ print("SIMULATION DONE")
 
 print("FINAL RESULT: ", mas_mix.get_moderator().get_results())
 mas_mix.get_moderator().plotResults(mas_mix.get_moderator().get_results())
-

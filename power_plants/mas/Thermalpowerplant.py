@@ -1,8 +1,9 @@
 from .PowerPlant import PowerPlant
 
+
 class Thermalpowerplant(PowerPlant):
     """
-        Agent simulating a fuel, nuclear or solar thermal power plant
+    Agent simulating a fuel, nuclear or solar thermal power plant
     """
 
     def __init__(self):
@@ -11,5 +12,5 @@ class Thermalpowerplant(PowerPlant):
 
     def __get_water_availability(self):
         pass
-    
+
     ### TODO : add/improve prediction function, data monitoring and signal system
