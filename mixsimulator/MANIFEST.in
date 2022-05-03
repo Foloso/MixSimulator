@@ -1,0 +1,5 @@
+include data/RIToamasina/dataset_RI_Toamasina.csv
+include data/RIToamasina/dataset_RI_Toamasina_v2.csv
+include data/RIToamasina/dataset_RI_Toamasina_variation_template.csv
+include data/RIToamasina/DIR-TOAMASINA_concat.csv
+include LICENSE
