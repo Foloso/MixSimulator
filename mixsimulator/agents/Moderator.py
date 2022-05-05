@@ -7,7 +7,7 @@ from datetime import datetime
 from math import ceil
 
 # import time
-from typing import Dict, List
+from typing import Dict, List, Any
 
 import matplotlib.pyplot as plt  # type: ignore
 import nevergrad as ng
@@ -57,42 +57,43 @@ class Moderator(Observer):
         self.__powerplants_down: List[PowerPlant] = []
         dm = Demand(demand=20, var_per_day=0.2, var_per_season=0.2)
         dm.set_data_to("Toamasina", delimiter=",")
-        self.__params_state = None
+        self.__params_state : Any = None
         self.__demand = dm
         self.__cst_lost = 0.0
         self.__penalisation_cost = penalisation_cost
         self.__optimizer = Optimizer()
         self.__carbon_cost = carbon_cost
         self.__carbon_quota = 800139.0  # (g/MWh)
-        self.__results = ...
-        self.__latest_results = ...
+        self.__results : List[Any] = []
+        self.__latest_results : List[Any] = []
 
         # for reuse and get_params()
         self.time_index = 24 * 7
         self.step = 1
-        self.time_interval = 1
+        self.time_interval = 1.
         self.plot = "default"
         self.average_wide = 0
 
-        self.__cur_optimization: StoppableThread = None
+        #self.__cur_optimization: StoppableThread = None
+        self.__cur_optimization: Any = None
 
     def __reset_powerplant(self):
         self.__observable: List[PowerPlant] = []
 
-    def get_observable(self) -> List[Observable]:
+    def get_observable(self) -> List[PowerPlant]:
         return self.__observable
 
-    def set_observable(self, observables: List[Observable]) -> None:
+    def set_observable(self, observables: List[PowerPlant]) -> None:
         self.__observable = observables
 
-    def __add_observable(self, observable: Observable) -> None:
+    def __add_observable(self, observable: PowerPlant) -> None:
         if observable not in self.__observable:
             self.__observable.append(observable)
 
-    def __shutdown_observable(self, observable, id) -> None:
+    def __shutdown_observable(self, observable: PowerPlant, id) -> None:
         observable.shutdown()
 
-    def __power_on_observable(self, observable: Observable) -> None:
+    def __power_on_observable(self, observable: PowerPlant) -> None:
         observable.power_on()
 
     ### COMMUNICATION
@@ -105,6 +106,28 @@ class Moderator(Observer):
         elif signal["code"] == 200:
             self.__power_on_observable(observable)
 
+    def run_optimization(self):
+        """
+        Initial run of the simulation (must be run at first)
+        """
+        _kwargs = {
+            "carbon_quota": self.__carbon_quota,
+            "demand": self.get_demand(),
+            "lost": self.__cst_lost,
+            "optimizer": self.__optimizer,
+            "step": self.step,
+            "time_index": self.time_index,
+            "time_interval": self.time_interval,
+            "penalisation": self.__penalisation_cost,
+            "carbon_cost": self.get_carbon_cost(),
+            "plot": self.plot,
+            "average_wide": self.average_wide,
+        }
+        self.__cur : int = 0
+        self.__cur_optimization = StoppableThread(target=self.optimizeMix, kwargs=_kwargs, name="Initial run")
+        self.__cur_optimization.start()
+
+    @overload  # type: ignore
     def update(self, observable, signal, *args, **kwargs) -> None:
         if self.__params_state is None:
             self.__update_self(observable, signal)
@@ -389,7 +412,7 @@ class Moderator(Observer):
             "penalisation_cost": self.get_penalisation_cost(),
             "carbon_cost": self.get_carbon_cost(),
             "demand": self.__demand,
-            "lost": self.__lost,
+            "lost": self.__cst_lost,
             "carbon_quota": self.__carbon_quota,
             "step": self.step,
             "time_interval": self.time_interval,
@@ -436,27 +459,6 @@ class Moderator(Observer):
             self.set_carbon_quota(carbon_quota)
         if optimizer is not None:
             self.set_optimizer(optimizer)
-
-    def run_optimization(self):
-        """
-        Initial run of the simulation (must be run at first)
-        """
-        _kwargs = {
-            "carbon_quota": self.__carbon_quota,
-            "demand": self.get_demand(),
-            "lost": self.__cst_lost,
-            "optimizer": self.__optimizer,
-            "step": self.step,
-            "time_index": self.time_index,
-            "time_interval": self.time_interval,
-            "penalisation": self.__penalisation_cost,
-            "carbon_cost": self.get_carbon_cost(),
-            "plot": self.plot,
-            "average_wide": self.average_wide,
-        }
-        self.__cur = 0
-        self.__cur_optimization = StoppableThread(target=self.optimizeMix, kwargs=_kwargs, name="Initial run")
-        self.__cur_optimization.start()
 
     def __update_results(self, original, new, init):
         output = []

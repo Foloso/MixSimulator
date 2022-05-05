@@ -1,9 +1,9 @@
 import csv
 import pkgutil
 from math import cos, floor, pi
-
-import pandas as pd
-from prophet import Prophet
+import pandas as pd # type: ignore
+from prophet import Prophet # type: ignore
+from typing import Any
 
 
 class Demand:
@@ -73,16 +73,17 @@ class Demand:
         return self.data_demand
 
     def set_data_to(self, dataset, delimiter: str = ";"):
+        data : Any = ...
         if dataset == "Toamasina":
             # by defaut we keep it "Toamasina"
             data = pkgutil.get_data("mixsimulator", "/data/RIToamasina/DIR-TOAMASINA_concat.csv")
-            data = csv.reader(data.decode("utf-8").splitlines(), delimiter=delimiter)
-            self.set_data_csv(raw_data=data)
+            data_decoded = csv.reader(data.decode("utf-8").splitlines(), delimiter=delimiter)
+            self.set_data_csv(raw_data=data_decoded)
         else:
             # by defaut we keep it "Toamasina"
             data = pkgutil.get_data("mixsimulator", "/data/RIToamasina/DIR-TOAMASINA_concat.csv")
-            data = csv.reader(data.decode("utf-8").splitlines(), delimiter=delimiter)
-            self.set_data_csv(raw_data=data)
+            data_decoded = csv.reader(data.decode("utf-8").splitlines(), delimiter=delimiter)
+            self.set_data_csv(raw_data=data_decoded)
 
     def get_demand(self, t):
         self.data_demand.reset_index()

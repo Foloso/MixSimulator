@@ -2,8 +2,7 @@
 import json
 import math
 import pkgutil
-from typing import Dict, List
-
+from typing import Dict, List, Any
 import nevergrad as ng
 
 from ...agents.Agent import Agent
@@ -16,7 +15,7 @@ class PowerPlant(Agent):
 
     def __init__(self, tuneable: bool = False) -> None:
         super().__init__()
-        data_json = pkgutil.get_data("mixsimulator", "params_files/settings.json")
+        data_json : Any = pkgutil.get_data("mixsimulator", "params_files/settings.json")
         self.__api_setting = json.loads(data_json.decode("utf-8"))
         self.__changeRate = 0.0  # (percent)
         self.__initial_value = 0.0
@@ -33,27 +32,27 @@ class PowerPlant(Agent):
         self.__init_cur_usage = 0
         self.__cur_usage = 0
         self.__max_var = 1
-        self.__lower = 0.0
-        self.__upper = 1.0
+        self.__lower : Any = 0.0
+        self.__upper : Any = 1.0
         self.__choices = None
-        self.__lat = None
-        self.__long = None
-        self.__x_tile = None
-        self.__y_tile = None
-        self.__zoom = None
+        self.__lat : float = 0.
+        self.__long : float = 0.
+        self.__x_tile : int = 0
+        self.__y_tile : int = 0
+        self.__zoom : float = 0.
 
     ### ENVIRONEMENT MONITORING & MODELISATION
     def set_location(self, location: Dict, zoom: int = 2) -> None:
         self.__lat = location["lat"]
         self.__long = location["long"]
-        lat_rad = math.radians(self.__lat)
+        lat_rad : Any = math.radians(self.__lat)
         n = 2.0 ** zoom
         self.__x_tile = int((self.__long + 180.0) / 360.0 * n)
         self.__y_tile = int((1.0 - math.asinh(math.tan(lat_rad)) / math.pi) / 2.0 * n)
         self.__zoom = zoom
-        self._schedule_action({self.get_environement, 60})
+        self._schedule_action({self.get_environement: 60})
 
-    def get_location(self) -> Dict:
+    def get_location(self) -> Dict :
         return {
             "lat": self.__lat,
             "long": self.__long,
@@ -62,22 +61,24 @@ class PowerPlant(Agent):
             "zoom": self.__zoom,
         }
 
-    def get_environement(self):
+    def get_environement(self) -> str:
         url = self.__api_setting["power_plant_environement"]["simple_weather"]["url"]
         ### TO DO
         # FETCH FROM API
         print("getting env")
+        
+        return "value"
 
     ### COMMUNICATION
     def _notify_is_up(self, t_from=0) -> None:
-        data_json = pkgutil.get_data("mixsimulator", self._code_files)
+        data_json : Any = pkgutil.get_data("mixsimulator", self._code_files)
         signal = json.loads(data_json.decode("utf-8"))["200"]
         signal["id"] = self.get_id()
         signal["t_from"] = t_from
         self._notify_observers(signal)
 
     def _notify_is_down(self, t_from=0) -> None:
-        data_json = pkgutil.get_data("mixsimulator", self._code_files)
+        data_json : Any = pkgutil.get_data("mixsimulator", self._code_files)
         signal = json.loads(data_json.decode("utf-8"))["400"]
         signal["id"] = self.get_id()
         signal["t_from"] = t_from
@@ -185,33 +186,37 @@ class PowerPlant(Agent):
         else:
             usage_coef = self.__availability
 
-    def set_variation_params(self, lower: float, upper: float, choices: List[float] = None) -> None:
-        self.__lower = lower
-        self.__upper = upper
-        self.__choices = choices
+    def set_variation_params(self, lower: Any, upper: Any, choices: Any = None) -> None:
+        self._lower = lower
+        self._upper = upper
+        self._choices = choices
 
     def get_variation_params(self) -> ng.p.Choice:
-        final_params = []
-        if self.__choices is not None:
-            if self.__lower == self._upper:
-                return ng.p.Choice(self.__choices)
+        final_params : List[Any] = []
+        if self._choices is not None:
+            if self._lower == self._upper:
+                return ng.p.Choice(self._choices)
             else:
-                for low, up in zip(self.__lower, self.__upper):
+                lows : Any = [self._lower]
+                uppers : Any = [self._upper]
+                for low, up in zip(lows, uppers):
                     if low == up:
                         continue
                     final_params.append(ng.p.Scalar(lower=low, upper=up))
-                discret = ng.p.Choice(self.__choices)
+                discret = ng.p.Choice(self._choices)
                 final_params.append(discret)
                 params = ng.p.Choice(final_params)
                 return params
 
         else:
-            if self.__lower != 0.0 and self.__upper != 1.0:
-                for low, up in zip(self.__lower, self.__upper):
+            if self._lower != 0.0 and self._upper != 1.0:
+                lows = [self._lower]
+                uppers = [self._upper]
+                for low, up in zip(lows, uppers):
                     final_params.append(ng.p.Scalar(lower=low, upper=up))
                 params = ng.p.Choice(final_params)
                 return params
             else:
-                final_params.append(ng.p.Scalar(lower=self.__lower, upper=self.__upper))
+                final_params.append(ng.p.Scalar(lower=self._lower, upper=self._upper))
                 params = ng.p.Choice(final_params)
                 return params

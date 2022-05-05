@@ -1,10 +1,10 @@
 import random
 import threading
 import time
-from typing import Dict, List
+from typing import Dict, List, Any
 
 import mixsimulator.nevergradBased.Optimizer as opt
-import numpy
+import numpy # type: ignore
 from mixsimulator import ElectricityMix
 from mixsimulator.agents.Moderator import StoppableThread
 from mixsimulator.Evaluation import EvaluationBudget
@@ -17,7 +17,7 @@ from mixsimulator.Evaluation import EvaluationBudget
 def generate_random_scenario(centrals: List, time_index: int) -> Dict:
     scenario = {}
     for central in centrals:
-        tmp = {"down": [], "up": []}
+        tmp : Dict[Any,Any] = {"down": [], "up": []}
         default_proba = random.uniform(0, 0.2)
 
         for i in range(time_index):
@@ -35,7 +35,7 @@ def generate_random_scenario(centrals: List, time_index: int) -> Dict:
 
         scenario.update({central: tmp.copy()})
 
-    event_stack = {}
+    event_stack : Dict[Any,Any]= {}
     for i in range(time_index):
         for central in scenario.keys():
             if i in scenario[central]["down"]:
@@ -94,8 +94,8 @@ opt_OPO_20 = opt.Optimizer(opt=["OnePlusOne"], budget=[20], num_worker=20)
     penalisation_cost: float = 1e7  --> penalisation cost when production is more or less than the demand #NEED VERIFICATION
 """
 
-classic_mix = ElectricityMix.mix(method="classic",carbon_cost=0,penalisation_cost=100)
-mas_mix = ElectricityMix.mix(method="MAS", carbon_cost=0, penalisation_cost=100)
+classic_mix = ElectricityMix().mix(method="classic",carbon_cost=0,penalisation_cost=100)
+mas_mix = ElectricityMix().mix(method="MAS", carbon_cost=0, penalisation_cost=100)
 
 """
 (7) ONE SHOT optimization by calling the moderator of the MAS platform

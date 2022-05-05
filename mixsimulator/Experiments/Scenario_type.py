@@ -8,8 +8,8 @@ import time
 from datetime import datetime
 from math import ceil
 from mixsimulator.agents.Moderator import StoppableThread
-import matplotlib.pyplot as plt
-import numpy as np
+import matplotlib.pyplot as plt # type: ignore
+import numpy as np # type: ignore
 import sys
 import copy
 import os
@@ -21,9 +21,10 @@ import random
     (0) Functions : Check the thread running in background, plot cost results and generate scenarios
 """
 def generate_random_scenario(centrals: List, time_index: int) -> Dict:
-    scenario = {}
+    scenario : Dict = {}
+    tmp : Dict = {}
     for central in centrals:
-        tmp = {"down":[], "up":[]}
+        tmp.update({"down":[], "up":[]})
         default_proba = random.uniform(0, 0.07)
         
         for i in range(time_index):
@@ -42,7 +43,7 @@ def generate_random_scenario(centrals: List, time_index: int) -> Dict:
         scenario.update({central:tmp.copy()})
     
     print("scenario: ", scenario)
-    event_stack = {}
+    event_stack : Dict = {}
     for i in range(time_index):
         for central in scenario.keys():
             if i in scenario[central]["down"]:
@@ -193,7 +194,7 @@ for run_ in range(numb_run):
     ### optimizer vim 
     thread_checker = StoppableThread(target=check_thread_running, name="thread_checker")
     thread_checker.start()
-    opt = opt_.Optimizer(opt = [opt_name], budget = [budget], num_worker = num_worker)
+    opt_ = opt.Optimizer(opt = [opt_name], budget = [budget], num_worker = num_worker)
     """ 
     (2) Init MixSimulator instance :
         Case one [Default] : "classic" method (see test_classic.py for more use case)
@@ -206,8 +207,8 @@ for run_ in range(numb_run):
         penalisation_cost: float = 1e7  --> penalisation cost when production is more or less than the demand #NEED VERIFICATION
     """
 
-    classic_mix = ElectricityMix.mix(method="classic",carbon_cost=0,penalisation_cost=100) 
-    mas_mix = ElectricityMix.mix(method="MAS",carbon_cost=0,penalisation_cost=100)
+    classic_mix = ElectricityMix().mix(method="classic",carbon_cost=0,penalisation_cost=100) 
+    mas_mix = ElectricityMix().mix(method="MAS",carbon_cost=0,penalisation_cost=100)
 
     centrals = mas_mix.get_moderator().get_observable()
     scenario = generate_random_scenario(centrals, duration)
@@ -222,7 +223,7 @@ for run_ in range(numb_run):
     classic_mix.set_demand(demand)
 
     start_time = time.time()
-    classic_result = classic_mix.optimizeMix(1e10,optimizer = opt, step = step_budget, penalisation = 100, carbon_cost = 0, time_index = duration, plot = "save").copy()
+    classic_result = classic_mix.optimizeMix(1e10,optimizer = opt_, step = step_budget, penalisation = 100, carbon_cost = 0, time_index = duration, plot = "save").copy()
     ###
     ### MODIFY RESULTS BASED ON EVENTS
     backup_results =  copy.deepcopy(classic_result)
@@ -256,7 +257,7 @@ for run_ in range(numb_run):
             4 - Get the result after all threads done
     """
     start_runtime = time.time()
-    mas_mix.get_moderator().set_params(1e10,optimizer = opt, step = step_budget, penalisation = 100, carbon_cost = 0, time_index = duration, plot = "None")
+    mas_mix.get_moderator().set_params(1e10,optimizer = opt_, step = step_budget, penalisation = 100, carbon_cost = 0, time_index = duration, plot = "None")
     mas_mix.get_moderator().run_optimization()
 
     for t in scenario.keys():
@@ -276,7 +277,7 @@ for run_ in range(numb_run):
     ### PLEASE Check this specific plot in the folder "cost_result_....."
     plot_loss(mas_mix.get_moderator().get_results(),step = step_budget, mode="save")
 
-    log = {"run_nb": run_}
+    log : Dict = {"run_nb": run_}
     log.update({"Perf":((classic_result[-1]["loss"]-mas_mix.get_moderator().get_results()[-1]["loss"])/classic_result[-1]["loss"]) * 100,
                 "events": scenario, "opt_params":classic_mix.get_params(), 
                 "mas_results": mas_mix.get_moderator().get_results(), "classic_results":classic_result,

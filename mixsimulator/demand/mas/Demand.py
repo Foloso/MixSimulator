@@ -2,10 +2,9 @@ import csv
 import json
 import pkgutil
 from math import cos, floor, pi
-from typing import List
-
-import pandas as pd
-from prophet import Prophet
+from typing import List, Any
+import pandas as pd # type: ignore
+from prophet import Prophet # type: ignore
 
 from ...agents.Agent import Agent
 
@@ -20,6 +19,7 @@ class Demand(Agent):
         if model is not None:
             self.set_model(model)
         self.set_type("Demand")
+        self.__demand : List[float] = []
 
         ### from old demand implementation
         self.__var_per_day = var_per_day
@@ -46,7 +46,7 @@ class Demand(Agent):
     def set_model(self, model) -> None:
         self.__model = model
 
-    def predict_demand(self, time_series: pd.DataFrame) -> List[float]:
+    def predict_demand(self, time_series: pd.DataFrame) -> None:
         self.__demand = list(self.__model.predict(time_series))
 
     ### TMP WITH PROPHET
@@ -104,16 +104,17 @@ class Demand(Agent):
         return self.data_demand
 
     def set_data_to(self, dataset, delimiter: str = ";"):
+        data : Any = ...
         if dataset == "Toamasina":
             # by defaut we keep it "Toamasina"
             data = pkgutil.get_data("mixsimulator", "/data/RIToamasina/DIR-TOAMASINA_concat.csv")
-            data = csv.reader(data.decode("utf-8").splitlines(), delimiter=delimiter)
-            self.forecast_with_prophet(raw_data=data)
+            data_decoded = csv.reader(data.decode("utf-8").splitlines(), delimiter=delimiter)
+            self.forecast_with_prophet(raw_data=data_decoded)
         else:
             # by defaut we keep it "Toamasina"
             data = pkgutil.get_data("mixsimulator", "/data/RIToamasina/DIR-TOAMASINA_concat.csv")
-            data = csv.reader(data.decode("utf-8").splitlines(), delimiter=delimiter)
-            self.forecast_with_prophet(raw_data=data)
+            data_decoded = csv.reader(data.decode("utf-8").splitlines(), delimiter=delimiter)
+            self.forecast_with_prophet(raw_data=data_decoded)
 
     def get_demand(self, t):
         self.data_demand.reset_index()
