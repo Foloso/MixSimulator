@@ -34,8 +34,8 @@ jobs:
         black --check .
     #- name: Run flake8
     #  run: flake8
-    - name: Run Pylint
-      run: pylint mixsimulator
+    #- name: Run Pylint
+    #  run: pylint mixsimulator
     - name: Run Mypy
       run: mypy mixsimulator
     #- name: tests
