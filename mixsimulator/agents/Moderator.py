@@ -127,8 +127,7 @@ class Moderator(Observer):
         self.__cur_optimization = StoppableThread(target=self.optimizeMix, kwargs=_kwargs, name="Initial run")
         self.__cur_optimization.start()
 
-    @overload  # type: ignore
-    def update(self, observable, signal, *args, **kwargs) -> None:
+    def update(self, observable, signal, *args, **kwargs) -> None: # type: ignore
         if self.__params_state is None:
             self.__update_self(observable, signal)
         else:

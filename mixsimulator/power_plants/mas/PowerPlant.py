@@ -33,9 +33,9 @@ class PowerPlant(Agent):
         self.__init_cur_usage = 0
         self.__cur_usage = 0
         self.__max_var = 1
-        self.__lower: Any = 0.0
-        self.__upper: Any = 1.0
-        self.__choices = None
+        self._lower: Any = 0.0
+        self._upper: Any = 1.0
+        self._choices = None
         self.__lat: float = 0.0
         self.__long: float = 0.0
         self.__x_tile: int = 0
@@ -47,7 +47,7 @@ class PowerPlant(Agent):
         self.__lat = location["lat"]
         self.__long = location["long"]
         lat_rad: Any = math.radians(self.__lat)
-        n = 2.0 ** zoom
+        n = 2.0**zoom
         self.__x_tile = int((self.__long + 180.0) / 360.0 * n)
         self.__y_tile = int((1.0 - math.asinh(math.tan(lat_rad)) / math.pi) / 2.0 * n)
         self.__zoom = zoom

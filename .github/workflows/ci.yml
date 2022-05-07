@@ -37,7 +37,7 @@ jobs:
     #- name: Run Pylint
     #  run: pylint mixsimulator
     - name: Run Mypy
-      run: mypy mixsimulator --warn-redundant-casts --strict-optional
+      run: mypy --allow-untyped-defs --warn-redundant-casts --strict-optional mixsimulator
     #- name: tests
     #  run: |
     #   pip install .[tests]
