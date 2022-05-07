@@ -57,24 +57,24 @@ class Moderator(Observer):
         self.__powerplants_down: List[PowerPlant] = []
         dm = Demand(demand=20, var_per_day=0.2, var_per_season=0.2)
         dm.set_data_to("Toamasina", delimiter=",")
-        self.__params_state : Any = None
+        self.__params_state: Any = None
         self.__demand = dm
         self.__cst_lost = 0.0
         self.__penalisation_cost = penalisation_cost
         self.__optimizer = Optimizer()
         self.__carbon_cost = carbon_cost
         self.__carbon_quota = 800139.0  # (g/MWh)
-        self.__results : List[Any] = []
-        self.__latest_results : List[Any] = []
+        self.__results: List[Any] = []
+        self.__latest_results: List[Any] = []
 
         # for reuse and get_params()
         self.time_index = 24 * 7
         self.step = 1
-        self.time_interval = 1.
+        self.time_interval = 1.0
         self.plot = "default"
         self.average_wide = 0
 
-        #self.__cur_optimization: StoppableThread = None
+        # self.__cur_optimization: StoppableThread = None
         self.__cur_optimization: Any = None
 
     def __reset_powerplant(self):
@@ -123,7 +123,7 @@ class Moderator(Observer):
             "plot": self.plot,
             "average_wide": self.average_wide,
         }
-        self.__cur : int = 0
+        self.__cur: int = 0
         self.__cur_optimization = StoppableThread(target=self.optimizeMix, kwargs=_kwargs, name="Initial run")
         self.__cur_optimization.start()
 
@@ -261,12 +261,12 @@ class Moderator(Observer):
                 if powerplant.get_type() not in ["Demand"]:
                     powerplant.reset_powerplant()
         else:
-            for powerplant in self.__observable:    ###########################################
+            for powerplant in self.__observable:  ###########################################
                 if powerplant.get_type() not in [
                     "Demand",
                     "Hydropowerplant",
-                ]:                                  ## Keep previous history stock for hydro ##
-                    powerplant.reset_powerplant()   ###########################################
+                ]:  ## Keep previous history stock for hydro ##
+                    powerplant.reset_powerplant()  ###########################################
 
         weighted_coef = usage_coef.copy()
         for t in range(0, len(weighted_coef)):

@@ -276,7 +276,7 @@ class EvaluationBudget:
         optimizer_list: List["str"],
         indicator_list: List["str"],
         num_worker: int = 1,
-        bind: str = None,
+        bind: str = "",
         time_index: int = 24,
         carbonProdLimit: float = 39500000000,
         time_interval: float = 1,
@@ -285,7 +285,7 @@ class EvaluationBudget:
         carbon_cost: float = 0,
     ):
         # setting dataset
-        if bind is not None:
+        if not bind:
             mix.set_data_csv(str(bind))
 
         self.check_opt_list(optimizer_list)
@@ -406,8 +406,8 @@ class EvaluationBudget:
                     for time in range(0, time_index):
                         if indicator == "penalized production cost (loss)":
                             value += Y[time]["production_cost ($)"][opt_name][budget_step] + np.abs(
-                                    mix.get_penalisation_cost()
-                                    * Y[time]["unsatisfied_demand (MWh)"][opt_name][budget_step]
+                                mix.get_penalisation_cost()
+                                * Y[time]["unsatisfied_demand (MWh)"][opt_name][budget_step]
                             )
                         else:
                             value += Y[time][indicator][opt_name][budget_step]

@@ -30,12 +30,12 @@ jobs:
     - name: Run black
       run:
         black --check .
-    - name: Run flake8
-      run: flake8
+    #- name: Run flake8
+    #  run: flake8
     - name: Run Pylint
       run: pylint mixsimulator
-    #- name: Run Mypy
-    #  run: mypy mixsimulator
+    - name: Run Mypy
+      run: mypy mixsimulator
     #- name: tests
     #  run: |
     #   pip install .[tests]

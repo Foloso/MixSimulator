@@ -37,7 +37,7 @@ class MixSimulator:
         # for reuse and get_params()
         self.time_index = 24 * 7
         self.step = 1
-        self.time_interval = 1.
+        self.time_interval = 1.0
         self.plot = "default"
         self.average_wide = 0
 
@@ -64,12 +64,12 @@ class MixSimulator:
                 if self.__centrals[central_index].is_tuneable():
                     for i in range(0, data.shape[0]):
                         if self.__centrals[central_index].get_id() == data["centrals"][i]:
-                            tmp_list : List[Any] = []
-                            upper : List[Any] = str(data["upper"][i]).split(":")
+                            tmp_list: List[Any] = []
+                            upper: List[Any] = str(data["upper"][i]).split(":")
                             upper = [float(numeric_string) for numeric_string in upper]
-                            lower : List[Any] = str(data["lower"][i]).split(":")
+                            lower: List[Any] = str(data["lower"][i]).split(":")
                             lower = [float(numeric_string) for numeric_string in lower]
-                            discrete : List[Any] = str(data["discrete"][i]).split(":")
+                            discrete: List[Any] = str(data["discrete"][i]).split(":")
                             discrete = [float(numeric_string) for numeric_string in discrete]
                             self.__centrals[central_index].set_variation_params(
                                 lower=lower, upper=upper, choices=discrete
@@ -133,7 +133,7 @@ class MixSimulator:
             raise
 
     def set_data_to(self, dataset, delimiter: str = ";"):
-        data : Any = ...
+        data: Any = ...
         if dataset == "Toamasina":
             # by defaut we keep it "Toamasina"
             data = pkgutil.get_data("mixsimulator", "/data/RIToamasina/dataset_RI_Toamasina_v2.csv")

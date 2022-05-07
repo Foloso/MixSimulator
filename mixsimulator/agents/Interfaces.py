@@ -1,10 +1,10 @@
-from typing import List
+from typing import List, Any
 
 
 class Observable:
     def __init__(self):
         self.__observers = []
-        self.__id = None
+        self.__id: Any = None
 
     def get_id(self) -> str:
         return self.__id

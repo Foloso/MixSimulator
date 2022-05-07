@@ -1,8 +1,8 @@
 import csv
 import pkgutil
 from math import cos, floor, pi
-import pandas as pd # type: ignore
-from prophet import Prophet # type: ignore
+import pandas as pd  # type: ignore
+from prophet import Prophet  # type: ignore
 from typing import Any
 
 
@@ -73,7 +73,7 @@ class Demand:
         return self.data_demand
 
     def set_data_to(self, dataset, delimiter: str = ";"):
-        data : Any = ...
+        data: Any = ...
         if dataset == "Toamasina":
             # by defaut we keep it "Toamasina"
             data = pkgutil.get_data("mixsimulator", "/data/RIToamasina/DIR-TOAMASINA_concat.csv")

@@ -3,8 +3,8 @@ import json
 import pkgutil
 from math import cos, floor, pi
 from typing import List, Any
-import pandas as pd # type: ignore
-from prophet import Prophet # type: ignore
+import pandas as pd  # type: ignore
+from prophet import Prophet  # type: ignore
 
 from ...agents.Agent import Agent
 
@@ -19,7 +19,7 @@ class Demand(Agent):
         if model is not None:
             self.set_model(model)
         self.set_type("Demand")
-        self.__demand : List[float] = []
+        self.__demand: List[float] = []
 
         ### from old demand implementation
         self.__var_per_day = var_per_day
@@ -104,7 +104,7 @@ class Demand(Agent):
         return self.data_demand
 
     def set_data_to(self, dataset, delimiter: str = ";"):
-        data : Any = ...
+        data: Any = ...
         if dataset == "Toamasina":
             # by defaut we keep it "Toamasina"
             data = pkgutil.get_data("mixsimulator", "/data/RIToamasina/DIR-TOAMASINA_concat.csv")

@@ -64,12 +64,12 @@ class Mas_platform:
                 if self.__moderator.get_observable()[powerplant_index].is_tuneable():
                     for i in range(0, data.shape[0]):
                         if self.__moderator.get_observable()[powerplant_index].get_id() == data["centrals"][i]:
-                            tmp_list : List[Any] = []
-                            upper : List[Any] = str(data["upper"][i]).split(":")
+                            tmp_list: List[Any] = []
+                            upper: List[Any] = str(data["upper"][i]).split(":")
                             upper = [float(numeric_string) for numeric_string in upper]
-                            lower : List[Any] = str(data["lower"][i]).split(":")
+                            lower: List[Any] = str(data["lower"][i]).split(":")
                             lower = [float(numeric_string) for numeric_string in lower]
-                            discrete : List[Any] = str(data["discrete"][i]).split(":")
+                            discrete: List[Any] = str(data["discrete"][i]).split(":")
                             discrete = [float(numeric_string) for numeric_string in discrete]
                             self.__moderator.get_observable()[powerplant_index].set_variation_params(
                                 lower=lower, upper=upper, choices=discrete
@@ -103,7 +103,7 @@ class Mas_platform:
         # self.__reset_centrals()
         # powerplant = pc.PowerCentral()
         try:
-            powerplant : Any = ...
+            powerplant: Any = ...
             self.__moderator.get_demand().set_mean_demand(data["Demand"][0])
             self.__moderator.set_constant_lost(data["lost"][0])
             for i in range(0, data.shape[0]):
@@ -135,7 +135,7 @@ class Mas_platform:
             raise
 
     def set_data_to(self, dataset, delimiter: str = ";"):
-        data : Any = ...
+        data: Any = ...
         if dataset == "Toamasina":
             # by defaut we keep it "Toamasina"
             data = pkgutil.get_data("mixsimulator", "/data/RIToamasina/dataset_RI_Toamasina_v2.csv")

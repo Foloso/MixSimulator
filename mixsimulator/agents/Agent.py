@@ -50,7 +50,7 @@ class Agent(Observable):
         self._code_files = "params_files/exchange_code.json"
         self.__type = "empty"
         self.__name = ""
-        self._scheduled_actions : Dict[Any,Any] = {}
+        self._scheduled_actions: Dict[Any, Any] = {}
         self.set_id(uuid.uuid4())
 
     def __repr__(self):
@@ -69,8 +69,8 @@ class Agent(Observable):
 
     def register_observer(self, moderators: List, t_from=0) -> None:
         super().register_observer(moderators)
-        data_json : Any = pkgutil.get_data("mixsimulator", self._code_files)
-        register_signal : Any = json.loads(data_json.decode("utf-8"))["100"]
+        data_json: Any = pkgutil.get_data("mixsimulator", self._code_files)
+        register_signal: Any = json.loads(data_json.decode("utf-8"))["100"]
         register_signal["id"] = self.get_id()
         register_signal["t_from"] = t_from
         self._notify_observers(register_signal)

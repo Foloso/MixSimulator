@@ -25,8 +25,8 @@ class PowerCentral:
         self._init_cur_usage = 0
         self._cur_usage = 0
         self._max_var = 1
-        self._lower : Any = 0.0
-        self._upper : Any = 1.0
+        self._lower: Any = 0.0
+        self._upper: Any = 1.0
         self._choices = None
 
     def set_init_cur_usage(self, init_usage):
@@ -137,8 +137,8 @@ class PowerCentral:
             if self._lower == self._upper:
                 return ng.p.Choice(self._choices)
             else:
-                lows : Any = [self._lower]
-                uppers : Any = [self._upper]
+                lows: Any = [self._lower]
+                uppers: Any = [self._upper]
                 for low, up in zip(lows, uppers):
                     if low == up:
                         continue

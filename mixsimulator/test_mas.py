@@ -4,7 +4,7 @@ import time
 from typing import Dict, List, Any
 
 import mixsimulator.nevergradBased.Optimizer as opt
-import numpy # type: ignore
+import numpy  # type: ignore
 from mixsimulator import ElectricityMix
 from mixsimulator.agents.Moderator import StoppableThread
 from mixsimulator.Evaluation import EvaluationBudget
@@ -17,7 +17,7 @@ from mixsimulator.Evaluation import EvaluationBudget
 def generate_random_scenario(centrals: List, time_index: int) -> Dict:
     scenario = {}
     for central in centrals:
-        tmp : Dict[Any,Any] = {"down": [], "up": []}
+        tmp: Dict[Any, Any] = {"down": [], "up": []}
         default_proba = random.uniform(0, 0.2)
 
         for i in range(time_index):
@@ -35,7 +35,7 @@ def generate_random_scenario(centrals: List, time_index: int) -> Dict:
 
         scenario.update({central: tmp.copy()})
 
-    event_stack : Dict[Any,Any]= {}
+    event_stack: Dict[Any, Any] = {}
     for i in range(time_index):
         for central in scenario.keys():
             if i in scenario[central]["down"]:
@@ -79,7 +79,7 @@ thread_checker.start()
     num_worker: int = 1,
     instrum = ng.p.Array(shape=(2,))
 """
-opt_OPO = opt.Optimizer(opt = ["OnePlusOne"], budget = [20], num_worker = 1)
+opt_OPO = opt.Optimizer(opt=["OnePlusOne"], budget=[20], num_worker=1)
 opt_OPO_20 = opt.Optimizer(opt=["OnePlusOne"], budget=[20], num_worker=20)
 
 """
@@ -94,7 +94,7 @@ opt_OPO_20 = opt.Optimizer(opt=["OnePlusOne"], budget=[20], num_worker=20)
     penalisation_cost: float = 1e7  --> penalisation cost when production is more or less than the demand #NEED VERIFICATION
 """
 
-classic_mix = ElectricityMix().mix(method="classic",carbon_cost=0,penalisation_cost=100)
+classic_mix = ElectricityMix().mix(method="classic", carbon_cost=0, penalisation_cost=100)
 mas_mix = ElectricityMix().mix(method="MAS", carbon_cost=0, penalisation_cost=100)
 
 """
@@ -120,7 +120,11 @@ mas_mix = ElectricityMix().mix(method="MAS", carbon_cost=0, penalisation_cost=10
     --> each result is a dict of "loss", "coef", "production", "unsatisfied demand", "carbon production" and "elapsed_time"
 
 """
-print(mas_mix.get_moderator().optimizeMix(1e10,optimizer = opt_OPO, step = 20, penalisation = 100, carbon_cost = 0, time_index = 168, plot = "default"))
+print(
+    mas_mix.get_moderator().optimizeMix(
+        1e10, optimizer=opt_OPO, step=20, penalisation=100, carbon_cost=0, time_index=168, plot="default"
+    )
+)
 
 
 """
@@ -141,8 +145,18 @@ print(mas_mix.get_moderator().optimizeMix(1e10,optimizer = opt_OPO, step = 20, p
     penalisation : float = 1000000000000,   --> equal to penalisation cost
     carbon_cost: float = 0
 """
-eva=EvaluationBudget()
-eva.evaluate(mas_mix.get_moderator(),10,100,optimizer_list = ["OnePlusOne","DE","CMA","PSO","NGOpt"], indicator_list = ["loss","elapsed_time","production","unsatisfied demand","carbon production"],carbonProdLimit = 1e10, time_index = 24, penalisation = 100, carbon_cost = 10)
+eva = EvaluationBudget()
+eva.evaluate(
+    mas_mix.get_moderator(),
+    10,
+    100,
+    optimizer_list=["OnePlusOne", "DE", "CMA", "PSO", "NGOpt"],
+    indicator_list=["loss", "elapsed_time", "production", "unsatisfied demand", "carbon production"],
+    carbonProdLimit=1e10,
+    time_index=24,
+    penalisation=100,
+    carbon_cost=10,
+)
 
 """
 (9) Simulating the mas platform (Manually)
