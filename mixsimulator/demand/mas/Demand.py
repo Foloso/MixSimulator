@@ -2,7 +2,8 @@ import csv
 import json
 import pkgutil
 from math import cos, floor, pi
-from typing import List, Any
+from typing import Any, List
+
 import pandas as pd  # type: ignore
 from prophet import Prophet  # type: ignore
 

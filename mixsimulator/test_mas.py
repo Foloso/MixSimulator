@@ -1,10 +1,11 @@
 import random
 import threading
 import time
-from typing import Dict, List, Any
+from typing import Any, Dict, List
+
+import numpy  # type: ignore
 
 import mixsimulator.nevergradBased.Optimizer as opt
-import numpy  # type: ignore
 from mixsimulator import ElectricityMix
 from mixsimulator.agents.Moderator import StoppableThread
 from mixsimulator.Evaluation import EvaluationBudget

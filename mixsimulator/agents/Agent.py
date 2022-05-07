@@ -2,7 +2,7 @@ import json
 import pkgutil
 import uuid
 from threading import Lock, Timer
-from typing import Dict, List, Any
+from typing import Any, Dict, List
 
 from .Interfaces import Observable
 

@@ -2,7 +2,8 @@
 import json
 import math
 import pkgutil
-from typing import Dict, List, Any
+from typing import Any, Dict, List
+
 import nevergrad as ng
 
 from ...agents.Agent import Agent

@@ -1,22 +1,24 @@
 #!/usr/bin/python3
+import copy
+import os
+import random
+import sys
 import threading
+import time
+import warnings
+from datetime import datetime
+from math import ceil
+from typing import Dict, List
+
+import matplotlib.pyplot as plt  # type: ignore
+import numpy as np  # type: ignore
+
+import mixsimulator.nevergradBased.Optimizer as opt
 from mixsimulator import ElectricityMix
+from mixsimulator.agents.Moderator import StoppableThread
 
 # from mixsimulator.Evaluation import EvaluationBudget
 from mixsimulator.demand.classic.Demand import Demand
-import mixsimulator.nevergradBased.Optimizer as opt
-import time
-from datetime import datetime
-from math import ceil
-from mixsimulator.agents.Moderator import StoppableThread
-import matplotlib.pyplot as plt  # type: ignore
-import numpy as np  # type: ignore
-import sys
-import copy
-import os
-import warnings
-from typing import List, Dict
-import random
 
 """
     (0) Functions : Check the thread running in background, plot cost results and generate scenarios
@@ -171,11 +173,11 @@ def plot_loss(optimum, mode: str = "default", average_wide: int = 0, step: int =
         # plt.show()
 
 
-""" 
-(1) INITIALIZATION  PARAMS: 
+"""
+(1) INITIALIZATION  PARAMS:
         - Configure nevergrad optimizers : argument[1] is opt_name, arg[2] is budget, arg[3] num_worker
         - time index as duration (arg[4]),
-        - step of evaluation as step_budget (arg[5]), 
+        - step of evaluation as step_budget (arg[5]),
         - time_interval as t_i (arg[6]).
 """
 opt_name = "OnePlusOne"
@@ -210,7 +212,7 @@ for run_ in range(numb_run):
     thread_checker = StoppableThread(target=check_thread_running, name="thread_checker")
     thread_checker.start()
     opt_ = opt.Optimizer(opt=[opt_name], budget=[budget], num_worker=num_worker)
-    """ 
+    """
     (2) Init MixSimulator instance :
         Case one [Default] : "classic" method (see test_classic.py for more use case)
         Case two : "MAS" or Multi Agent System method
@@ -218,7 +220,7 @@ for run_ in range(numb_run):
         Default parameters :
         ------------------------
         method : string = "classic",    --> method explain above
-        carbon_cost : float = 0         --> cost of the CO2 production 
+        carbon_cost : float = 0         --> cost of the CO2 production
         penalisation_cost: float = 1e7  --> penalisation cost when production is more or less than the demand #NEED VERIFICATION
     """
 
@@ -228,7 +230,7 @@ for run_ in range(numb_run):
     centrals = mas_mix.get_moderator().get_observable()
     scenario = generate_random_scenario(centrals, duration)
 
-    """ 
+    """
     (3) ONE SHOT optimization by calling the classic approach
 
     """

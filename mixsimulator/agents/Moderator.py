@@ -7,7 +7,7 @@ from datetime import datetime
 from math import ceil
 
 # import time
-from typing import Dict, List, Any
+from typing import Any, Dict, List
 
 import matplotlib.pyplot as plt  # type: ignore
 import nevergrad as ng

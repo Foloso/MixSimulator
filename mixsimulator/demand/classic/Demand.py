@@ -1,9 +1,10 @@
 import csv
 import pkgutil
 from math import cos, floor, pi
+from typing import Any
+
 import pandas as pd  # type: ignore
 from prophet import Prophet  # type: ignore
-from typing import Any
 
 
 class Demand:

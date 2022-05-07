@@ -1,7 +1,7 @@
 import csv
 import pkgutil
 import warnings
-from typing import List, Any
+from typing import Any, List
 
 import pandas as pd  # type: ignore
 
