@@ -5,7 +5,7 @@ with open("README.md") as fh:
 
 setuptools.setup(
     name="mixsimulator",
-    version="0.4.2",
+    version="0.4.3",
     author="RASOANAIVO Andry, ANDRIAMALALA Rahamefy Solofohanitra, ANDRIAMIZAKASON Toky Axel",
     author_email="tokyandriaxel@gmail.com",
     description="Python application with nevergrad optimization model for calculating and simulating the least cost of an energy Mix under constraints.",
