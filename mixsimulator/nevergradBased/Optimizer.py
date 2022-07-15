@@ -1,4 +1,5 @@
 import time
+import tqdm
 from typing import List, Type
 
 import nevergrad as ng
@@ -109,7 +110,8 @@ class Optimizer:
         )
 
         # let's minimize
-        for tmp_budget in range(0, total_budget):
+        print("Optimization over {} budgets :".format(total_budget))
+        for tmp_budget in tqdm.tqdm(range(0, total_budget)):
             x = optimizer.ask()
             loss = func_to_optimize(*x.args, constraints["time_interval"], init=init)
             optimizer.tell(x, loss)

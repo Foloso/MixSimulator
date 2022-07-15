@@ -1,6 +1,7 @@
 import csv
 import pkgutil
 import warnings
+import tqdm
 from typing import Any, List
 
 import pandas as pd  # type: ignore
@@ -106,7 +107,8 @@ class Mas_platform:
             powerplant: Any = ...
             self.__moderator.get_demand().set_mean_demand(data["Demand"][0])
             self.__moderator.set_constant_lost(data["lost"][0])
-            for i in range(0, data.shape[0]):
+            print("Loading powerplants dataset...")
+            for i in tqdm.tqdm(range(0, data.shape[0])):
                 isHydro = data["hydro"][i]
                 if isHydro.lower() == "true":
                     powerplant = Hydropowerplant(

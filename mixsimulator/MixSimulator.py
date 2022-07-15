@@ -2,6 +2,7 @@ import csv
 import os
 import pkgutil
 import warnings
+import tqdm
 from datetime import datetime
 from math import ceil
 
@@ -103,7 +104,8 @@ class MixSimulator:
         self.__reset_centrals()
         centrale = pc.PowerCentral()
         try:
-            for i in range(0, data.shape[0]):
+            print("Loading powerplants dataset...")
+            for i in tqdm.tqdm(range(0, data.shape[0])):
                 isHydro = data["hydro"][i]
                 if isHydro == True:
                     centrale = hc.HydroCentral(
@@ -372,33 +374,57 @@ class MixSimulator:
         if average_wide == 0:
             average_wide = ceil(len(optimum[-1]["coef"]) / 4)
 
-        if mode == "default" or mode == "save":
-            # set Y
+        if mode == "default" or mode == "save" or mode == "best":
+            # set Y of axe 1
             Y: Dict[str, List[float]] = {}
             label_y: List[str] = []
+            sum_prod = []
             for c in self.__centrals:
                 label_y.append(c.get_id())
                 Y.update({c.get_id(): []})
-            for array in optimum[-1]["coef"]:
-                for enum, value in enumerate(array):
-                    Y[label_y[enum]].append(value)
+            if mode != "best":
+                for array in optimum[-1]["coef"]:
+                    sum_t = 0.0
+                    for enum, value in enumerate(array):
+                        Y[label_y[enum]].append(value)
+                        sum_t = sum_t + (value * self.__centrals[enum].get_raw_power())
+                    sum_prod.append(sum_t)
+            else:
+                ##TODO get best loss
+                pass
 
-            fig, axs = plt.subplots(1, 1, figsize=(6, 6))
+            # set Y of axe 2
+            Y_: Dict[str, List[float]] = {}
+            Y_["demand"] = []
+            Y_["production"] = sum_prod
+            for t_i in range(0, len(optimum[-1]["coef"])):
+                Y_["demand"].append(self.__demand.get_demand_monthly(t_i, time_interval))
+
+            fig, axs = plt.subplots(1, 2, figsize=(12, 6))
 
             # data integration
             X = [i for i in range(0, len(optimum[-1]["coef"]))]
-            for n_axs in range(0, 1):
-                for central, value in Y.items():
-                    smooth_value = self.moving_average(value, average_wide)
-                    axs.plot(X[(average_wide - 1) :], smooth_value, ".-", alpha=0.5, lw=2, label=central)
+            for n_axs in range(0, 2):
+                if n_axs == 0:
+                    for central, value in Y.items():
+                        smooth_value = self.moving_average(value, average_wide)
+                        axs[n_axs].plot(X[(average_wide - 1) :], smooth_value, ".-", alpha=0.5, lw=2, label=central)
+                elif n_axs == 1:
+                    axs[n_axs].plot(X, Y_["demand"], label="demand")
+                    smooth_value = self.moving_average(Y_["production"], average_wide)
+                    axs[n_axs].plot(X[(average_wide - 1) :], smooth_value, ".-", alpha=0.5, lw=2, label="production")
 
             # Add execution_time and loss information
-            info = (
-                "production_cost: "
-                + "{:.3f}".format(optimum[-1]["loss"])
-                + " ; execution_time: "
-                + "{:.3f}".format(optimum[-1]["elapsed_time"])
-            )
+            try:
+                info = (
+                    "production_cost: "
+                    + "{:.3f}".format(optimum[-1]["loss"])
+                    + " ; execution_time: "
+                    + "{:.3f}".format(optimum[-1]["elapsed_time"])
+                )
+            except:
+                info = "production_cost: " + "{:.3f}".format(optimum[-1]["loss"])
+            info += "; demand gap: " + "{:.3f}".format(optimum[-1]["unsatisfied demand"])
             plt.annotate(
                 info,
                 xy=(0.5, 0),
@@ -411,13 +437,17 @@ class MixSimulator:
             )
 
             # plots parametrizations
-            axs.grid()
-            axs.yaxis.set_tick_params(length=0)
-            axs.xaxis.set_tick_params(length=0)
-            axs.set_xlabel("hours")
-            # axs[n_axs].yaxis.set_major_formatter(StrMethodFormatter("{x}"+units[0]))
-            axs.set_ylabel("coef (%)")
-            axs.legend()
+            for n_axs in range(0, 2):
+                axs[n_axs].grid()
+                axs[n_axs].yaxis.set_tick_params(length=0)
+                axs[n_axs].xaxis.set_tick_params(length=0)
+                axs[n_axs].set_xlabel("hours")
+                # axs[n_axs].yaxis.set_major_formatter(StrMethodFormatter("{x}"+units[0]))
+                if n_axs == 0:
+                    axs[n_axs].set_ylabel("coef (%)")
+                elif n_axs == 1:
+                    axs[n_axs].set_ylabel("MWh")
+                axs[n_axs].legend()
 
             fig.tight_layout()
             try:

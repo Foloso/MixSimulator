@@ -61,7 +61,8 @@ class Demand:
         data_to_use = pd.DataFrame()
         data_to_use[["datetime", "demands"]] = data.loc[data["datetime"] >= init_date][["datetime", column]]
 
-        # let's forcast
+        # let's forecast
+        print("############## FORECAST DEMAND ##############")
         train = pd.DataFrame()
         train[["ds", "y"]] = data[["datetime", column]]
         self.__pt.fit(train)
@@ -70,6 +71,7 @@ class Demand:
         fcst = fcst.loc[fcst["ds"] > data["datetime"].tail(1).item()]
         fcst[["datetime", "demands"]] = fcst[["ds", "yhat"]]
         self.data_demand = data_to_use.append(fcst, ignore_index=True)
+        print("#############################################")
 
         return self.data_demand
 
