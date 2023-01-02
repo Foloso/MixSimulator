@@ -1,11 +1,8 @@
-# import sys
-# from MixSimulator import MixSimulator
 import warnings
 from datetime import datetime
 from math import ceil, floor
 
-# import itertools
-from typing import List
+from typing import List, Any
 
 import matplotlib.pyplot as plt  # type: ignore
 
@@ -14,8 +11,6 @@ import numpy as np  # type: ignore
 
 from .demand.classic import Demand as de
 from .nevergradBased import Optimizer as opt
-
-# from matplotlib import ticker
 
 
 class EvaluationBudget:
@@ -84,18 +79,7 @@ class EvaluationBudget:
                         lw=2,
                         label=opt_name,
                     )
-                    # axs[0][n_axs].xaxis.set_minor_locator(ticker.MultipleLocator(len(smooth_value)))
-                    # axs[0][n_axs].yaxis.set_major_locator(ticker.MultipleLocator(1))
                     it = it + 1
-                    # axs[0][n_axs].xaxis.set_ticks(np.arange(min(X),max(X)+1,1.0))
-                    # axs[0][n_axs].yticks(np.arrange(min(smooth_value),max(smooth_value)+1,1.0))
-                    # label_per_opt = axs[0][n_axs].text(X[-1],smooth_value[-1],opt_name+"("+str(float("{:.2f}".format(smooth_value[-1])))+")")
-                    # texts.append(label_per_opt)
-                    # axs[0][n_axs].annotate( label_per_opt,
-                    #              xy     = (     X[-1], smooth_value[-1]),
-                    #              xytext = (1.02*X[-1], smooth_value[-1]),
-                    #            )
-                    # adjust_text(texts)
 
                     # plots parametrizations
                     axs[n_axs].grid()
@@ -153,18 +137,7 @@ class EvaluationBudget:
                         lw=2,
                         label=opt_name,
                     )
-                    # axs[0][n_axs].xaxis.set_minor_locator(ticker.MultipleLocator(len(smooth_value)))
-                    # axs[0][n_axs].yaxis.set_major_locator(ticker.MultipleLocator(1))
                     it = it + 1
-                    # axs[0][n_axs].xaxis.set_ticks(np.arange(min(X),max(X)+1,1.0))
-                    # axs[0][n_axs].yticks(np.arrange(min(smooth_value),max(smooth_value)+1,1.0))
-                    # label_per_opt = axs[0][n_axs].text(X[-1],smooth_value[-1],opt_name+"("+str(float("{:.2f}".format(smooth_value[-1])))+")")
-                    # texts.append(label_per_opt)
-                    # axs[0][n_axs].annotate( label_per_opt,
-                    #              xy     = (     X[-1], smooth_value[-1]),
-                    #              xytext = (1.02*X[-1], smooth_value[-1]),
-                    #            )
-            # adjust_text(texts)
 
             for n_axs in range(0, min_col):
                 dict_ = Y[label_y[max_col + n_axs]]
@@ -180,15 +153,7 @@ class EvaluationBudget:
                         lw=2,
                         label=opt_name,
                     )
-                    # axs[1][n_axs].xaxis.set_minor_locator(ticker.MultipleLocator(len(smooth_value)))
-                    # axs[1][n_axs].yaxis.set_major_locator(ticker.MultipleLocator(1))
                     it = it + 1
-                    # axs[1][n_axs].xaxis.set_ticks(np.arange(min(X),max(X)+1,1.0))
-                    # axs[1][n_axs].yticks(np.arrange(min(smooth_value),max(smooth_value)+1,1.0))
-                    # axs[1][n_axs].annotate(opt_name+"("+str(float("{:.2f}".format(smooth_value[-1])))+")",
-                    #              xy     = (     X[-1], smooth_value[-1]),
-                    #              xytext = (1.02*X[-1], smooth_value[-1]),
-                    #            )
 
             # plots parametrizations
             for row in range(0, 2):
@@ -276,7 +241,7 @@ class EvaluationBudget:
         optimizer_list: List["str"],
         indicator_list: List["str"],
         num_worker: int = 1,
-        bind: str = "",
+        bind: Any = None,
         time_index: int = 24,
         carbonProdLimit: float = 39500000000,
         time_interval: float = 1,
@@ -285,8 +250,10 @@ class EvaluationBudget:
         carbon_cost: float = 0,
     ):
         # setting dataset
-        if not bind:
+        if bind:
             mix.set_data_csv(str(bind))
+        else:
+            mix.set_data_to("Toamasina")
 
         self.check_opt_list(optimizer_list)
         if optimizer_list == []:
@@ -332,101 +299,3 @@ class EvaluationBudget:
 
         # return X, Y, opt_list, max_budgets
         return [np.array(budget), y_tmp, optimizer_list, max_budgets]
-
-    # NOT USE : NEED VERIFICATION
-    def evaluate_total_time(
-        self,
-        mix,
-        sequence,
-        max_budgets,
-        optimizer_list: List["str"],
-        indicator_list: List["str"],
-        bind=None,
-        carbonProdLimit: float = 500000,
-        time_index: int = 24 * 265,
-        time_interval: float = 1,
-        average_wide: int = 0,
-        penalisation: float = 1000000000000,
-        plot: str = "default",
-    ):
-        # setting dataset
-
-        budget = np.arange(0, max_budgets, sequence)
-
-        if bind is not None:
-            mix.set_data_csv(str(bind))
-
-        self.check_opt_list(optimizer_list)
-        if optimizer_list == []:
-            raise IndexError("Selected optimizers are not available.")
-
-        # process
-        data_interval = []
-        current_demand = de.Demand(mix.get_demand(), 0.2, 0.2)
-        for time in range(0, time_index):
-            mix.set_demand(current_demand.get_demand_approxima(time, time_interval))
-            ind_per_opt = {}
-            for opt_name in optimizer_list:
-                data = mix.optimizeMix(
-                    carbonProdLimit=carbonProdLimit,
-                    time_interval=time_interval,
-                    optimize_with=[opt_name],
-                    budgets=[max_budgets],
-                    step=sequence,
-                    penalisation=penalisation,
-                )
-                ind_per_opt.update({opt_name: data})
-            data_interval.append(ind_per_opt)
-
-        Y = []
-        indicator_list_WO_penalisation = indicator_list.copy()
-        try:
-            indicator_list_WO_penalisation.remove("penalized production cost (loss)")
-        except:
-            pass
-        for time in range(0, time_index):
-            y_tmp = {}
-            for indicator in indicator_list_WO_penalisation:
-                new_ind_per_opt = {}
-                for opt_name, values in ind_per_opt.items():
-                    ind_per_budget = []
-                    for budget_value in values:
-                        ind_per_budget.append(float(budget_value[indicator]))
-                    new_ind_per_opt.update({opt_name: ind_per_budget})
-                y_tmp.update({indicator: new_ind_per_opt})
-            Y.append(y_tmp)
-
-        result = {}
-        for indicator in indicator_list:
-            optimizers_dict = {}
-            for opt_name in optimizer_list:
-                per_budget = []
-                for budget_step in range(0, len(budget)):
-                    value = 0.0
-                    for time in range(0, time_index):
-                        if indicator == "penalized production cost (loss)":
-                            value += Y[time]["production_cost ($)"][opt_name][budget_step] + np.abs(
-                                mix.get_penalisation_cost()
-                                * Y[time]["unsatisfied_demand (MWh)"][opt_name][budget_step]
-                            )
-                        else:
-                            value += Y[time][indicator][opt_name][budget_step]
-                    if indicator == "penalized production cost (loss)":
-                        value = np.log10(value)
-                    per_budget.append(value)
-                optimizers_dict.update({opt_name: per_budget})
-            result.update({indicator: optimizers_dict})
-
-        # plotting
-        self.plot_evaluation(
-            X=np.array(budget),
-            Y=result,
-            label_y=indicator_list,
-            label=optimizer_list,
-            max_budgets=max_budgets,
-            average_wide=average_wide,
-            plot=plot,
-        )
-
-        # return X, Y, opt_list, max_budgets
-        return [np.array(budget), result, optimizer_list, max_budgets]

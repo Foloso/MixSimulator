@@ -21,7 +21,7 @@ opt_CMA_30 = opt.Optimizer(opt=["CMA"], budget=[20], num_worker=30)
 """
 (2) Init MixSimulator instance
 """
-mix = ms.MixSimulator()
+mix = ms()
 
 
 """
@@ -30,10 +30,12 @@ mix = ms.MixSimulator()
         https://github.com/Foloso/MixSimulator/tree/master/data/RIToamasina
 
 """
-mix.set_data_csv("data/RIToamasina/dataset_RI_Toamasina_v2.csv", delimiter=";")
+#mix.set_data_csv("data/RIToamasina/dataset_RI_Toamasina_v2.csv", delimiter=";")
 
-### or use it for default dataset (RI_Toamasina version 2)
-# mix.set_data_to("Toamasina")
+"""
+or use it for default dataset (RI_Toamasina version 2)
+"""
+mix.set_data_to("Toamasina")
 
 """
 (4) For variation limits dataset, there is not yet default dataset
@@ -47,7 +49,7 @@ mix.set_data_csv("data/RIToamasina/dataset_RI_Toamasina_v2.csv", delimiter=";")
         discrete	Les valeurs discrètes des variations fixes des centrales
 
 """
-mix.set_variation_csv("data/RIToamasina/dataset_RI_Toamasina_variation_template.csv", delimiter=";")
+#mix.set_variation_csv("data/RIToamasina/dataset_RI_Toamasina_variation_template.csv", delimiter=";")
 
 
 """
@@ -58,7 +60,9 @@ mix.set_variation_csv("data/RIToamasina/dataset_RI_Toamasina_variation_template.
 
 """
 demand = Demand()
-data_demand = demand.set_data_csv("data/RIToamasina/DIR-TOAMASINA_concat.csv", delimiter=",")
+#data_demand = demand.set_data_csv("data/RIToamasina/DIR-TOAMASINA_concat.csv", delimiter=",")
+### or for default dataset
+demand.set_data_to("Toamasina",delimiter=",")
 """
     The method must get a dataset with at least 3 columns
     - month : int,
@@ -68,8 +72,6 @@ data_demand = demand.set_data_csv("data/RIToamasina/DIR-TOAMASINA_concat.csv", d
     The method also use a forcast model from prophet to predict future demand.
     The periods can be set by set_forcast_periods.
 """
-# or for default dataset
-# demand.set_data_to("Toamasina",delimiter=",")
 
 """
 (6) Then set the demand
