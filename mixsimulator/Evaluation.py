@@ -1,8 +1,7 @@
 import warnings
 from datetime import datetime
 from math import ceil, floor
-
-from typing import List, Any
+from typing import Any, List
 
 import matplotlib.pyplot as plt  # type: ignore
 

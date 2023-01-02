@@ -30,7 +30,7 @@ mix = ms()
         https://github.com/Foloso/MixSimulator/tree/master/data/RIToamasina
 
 """
-#mix.set_data_csv("data/RIToamasina/dataset_RI_Toamasina_v2.csv", delimiter=";")
+# mix.set_data_csv("data/RIToamasina/dataset_RI_Toamasina_v2.csv", delimiter=";")
 
 """
 or use it for default dataset (RI_Toamasina version 2)
@@ -49,7 +49,7 @@ mix.set_data_to("Toamasina")
         discrete	Les valeurs discrètes des variations fixes des centrales
 
 """
-#mix.set_variation_csv("data/RIToamasina/dataset_RI_Toamasina_variation_template.csv", delimiter=";")
+# mix.set_variation_csv("data/RIToamasina/dataset_RI_Toamasina_variation_template.csv", delimiter=";")
 
 
 """
@@ -60,9 +60,9 @@ mix.set_data_to("Toamasina")
 
 """
 demand = Demand()
-#data_demand = demand.set_data_csv("data/RIToamasina/DIR-TOAMASINA_concat.csv", delimiter=",")
+# data_demand = demand.set_data_csv("data/RIToamasina/DIR-TOAMASINA_concat.csv", delimiter=",")
 ### or for default dataset
-demand.set_data_to("Toamasina",delimiter=",")
+demand.set_data_to("Toamasina", delimiter=",")
 """
     The method must get a dataset with at least 3 columns
     - month : int,
