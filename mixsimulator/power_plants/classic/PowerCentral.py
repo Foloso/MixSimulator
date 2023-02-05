@@ -140,9 +140,9 @@ class PowerCentral:
                 lows: Any = [self._lower]
                 uppers: Any = [self._upper]
                 for low, up in zip(lows, uppers):
-                    if low == up:
+                    if low[0] == up[0]:
                         continue
-                    final_params.append(ng.p.Scalar(lower=low, upper=up))
+                    final_params.append(ng.p.Scalar(lower=low[0], upper=up[0]))
                 discret = ng.p.Choice(self._choices)
                 final_params.append(discret)
                 params = ng.p.Choice(final_params)
@@ -153,7 +153,7 @@ class PowerCentral:
                 lows = [self._lower]
                 uppers = [self._upper]
                 for low, up in zip(lows, uppers):
-                    final_params.append(ng.p.Scalar(lower=low, upper=up))
+                    final_params.append(ng.p.Scalar(lower=low[0], upper=up[0]))
                 params = ng.p.Choice(final_params)
                 return params
             else:

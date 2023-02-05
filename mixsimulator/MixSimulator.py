@@ -70,10 +70,13 @@ class MixSimulator:
                             upper = [float(numeric_string) for numeric_string in upper]
                             lower: List[Any] = str(data["lower"][i]).split(":")
                             lower = [float(numeric_string) for numeric_string in lower]
-                            discrete: List[Any] = str(data["discrete"][i]).split(":")
-                            discrete = [float(numeric_string) for numeric_string in discrete]
+                            choices = None
+                            if str(data["discrete"][i]) != "None":
+                                discrete: List[Any] = str(data["discrete"][i]).split(":")
+                                discrete = [float(numeric_string) for numeric_string in discrete]
+                                choices = discrete
                             self.__centrals[central_index].set_variation_params(
-                                lower=lower, upper=upper, choices=discrete
+                                lower=lower, upper=upper, choices=choices
                             )
 
     def set_data_csv(self, bind=None, raw_data=None, delimiter: str = ";"):
