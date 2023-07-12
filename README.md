@@ -73,5 +73,18 @@ There is also "DIR-TOAMASINA_concat.csv" about Consumption data (in kwh, more de
 
 **If you have datasets of any region in the world that can be used to evaluate our model, please contact us.**
 
+## Citation
+```
+@misc{MixSimulator,
+    author = {Solofohanitra R. Andriamalala and Toky A. Andriamizakason and Andry Rasoanaivo},
+    title = {{MixSimulator - An electricity mix simulator and optimization}},
+    year = {2020},
+    publisher = {GitHub},
+    journal = {GitHub repository},
+    howpublished = {\url{https://GitHub.com/Foloso/MixSimulator}},
+}
+```
+You can also read the associated paper : [Multi-agent vs Classic System of an Electricity Mix Production Optimization](https://link.springer.com/chapter/10.1007/978-3-031-30229-9_8) 
+
 ## Contact
 For questions and feedbacks related to the project, please send an email to r.andry.rasoanaivo@gmail.com or soloforahamefy@gmail.com or tokyandriaxel@gmail.com
